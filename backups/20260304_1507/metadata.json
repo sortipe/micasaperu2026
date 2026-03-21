@@ -1,0 +1,8 @@
+{
+  "name": "MICASAPERU",
+  "description": "V3.0 Marketplace Inmobiliario con Monetización y Dashboard de Cliente",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
