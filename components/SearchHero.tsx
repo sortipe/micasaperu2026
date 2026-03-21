@@ -944,7 +944,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </div>
         </div>
       )}
-      <div className="relative pt-0 pb-8 md:pt-0 md:pb-4 min-h-[450px] md:min-h-[520px] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+      <div className="relative pt-0 pb-8 md:pt-0 md:pb-4 min-h-[350px] md:min-h-[420px] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
         <div className={`absolute inset-0 transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
           <picture className="w-full h-full">
             {bannerUrlMobile && <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />}
@@ -957,7 +957,11 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </picture>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-6xl mt-40 md:mt-60">
+        <div className="container mx-auto px-4 relative z-10 text-center max-w-6xl mt-24 md:mt-32">
+          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-8 md:mb-12 animate-slide-up leading-tight drop-shadow-2xl">
+            Tu próximo hogar <br/><span className="text-red-600 italic">está aquí.</span>
+          </h1>
+
           <div className="w-full max-w-5xl mx-auto px-2">
             <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-fit">
                 {tabs.map((tab, idx) => (
