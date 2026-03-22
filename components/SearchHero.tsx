@@ -958,9 +958,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
         </div>
 
         <div className="container mx-auto px-4 relative z-10 text-center max-w-6xl mt-24 md:mt-32">
-          <h1 className="text-3xl md:text-5xl font-black text-white tracking-tighter mb-8 md:mb-12 animate-slide-up leading-tight drop-shadow-2xl">
-            Tu próximo hogar <br/><span className="text-red-600 italic">está aquí.</span>
-          </h1>
+
 
           <div className="w-full max-w-5xl mx-auto px-2">
             <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-fit">
