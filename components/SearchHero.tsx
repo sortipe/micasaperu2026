@@ -951,7 +951,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
             <img 
               src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=80&w=2070"} 
               onLoad={() => setIsImageLoaded(true)} 
-              className="w-full h-full object-cover object-top" 
+              className="w-full h-full object-contain object-center" 
               alt="Banner" 
             />
           </picture>
