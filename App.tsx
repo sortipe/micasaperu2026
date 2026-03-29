@@ -881,7 +881,7 @@ const App: React.FC = () => {
               try {
                 const { error } = await supabase.from('packages').delete().eq('id', id); 
                 if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                  if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
                     setPackages(prev => prev.filter(p => p.id !== id));
                     showToast("Eliminado mock (falta tabla)", "INFO");
                     return;
@@ -916,7 +916,7 @@ const App: React.FC = () => {
               try {
                 const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
                 if (error) {
-                  if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204') {
+                  if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('schema cache')) {
                      setPaymentMethods(prev => prev.filter(m => m.id !== id));
                      showToast("Eliminado mock. (Falta tabla)", "INFO");
                      return;
@@ -951,7 +951,7 @@ const App: React.FC = () => {
               try {
                 const { error } = await supabase.from('locations').delete().eq('id', id); 
                 if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                  if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
                     setLocations(prev => prev.filter(loc => loc.id !== id));
                     showToast("Eliminada mock (Falta tabla)", "INFO");
                     return;
