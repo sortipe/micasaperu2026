@@ -880,22 +880,35 @@ const App: React.FC = () => {
             onDeletePackage={async id => { 
               try {
                 const { error } = await supabase.from('packages').delete().eq('id', id); 
-                if (error) throw error;
+                if (error) {
+                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                    setPackages(prev => prev.filter(p => p.id !== id));
+                    showToast("Eliminado mock (falta tabla)", "INFO");
+                    return;
+                  }
+                  throw error;
+                }
                 setPackages(prev => prev.filter(p => p.id !== id));
                 showToast("Plan eliminado", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al eliminar plan", "ERROR");
+              } catch (err: any) {
+                showToast(err.message || "Error al eliminar plan", "ERROR");
                 console.error(err);
               }
             }}
             onUpdatePaymentMethod={async m => { 
               try {
                 const { error } = await supabase.from('payment_methods').upsert(m); 
-                if (error) throw error;
+                if (error) {
+                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                    showToast("Falta crear tabla 'payment_methods'", "ERROR");
+                    return;
+                  }
+                  throw error;
+                }
                 fetchPaymentMethods(); 
                 showToast("Método de pago actualizado", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al actualizar método de pago", "ERROR");
+              } catch (err: any) {
+                showToast(err.message || "Error al actualizar método de pago", "ERROR");
                 console.error(err);
               }
             }} 
@@ -903,10 +916,9 @@ const App: React.FC = () => {
               try {
                 const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
                 if (error) {
-                  // Fallback for demo mock IDs or if table doesn't exist
-                  if (error.code === '22P02' || error.code === '42P01') {
+                  if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204') {
                      setPaymentMethods(prev => prev.filter(m => m.id !== id));
-                     showToast("Eliminado mock. (Falta tabla en Supabase)", "INFO");
+                     showToast("Eliminado mock. (Falta tabla)", "INFO");
                      return;
                   }
                   throw error;
@@ -921,22 +933,35 @@ const App: React.FC = () => {
             onSaveLocation={async l => { 
               try {
                 const { error } = await supabase.from('locations').upsert(l); 
-                if (error) throw error;
+                if (error) {
+                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                    showToast("Falta crear tabla 'locations'", "ERROR");
+                    return;
+                  }
+                  throw error;
+                }
                 fetchLocations(); 
                 showToast("Ubicación guardada", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al guardar ubicación", "ERROR");
+              } catch (err: any) {
+                showToast(err.message || "Error al guardar ubicación", "ERROR");
                 console.error(err);
               }
             }} 
             onDeleteLocation={async id => { 
               try {
                 const { error } = await supabase.from('locations').delete().eq('id', id); 
-                if (error) throw error;
+                if (error) {
+                  if (error.code === 'PGRST204' || error.code === '42P01') {
+                    setLocations(prev => prev.filter(loc => loc.id !== id));
+                    showToast("Eliminada mock (Falta tabla)", "INFO");
+                    return;
+                  }
+                  throw error;
+                }
                 setLocations(prev => prev.filter(loc => loc.id !== id));
                 showToast("Ubicación eliminada", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al eliminar ubicación", "ERROR");
+              } catch (err: any) {
+                showToast(err.message || "Error al eliminar ubicación", "ERROR");
                 console.error(err);
               }
             }}
