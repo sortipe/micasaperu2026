@@ -69,6 +69,8 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const bannerMobileInputRef = useRef<HTMLInputElement>(null);
   const faviconInputRef = useRef<HTMLInputElement>(null);
+  const paymentMethodInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingMethodId, setUploadingMethodId] = useState<string | null>(null);
 
   const [aiPrompt, setAiPrompt] = useState('');
   const [isAiGenerating, setIsAiGenerating] = useState(false);
@@ -152,7 +154,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     );
   }, [locations, locationSearch]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'LOGO' | 'BANNER' | 'BANNER_MOBILE' | 'AVATAR' | 'FAVICON') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'LOGO' | 'BANNER' | 'BANNER_MOBILE' | 'AVATAR' | 'FAVICON' | 'QR_CODE') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -160,6 +162,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     else if (type === 'BANNER') setIsUploadingBanner(true);
     else if (type === 'BANNER_MOBILE') setIsUploadingBannerMobile(true);
     else if (type === 'FAVICON') setIsUploadingFavicon(true);
+    else if (type === 'QR_CODE') { /* No central loading state for QR, we handle it per method if needed, but for now we'll just use the flow */ }
     else setIsUpdatingProfile(true);
 
     try {
@@ -173,6 +176,13 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
       else if (type === 'BANNER') await onUpdateBanner(urlData.publicUrl);
       else if (type === 'BANNER_MOBILE') await onUpdateBannerMobile(urlData.publicUrl);
       else if (type === 'FAVICON') await onUpdateFavicon(urlData.publicUrl);
+      else if (type === 'QR_CODE' && uploadingMethodId) {
+        const method = paymentMethods.find(m => m.id === uploadingMethodId);
+        if (method) {
+          await onUpdatePaymentMethod({ ...method, qrUrl: urlData.publicUrl });
+          showToast("Imagen QR actualizada", "SUCCESS");
+        }
+      }
       else {
         await onUpdateProfile({ avatar: urlData.publicUrl });
         setProfileData(prev => ({ ...prev, avatar: urlData.publicUrl }));
@@ -891,7 +901,29 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                           <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="N° de Cuenta" value={method.accountNumber} onChange={e => onUpdatePaymentMethod({...method, accountNumber: e.target.value})} />
                        </div>
                      ) : method.type === 'QR' ? (
-                       <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="URL QR" value={method.qrUrl} onChange={e => onUpdatePaymentMethod({...method, qrUrl: e.target.value})} />
+                       <div className="space-y-4">
+                          <div className="flex gap-4 items-center">
+                            <div className="relative group w-24 h-24 bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-red-600 transition-all" onClick={() => { setUploadingMethodId(method.id); paymentMethodInputRef.current?.click(); }}>
+                              {method.qrUrl ? (
+                                <img src={method.qrUrl} className="w-full h-full object-contain" alt="QR Preview" />
+                              ) : (
+                                <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              )}
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                              </div>
+                            </div>
+                            <div className="flex-grow space-y-2">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Url o Imagen de QR</p>
+                              <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="URL QR o sube una imagen" value={method.qrUrl || ''} onChange={e => onUpdatePaymentMethod({...method, qrUrl: e.target.value})} />
+                              <button onClick={() => { setUploadingMethodId(method.id); paymentMethodInputRef.current?.click(); }} className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                Subir desde el ordenador
+                              </button>
+                            </div>
+                          </div>
+                          <input type="file" ref={paymentMethodInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'QR_CODE')} />
+                       </div>
                      ) : (
                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed">Este método utiliza la configuración global de Culqi definida abajo.</p>
                      )}

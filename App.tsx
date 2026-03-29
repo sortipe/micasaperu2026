@@ -463,7 +463,7 @@ const App: React.FC = () => {
   const fetchPackages = async () => {
     if (!isSupabaseConfigured) return;
     const { data } = await supabase.from('packages').select('*').order('price', { ascending: true });
-    if (data && data.length > 0) setPackages(data as Package[]);
+    if (data) setPackages(data as Package[]);
   };
 
   const fetchLegalDocs = async () => {
@@ -481,7 +481,7 @@ const App: React.FC = () => {
   const fetchPaymentMethods = async () => {
     if (!isSupabaseConfigured) return;
     const { data } = await supabase.from('payment_methods').select('*');
-    if (data && data.length > 0) setPaymentMethods(data as PaymentMethod[]);
+    if (data) setPaymentMethods(data as PaymentMethod[]);
   };
 
   const fetchTransactions = async () => {
