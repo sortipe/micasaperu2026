@@ -54,9 +54,9 @@ const App: React.FC = () => {
   const [culqiPrivateKey, setCulqiPrivateKey] = useState<string>('');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    { id: 'm1', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', isActive: true },
-    { id: 'm2', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', isActive: true },
-    { id: 'm3', name: 'Tarjeta de Crédito / Débito', type: 'CARD', isActive: true }
+    { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', isActive: true },
+    { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', isActive: true },
+    { id: '33333333-3333-3333-3333-333333333333', name: 'Tarjeta de Crédito / Débito', type: 'CARD', isActive: true }
   ]);
 
   const [view, setView] = useState<'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART'>('HOME');
@@ -902,11 +902,19 @@ const App: React.FC = () => {
             onDeletePaymentMethod={async id => { 
               try {
                 const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
-                if (error) throw error;
+                if (error) {
+                  // Fallback for demo mock IDs or if table doesn't exist
+                  if (error.code === '22P02' || error.code === '42P01') {
+                     setPaymentMethods(prev => prev.filter(m => m.id !== id));
+                     showToast("Eliminado mock. (Falta tabla en Supabase)", "INFO");
+                     return;
+                  }
+                  throw error;
+                }
                 setPaymentMethods(prev => prev.filter(m => m.id !== id));
                 showToast("Método de pago eliminado", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al eliminar el método de pago", "ERROR");
+              } catch (err: any) {
+                showToast(err.message || "Error al eliminar el método de pago", "ERROR");
                 console.error(err);
               }
             }} 
