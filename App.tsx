@@ -877,8 +877,61 @@ const App: React.FC = () => {
                 }
               }
             }} 
-            onDeletePackage={async id => { await supabase.from('packages').delete().eq('id', id); fetchPackages(); showToast("Plan eliminado", "SUCCESS"); }}
-            onUpdatePaymentMethod={async m => { await supabase.from('payment_methods').upsert(m); fetchPaymentMethods(); showToast("Método de pago actualizado", "SUCCESS"); }} onDeletePaymentMethod={async id => { await supabase.from('payment_methods').delete().eq('id', id); fetchPaymentMethods(); showToast("Método de pago eliminado", "SUCCESS"); }} onSaveLocation={async l => { await supabase.from('locations').upsert(l); fetchLocations(); showToast("Ubicación guardada", "SUCCESS"); }} onDeleteLocation={async id => { await supabase.from('locations').delete().eq('id', id); fetchLocations(); showToast("Ubicación eliminada", "SUCCESS"); }}
+            onDeletePackage={async id => { 
+              try {
+                const { error } = await supabase.from('packages').delete().eq('id', id); 
+                if (error) throw error;
+                setPackages(prev => prev.filter(p => p.id !== id));
+                showToast("Plan eliminado", "SUCCESS"); 
+              } catch (err) {
+                showToast("Error al eliminar plan", "ERROR");
+                console.error(err);
+              }
+            }}
+            onUpdatePaymentMethod={async m => { 
+              try {
+                const { error } = await supabase.from('payment_methods').upsert(m); 
+                if (error) throw error;
+                fetchPaymentMethods(); 
+                showToast("Método de pago actualizado", "SUCCESS"); 
+              } catch (err) {
+                showToast("Error al actualizar método de pago", "ERROR");
+                console.error(err);
+              }
+            }} 
+            onDeletePaymentMethod={async id => { 
+              try {
+                const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
+                if (error) throw error;
+                setPaymentMethods(prev => prev.filter(m => m.id !== id));
+                showToast("Método de pago eliminado", "SUCCESS"); 
+              } catch (err) {
+                showToast("Error al eliminar el método de pago", "ERROR");
+                console.error(err);
+              }
+            }} 
+            onSaveLocation={async l => { 
+              try {
+                const { error } = await supabase.from('locations').upsert(l); 
+                if (error) throw error;
+                fetchLocations(); 
+                showToast("Ubicación guardada", "SUCCESS"); 
+              } catch (err) {
+                showToast("Error al guardar ubicación", "ERROR");
+                console.error(err);
+              }
+            }} 
+            onDeleteLocation={async id => { 
+              try {
+                const { error } = await supabase.from('locations').delete().eq('id', id); 
+                if (error) throw error;
+                setLocations(prev => prev.filter(loc => loc.id !== id));
+                showToast("Ubicación eliminada", "SUCCESS"); 
+              } catch (err) {
+                showToast("Error al eliminar ubicación", "ERROR");
+                console.error(err);
+              }
+            }}
             onUpdateProfile={handleUpdateProfile} onNavigate={setView}
             onSyncCredits={handleSyncCredits}
             showToast={showToast}
