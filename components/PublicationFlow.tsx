@@ -42,7 +42,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Package | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'SUCCESS'>('IDLE');
-  const [useCredits, setUseCredits] = useState(false);
+  const [useCredits, setUseCredits] = useState((user.propertiesRemaining || 0) > 0 || (user.featuredRemaining || 0) > 0 || (user.superFeaturedRemaining || 0) > 0);
 
   const mapRef = useRef<any>(null);
   const pickerMarkerRef = useRef<any>(null);

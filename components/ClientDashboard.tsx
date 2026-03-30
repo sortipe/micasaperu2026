@@ -302,11 +302,6 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
   };
 
   const handleAddPropertyClick = () => {
-    if (!canPublish) {
-      showToast("No tienes saldo de publicaciones. Por favor adquiere un plan.", "WARNING");
-      onNavigate('PRICING');
-      return;
-    }
     onAddProperty();
   };
 

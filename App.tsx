@@ -896,40 +896,53 @@ const App: React.FC = () => {
               }
             }}
             onUpdatePaymentMethod={async m => { 
-              try {
-                const { error } = await supabase.from('payment_methods').upsert(m); 
-                if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01') {
-                    showToast("Falta crear tabla 'payment_methods'", "ERROR");
-                    return;
-                  }
-                  throw error;
-                }
-                fetchPaymentMethods(); 
-                showToast("Método de pago actualizado", "SUCCESS"); 
-              } catch (err: any) {
-                showToast(err.message || "Error al actualizar método de pago", "ERROR");
-                console.error(err);
-              }
-            }} 
-            onDeletePaymentMethod={async id => { 
-              try {
-                const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
-                if (error) {
-                  if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('schema cache')) {
-                     setPaymentMethods(prev => prev.filter(m => m.id !== id));
-                     showToast("Eliminado mock. (Falta tabla)", "INFO");
+               // Actualización optimista del estado local
+               setPaymentMethods(prev => {
+                 const exists = prev.find(item => item.id === m.id);
+                 if (exists) {
+                   return prev.map(item => item.id === m.id ? m : item);
+                 }
+                 return [...prev, m];
+               });
+
+               try {
+                 const { error } = await supabase.from('payment_methods').upsert(m); 
+                 if (error) {
+                   if (error.code === 'PGRST204' || error.code === '42P01') {
+                     showToast("Falta crear tabla 'payment_methods' en Supabase", "ERROR");
                      return;
-                  }
-                  throw error;
-                }
-                setPaymentMethods(prev => prev.filter(m => m.id !== id));
-                showToast("Método de pago eliminado", "SUCCESS"); 
-              } catch (err: any) {
-                showToast(err.message || "Error al eliminar el método de pago", "ERROR");
-                console.error(err);
-              }
-            }} 
+                   }
+                   throw error;
+                 }
+                 showToast("Método de pago guardado", "SUCCESS"); 
+                 fetchPaymentMethods(); // Sincronizar con el servidor para obtener IDs reales si aplica
+               } catch (err: any) {
+                 showToast(err.message || "Error al actualizar método de pago", "ERROR");
+                 console.error(err);
+                 // Opcional: Revertir el estado local en caso de error crítico
+                 fetchPaymentMethods();
+               }
+             }} 
+             onDeletePaymentMethod={async id => { 
+               // Actualización optimista: eliminar de la lista local inmediatamente
+               setPaymentMethods(prev => prev.filter(m => m.id !== id));
+
+               try {
+                 const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
+                 if (error) {
+                   if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('schema cache')) {
+                      showToast("Eliminado de la vista (Falta tabla en Supabase)", "INFO");
+                      return;
+                   }
+                   throw error;
+                 }
+                 showToast("Método de pago eliminado", "SUCCESS"); 
+               } catch (err: any) {
+                 showToast(err.message || "Error al eliminar el método de pago", "ERROR");
+                 console.error(err);
+                 fetchPaymentMethods(); // Re-sincronizar en caso de error
+               }
+             }} 
             onSaveLocation={async l => { 
               try {
                 const { error } = await supabase.from('locations').upsert(l); 
