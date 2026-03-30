@@ -216,6 +216,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                                <span className="font-black text-slate-900 uppercase">MICASAPERU INMOBILIARIA</span>
                             </div>
                          </div>
+                         {selectedMethod.instructions && (
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center mt-4">
+                              {selectedMethod.instructions}
+                            </p>
+                          )}
                       </div>
                     ) : selectedMethod.type === 'CARD' ? (
                       <div className="flex flex-col items-center text-center">
@@ -226,7 +231,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                            )}
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                           Paga de forma segura usando Culqi con tu tarjeta de crédito o débito
+                            {selectedMethod.instructions || 'Paga de forma segura usando Culqi con tu tarjeta de crédito o débito'}
                          </p>
                          {(culqiPublicKey?.startsWith('pk_test') || !culqiPublicKey) && (
                            <div className="mt-2 space-y-1">
@@ -241,7 +246,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                            <img src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="QR" />
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                           Escanea el código y adjunta una captura de pantalla del comprobante
+                           {selectedMethod.instructions || 'Escanea el código y adjunta una captura de pantalla del comprobante'}
                          </p>
                       </div>
                     )}

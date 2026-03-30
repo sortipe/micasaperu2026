@@ -74,6 +74,7 @@ export interface PaymentMethod {
   accountNumber?: string;
   cci?: string;
   qrUrl?: string;
+  instructions?: string;
   isActive: boolean;
 }
 

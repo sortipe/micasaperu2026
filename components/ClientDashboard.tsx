@@ -932,6 +932,15 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      ) : (
                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed">Este método utiliza la configuración global de Culqi definida abajo.</p>
                      )}
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Guía / Instrucciones de pago</p>
+                        <textarea 
+                          className="w-full p-4 bg-white rounded-2xl font-bold text-xs outline-none focus:ring-2 focus:ring-red-500 min-h-[80px] resize-none"
+                          placeholder="Escribe aquí las instrucciones que verá el usuario..."
+                          value={method.instructions || ''}
+                          onChange={e => onUpdatePaymentMethod({...method, instructions: e.target.value})}
+                        />
+                     </div>
                   </div>
                 ))}
              </div>

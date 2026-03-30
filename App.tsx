@@ -54,9 +54,9 @@ const App: React.FC = () => {
   const [culqiPrivateKey, setCulqiPrivateKey] = useState<string>('');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', isActive: true },
-    { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', isActive: true },
-    { id: '33333333-3333-3333-3333-333333333333', name: 'Tarjeta de Crédito / Débito', type: 'CARD', isActive: true }
+    { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
+    { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', instructions: 'Escanea el código QR desde tu app Yape y adjunta la captura de pantalla del pago.', isActive: true },
+    { id: '33333333-3333-3333-3333-333333333333', name: 'Tarjeta de Crédito / Débito', type: 'CARD', instructions: 'Paga de forma segura usando Culqi con tu tarjeta de crédito o débito.', isActive: true }
   ]);
 
   const [view, setView] = useState<'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART'>('HOME');
