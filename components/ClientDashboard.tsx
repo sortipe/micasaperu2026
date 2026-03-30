@@ -1220,20 +1220,20 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                  <span className="font-black text-slate-700 text-xs uppercase tracking-wider">{viewTransactionDetails.paymentMethodName}</span>
                </div>
                
-               {(viewTransactionDetails.operationNumber || viewTransactionDetails.securityCode) && (
-                 <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl space-y-3 mt-4">
-                   {viewTransactionDetails.operationNumber && (
-                     <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">N° Transacción / Operación</span>
-                       <span className="font-black text-blue-900 text-lg tracking-wider">{viewTransactionDetails.operationNumber}</span>
-                     </div>
-                   )}
-                   {viewTransactionDetails.securityCode && (
-                     <div className="flex flex-col">
-                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Código de Seguridad</span>
-                       <span className="font-black text-blue-900 text-lg tracking-wider">{viewTransactionDetails.securityCode}</span>
-                     </div>
-                   )}
+               {(viewTransactionDetails.operationNumber || viewTransactionDetails.securityCode || viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE')) && (
+                 <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl space-y-4 mt-6">
+                   <div className="flex flex-col">
+                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Número de Transacción</span>
+                     <span className="font-black text-blue-900 text-lg tracking-wider">
+                       {viewTransactionDetails.operationNumber || (viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE') ? 'No proporcionado' : '-') }
+                     </span>
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Código de Seguridad</span>
+                     <span className="font-black text-blue-900 text-lg tracking-wider">
+                       {viewTransactionDetails.securityCode || (viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE') ? 'No proporcionado' : '-') }
+                     </span>
+                   </div>
                  </div>
                )}
              </div>
