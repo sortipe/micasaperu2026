@@ -539,6 +539,12 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                       </td>
                       <td className="py-6 px-4">
                         <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{t.paymentMethodName}</p>
+                        {(t.operationNumber || t.securityCode) && (
+                          <div className="mt-1 space-y-0.5">
+                            {t.operationNumber && <p className="text-[9px] font-bold text-gray-500">Op: {t.operationNumber}</p>}
+                            {t.securityCode && <p className="text-[9px] font-bold text-gray-500">Sec: {t.securityCode}</p>}
+                          </div>
+                        )}
                       </td>
                       <td className="py-6 px-4">
                         <select

@@ -87,6 +87,8 @@ export interface Transaction {
   date: string;
   status: 'COMPLETED' | 'PENDING' | 'CANCELLED';
   paymentMethodName: string;
+  operationNumber?: string;
+  securityCode?: string;
 }
 
 export interface Complaint {

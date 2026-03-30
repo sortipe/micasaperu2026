@@ -1124,7 +1124,7 @@ const App: React.FC = () => {
               setIsCartCheckout(false);
               setView(isCartCheckout ? 'CART' : 'PRICING');
             }}
-            onRecordTransaction={async (methodName) => {
+            onRecordTransaction={async (methodName, operationNumber, securityCode) => {
               if (isCartCheckout) {
                 for (const item of cart) {
                   // Create one transaction per unit purchased to keep it simple for admin
@@ -1138,7 +1138,9 @@ const App: React.FC = () => {
                       amount: item.package.price,
                       date: new Date().toISOString(),
                       status: 'PENDING',
-                      paymentMethodName: methodName
+                      paymentMethodName: methodName,
+                      operationNumber,
+                      securityCode
                     }]);
                     if (error) throw error;
                   }
@@ -1153,7 +1155,9 @@ const App: React.FC = () => {
                   amount: selectedPackage!.price,
                   date: new Date().toISOString(),
                   status: 'PENDING',
-                  paymentMethodName: methodName
+                  paymentMethodName: methodName,
+                  operationNumber,
+                  securityCode
                 }]);
                 if (error) throw error;
               }

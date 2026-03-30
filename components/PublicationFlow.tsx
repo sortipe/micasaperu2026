@@ -662,7 +662,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                 showToast("Pago procesado con éxito", "SUCCESS");
                               }}
                               onCancel={() => setSelectedPlan(null)}
-                              onRecordTransaction={async (method) => {
+                              onRecordTransaction={async (methodName, operationNumber, securityCode) => {
                                  // Logic to record transaction
                               }}
                               showToast={showToast}

@@ -18,7 +18,7 @@ interface PaymentFlowProps {
   culqiPublicKey?: string;
   onSuccess: () => void;
   onCancel: () => void;
-  onRecordTransaction: (methodName: string) => Promise<void>;
+  onRecordTransaction: (methodName: string, operationNumber?: string, securityCode?: string) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
 }
 
@@ -26,6 +26,8 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [operationNumber, setOperationNumber] = useState('');
+  const [securityCode, setSecurityCode] = useState('');
 
   const isCart = !!cartItems && cartItems.length > 0;
   const totalAmount = isCart 
@@ -79,10 +81,18 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
 
   const handleProcessPayment = async () => {
     if (!selectedMethod) return;
+
+    if (selectedMethod.type !== 'CARD') {
+      if (!operationNumber.trim() && !securityCode.trim()) {
+        showToast("Por favor, ingresa al menos el número de operación o código de seguridad.", "WARNING");
+        return;
+      }
+    }
+
     setIsProcessing(true);
     try {
       // Registramos la transacción en la DB
-      await onRecordTransaction(selectedMethod.name);
+      await onRecordTransaction(selectedMethod.name, operationNumber, securityCode);
       // Pequeña pausa para feedback visual y pasamos al éxito
       setTimeout(() => {
         setIsProcessing(false);
@@ -269,20 +279,44 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                     )}
                     
                     {selectedMethod.type !== 'CARD' && (
-                      <button 
-                        onClick={handleProcessPayment}
-                        disabled={isProcessing}
-                        className="w-full bg-red-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-100 hover:bg-[#0f172a] transition-all text-xs uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            <span>PROCESANDO...</span>
-                          </>
-                        ) : (
-                          <span>YA REALICÉ EL PAGO</span>
-                        )}
-                      </button>
+                      <div className="w-full space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Número de Operación</label>
+                            <input 
+                              type="text" 
+                              className="w-full p-4 bg-gray-50 border-2 border-transparent hover:border-gray-200 focus:border-red-500 rounded-2xl font-bold text-slate-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-medium" 
+                              value={operationNumber} 
+                              onChange={e => setOperationNumber(e.target.value)} 
+                              placeholder="Ej: 12345678" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Código de Seguridad</label>
+                            <input 
+                              type="text" 
+                              className="w-full p-4 bg-gray-50 border-2 border-transparent hover:border-gray-200 focus:border-red-500 rounded-2xl font-bold text-slate-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-medium" 
+                              value={securityCode} 
+                              onChange={e => setSecurityCode(e.target.value)} 
+                              placeholder="Ej: 1234" 
+                            />
+                          </div>
+                        </div>
+                        <button 
+                          onClick={handleProcessPayment}
+                          disabled={isProcessing}
+                          className="w-full bg-red-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-100 hover:bg-[#0f172a] transition-all text-xs uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95 mt-4"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>PROCESANDO...</span>
+                            </>
+                          ) : (
+                            <span>YA REALICÉ EL PAGO</span>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
