@@ -86,6 +86,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
   const [confirmAction, setConfirmAction] = useState<{ message: string, onConfirm: () => void } | null>(null);
   const [deleteAvatarConfirm, setDeleteAvatarConfirm] = useState(false);
   const [localPackages, setLocalPackages] = useState<Package[]>([]);
+  const [viewTransactionDetails, setViewTransactionDetails] = useState<Transaction | null>(null);
 
   useEffect(() => {
     setLocalPackages(packages);
@@ -538,13 +539,16 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                         <p className="font-black text-red-600 text-sm">S/ {t.amount.toLocaleString()}</p>
                       </td>
                       <td className="py-6 px-4">
-                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{t.paymentMethodName}</p>
-                        {(t.operationNumber || t.securityCode) && (
-                          <div className="mt-1 space-y-0.5">
-                            {t.operationNumber && <p className="text-[9px] font-bold text-gray-500">Op: {t.operationNumber}</p>}
-                            {t.securityCode && <p className="text-[9px] font-bold text-gray-500">Sec: {t.securityCode}</p>}
-                          </div>
-                        )}
+                        <div className="flex flex-col items-start gap-2">
+                           <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{t.paymentMethodName}</p>
+                           <button 
+                             onClick={() => setViewTransactionDetails(t)} 
+                             className="text-[9px] font-black text-blue-600 hover:underline uppercase tracking-widest flex items-center gap-1"
+                           >
+                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                             Ver Detalle
+                           </button>
+                        </div>
                       </td>
                       <td className="py-6 px-4">
                         <select
@@ -1185,6 +1189,60 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
               <button onClick={() => setConfirmAction(null)} className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-colors">Cancelar</button>
               <button onClick={() => { confirmAction.onConfirm(); setConfirmAction(null); }} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">Confirmar</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {viewTransactionDetails && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-scale-up relative">
+             <button onClick={() => setViewTransactionDetails(null)} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 transition-colors">
+                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
+             </button>
+             <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tight mb-2">Detalles del Pago</h3>
+             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-8">Información de la transacción</p>
+             
+             <div className="space-y-4">
+               <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cliente</span>
+                 <span className="font-bold text-slate-900 text-sm">{viewTransactionDetails.userName}</span>
+               </div>
+               <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Plan</span>
+                 <span className="font-bold text-[#091F4F] text-sm uppercase">{viewTransactionDetails.packageName}</span>
+               </div>
+               <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Monto</span>
+                 <span className="font-black text-red-600 text-sm">S/ {viewTransactionDetails.amount.toLocaleString()}</span>
+               </div>
+               <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Método</span>
+                 <span className="font-black text-slate-700 text-xs uppercase tracking-wider">{viewTransactionDetails.paymentMethodName}</span>
+               </div>
+               
+               {(viewTransactionDetails.operationNumber || viewTransactionDetails.securityCode) && (
+                 <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl space-y-3 mt-4">
+                   {viewTransactionDetails.operationNumber && (
+                     <div className="flex flex-col">
+                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">N° Transacción / Operación</span>
+                       <span className="font-black text-blue-900 text-lg tracking-wider">{viewTransactionDetails.operationNumber}</span>
+                     </div>
+                   )}
+                   {viewTransactionDetails.securityCode && (
+                     <div className="flex flex-col">
+                       <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Código de Seguridad</span>
+                       <span className="font-black text-blue-900 text-lg tracking-wider">{viewTransactionDetails.securityCode}</span>
+                     </div>
+                   )}
+                 </div>
+               )}
+             </div>
+             
+             <div className="mt-8 flex justify-center">
+               <button onClick={() => setViewTransactionDetails(null)} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
+                 Cerrar
+               </button>
+             </div>
           </div>
         </div>
       )}

@@ -328,6 +328,44 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Distrito" value={editingProperty?.district || ''} onChange={(e) => updateField('district', e.target.value)} />
                       <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Dirección" value={editingProperty?.address || ''} onChange={(e) => updateField('address', e.target.value)} />
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Latitud</label>
+                        <input 
+                          type="number" 
+                          step="any" 
+                          className="w-full p-4 bg-gray-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500" 
+                          placeholder="Ej: -12.1224" 
+                          value={editingProperty?.lat === undefined ? '' : editingProperty.lat} 
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                            updateField('lat', val);
+                            if(pickerMarkerRef.current && val !== undefined && !isNaN(val)) {
+                              pickerMarkerRef.current.setLatLng([val, editingProperty?.lng || -77.0312]);
+                              mapRef.current?.setView([val, editingProperty?.lng || -77.0312]);
+                            }
+                          }} 
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Longitud</label>
+                        <input 
+                          type="number" 
+                          step="any" 
+                          className="w-full p-4 bg-gray-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500" 
+                          placeholder="Ej: -77.0312" 
+                          value={editingProperty?.lng === undefined ? '' : editingProperty.lng} 
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                            updateField('lng', val);
+                            if(pickerMarkerRef.current && val !== undefined && !isNaN(val)) {
+                              pickerMarkerRef.current.setLatLng([editingProperty?.lat || -12.1224, val]);
+                              mapRef.current?.setView([editingProperty?.lat || -12.1224, val]);
+                            }
+                          }} 
+                        />
+                      </div>
+                    </div>
                     <div ref={mapContainerRef} className="w-full h-64 bg-gray-100 rounded-3xl overflow-hidden border border-gray-200" />
                   </div>
                 </div>
