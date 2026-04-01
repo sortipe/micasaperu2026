@@ -4,8 +4,27 @@ import { Property, User, PropertyCategory, Package, PaymentMethod } from '../typ
 import { DEPARTMENTS, COMMON_FEATURES, PROPERTY_CATEGORIES } from '../constants';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ToastType } from './Toast';
-import { Check } from 'lucide-react';
+import { Check, GripVertical, X } from 'lucide-react';
 import PaymentFlow from './PaymentFlow';
+import {
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
 declare const L: any;
 
@@ -24,6 +43,57 @@ interface PublicationFlowProps {
 
 type Step = 'PRINCIPALES' | 'MULTIMEDIA' | 'EXTRAS' | 'PUBLICAR';
 
+interface SortablePhotoProps {
+  id: string;
+  url: string;
+  onRemove: () => void;
+}
+
+const SortablePhoto: React.FC<SortablePhotoProps> = ({ id, url, onRemove }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="relative aspect-square rounded-2xl overflow-hidden group touch-none"
+    >
+      <img src={url} className="w-full h-full object-cover" />
+      <div 
+        {...attributes} 
+        {...listeners}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing"
+      />
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm text-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-red-600 hover:text-white z-20"
+      >
+        <X className="w-4 h-4" />
+      </button>
+      <div className="absolute bottom-2 left-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <GripVertical className="w-3.5 h-3.5 text-gray-600" />
+      </div>
+    </div>
+  );
+};
+
 const PublicationFlow: React.FC<PublicationFlowProps> = ({ 
   user, 
   properties, 
@@ -40,6 +110,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const [editingProperty, setEditingProperty] = useState<Partial<Property> | null>(null);
   const [isUploading, setIsUploading] = useState<{ featured: boolean; gallery: boolean; documents: boolean }>({ featured: false, gallery: false, documents: false });
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState<Record<string, number>>({});
   const [selectedPlan, setSelectedPlan] = useState<Package | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'SUCCESS'>('IDLE');
   const [useCredits, setUseCredits] = useState((user.propertiesRemaining || 0) > 0 || (user.featuredRemaining || 0) > 0 || (user.superFeaturedRemaining || 0) > 0);
@@ -50,6 +121,17 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const featuredInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const documentsInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const steps: { id: Step; label: string; icon: number }[] = [
     { id: 'PRINCIPALES', label: 'Principales', icon: 1 },
@@ -115,18 +197,49 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
     setEditingProperty(prev => prev ? { ...prev, [field]: value } : null);
   };
 
-  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
-    if (!isSupabaseConfigured) return URL.createObjectURL(file);
+  const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
+    if (!isSupabaseConfigured) {
+      // Mock progress for local testing
+      if (onProgress) {
+        let p = 0;
+        const interval = setInterval(() => {
+          p += 10;
+          onProgress(p);
+          if (p >= 100) clearInterval(interval);
+        }, 200);
+      }
+      return URL.createObjectURL(file);
+    }
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
-      await supabase.storage.from('properties').upload(filePath, file);
+      
+      const { data: uploadData, error: uploadError } = await (supabase.storage.from('properties') as any).upload(filePath, file, {
+        onUploadProgress: (evt: any) => {
+          if (onProgress) {
+            const percent = Math.round((evt.loaded / evt.total) * 100);
+            onProgress(percent);
+          }
+        }
+      });
+
+      if (uploadError) throw uploadError;
+
       const { data } = supabase.storage.from('properties').getPublicUrl(filePath);
       return data.publicUrl;
     } catch (error: any) {
       showToast("Error al subir archivo", "ERROR");
       return null;
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id && editingProperty?.gallery) {
+      const oldIndex = editingProperty.gallery.indexOf(active.id as string);
+      const newIndex = editingProperty.gallery.indexOf(over?.id as string);
+      updateField('gallery', arrayMove(editingProperty.gallery, oldIndex, newIndex));
     }
   };
 
@@ -405,40 +518,93 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">Galería de fotos</label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {(editingProperty?.gallery || []).map((img, idx) => (
-                        <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group">
-                          <img src={img} className="w-full h-full object-cover" />
-                          <button 
-                            onClick={() => {
-                              const newGallery = [...(editingProperty?.gallery || [])];
-                              newGallery.splice(idx, 1);
-                              updateField('gallery', newGallery);
-                            }}
-                            className="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg>
-                          </button>
-                        </div>
-                      ))}
-                      <div 
-                        onClick={() => galleryInputRef.current?.click()}
-                        className="aspect-square rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 transition-all"
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">Galería de fotos (Máx. 10)</label>
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                      modifiers={[restrictToFirstScrollableAncestor]}
+                    >
+                      <SortableContext 
+                        items={editingProperty?.gallery || []}
+                        strategy={rectSortingStrategy}
                       >
-                        <svg className="w-8 h-8 text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
-                        <span className="text-[10px] font-black text-gray-400 uppercase">Añadir</span>
-                      </div>
-                    </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {(editingProperty?.gallery || []).map((img, idx) => (
+                            <SortablePhoto 
+                              key={img} 
+                              id={img} 
+                              url={img} 
+                              onRemove={() => {
+                                const newGallery = [...(editingProperty?.gallery || [])];
+                                newGallery.splice(idx, 1);
+                                updateField('gallery', newGallery);
+                              }} 
+                            />
+                          ))}
+                          
+                          {/* Uploading placeholders */}
+                          {Object.entries(uploadingGallery).map(([id, progress]) => (
+                            <div key={id} className="relative aspect-square rounded-2xl bg-gray-100 overflow-hidden border-2 border-orange-100 flex flex-col items-center justify-center p-4">
+                              <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2 overflow-hidden">
+                                <div 
+                                  className="bg-orange-500 h-full transition-all duration-300" 
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{progress}%</span>
+                            </div>
+                          ))}
+
+                          {(editingProperty?.gallery || []).length + Object.keys(uploadingGallery).length < 10 && (
+                            <div 
+                              onClick={() => galleryInputRef.current?.click()}
+                              className="aspect-square rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 transition-all group"
+                            >
+                              <div className="p-3 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                                <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"/></svg>
+                              </div>
+                              <span className="mt-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">Añadir Foto</span>
+                            </div>
+                          )}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                     <input type="file" ref={galleryInputRef} className="hidden" accept="image/*" multiple onChange={async (e) => {
-                      const files = e.target.files;
-                      if (files && editingProperty?.id) {
-                        setIsUploading(p => ({...p, gallery: true}));
-                        const urls = [];
-                        for (let i = 0; i < files.length; i++) {
-                          const url = await uploadFile(files[i], editingProperty.id);
-                          if (url) urls.push(url);
+                      const files = Array.from(e.target.files || []);
+                      if (files.length && editingProperty?.id) {
+                        const currentCount = (editingProperty.gallery || []).length;
+                        const remaining = 10 - currentCount;
+                        
+                        if (remaining <= 0) {
+                          showToast("Límite de 10 fotos alcanzado", "WARNING");
+                          return;
                         }
+
+                        const filesToUpload = files.slice(0, remaining);
+                        if (files.length > remaining) {
+                          showToast(`Solo se pueden añadir ${remaining} fotos más`, "WARNING");
+                        }
+
+                        setIsUploading(p => ({...p, gallery: true}));
+                        const urls: string[] = [];
+
+                        for (const file of filesToUpload) {
+                          const tempId = Math.random().toString(36).substring(7);
+                          setUploadingGallery(prev => ({ ...prev, [tempId]: 0 }));
+                          
+                          const url = await uploadFile(file as any, editingProperty.id, (p) => {
+                            setUploadingGallery(prev => ({ ...prev, [tempId]: p }));
+                          });
+
+                          if (url) urls.push(url);
+                          setUploadingGallery(prev => {
+                            const next = { ...prev };
+                            delete next[tempId];
+                            return next;
+                          });
+                        }
+
                         updateField('gallery', [...(editingProperty.gallery || []), ...urls]);
                         setIsUploading(p => ({...p, gallery: false}));
                       }
