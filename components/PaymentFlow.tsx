@@ -43,7 +43,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
       const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${mpAccessToken}`,
+          'Authorization': `Bearer ${mpAccessToken.trim()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
