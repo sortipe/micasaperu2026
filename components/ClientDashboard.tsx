@@ -52,9 +52,9 @@ interface ClientDashboardProps {
 
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ 
   user, properties = [], legalDocs = [], complaints = [], appLogo, homeBanner, homeBannerMobile, favicon, socialLinks = [], officeInfo,
-  locations = [], packages = [], paymentMethods = [], culqiPublicKey = '', culqiPrivateKey = '', mpPublicKey = '', mpAccessToken = '',
+  locations = [], packages = [], paymentMethods = [], mpPublicKey = '', mpAccessToken = '',
   onUpdateLogo, onUpdateBanner, onUpdateBannerMobile, onUpdateFavicon, onUpdateSocialLinks, onUpdateOfficeInfo, 
-  onUpdateCulqiPublicKey, onUpdateCulqiPrivateKey, onUpdateMpPublicKey, onUpdateMpAccessToken,
+  onUpdateMpPublicKey, onUpdateMpAccessToken,
   onAddProperty, onEditProperty, onDeleteProperty, onLogout, onSaveLegalDoc, onSaveLocation, onDeleteLocation, 
   onSavePackage, onDeletePackage, onUpdatePaymentMethod, onDeletePaymentMethod, inquiries = [], onNavigate, onUpdateProfile, transactions = [],
   onUpdateTransactionStatus, onSyncCredits, showToast

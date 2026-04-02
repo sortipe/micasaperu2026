@@ -768,7 +768,7 @@ const App: React.FC = () => {
           <ClientDashboard 
             user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
             appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
-            mpAccessToken={mpAccessToken}
+            mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken}
             onUpdateLogo={async url => { 
               const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
@@ -798,6 +798,11 @@ const App: React.FC = () => {
               const { error } = await supabase.from('settings').upsert({key: 'social_links', value: JSON.stringify(links)}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar redes", "ERROR"); console.error(error); }
               else { setSocialLinks(links); showToast("Redes sociales actualizadas", "SUCCESS"); }
+            }}
+            onUpdateMpPublicKey={async key => {
+              const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
+              if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
+              else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
             }}
             onUpdateMpAccessToken={async token => {
               const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
