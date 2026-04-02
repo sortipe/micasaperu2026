@@ -50,8 +50,8 @@ const App: React.FC = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
     { platform: 'FACEBOOK', url: '' }, { platform: 'INSTAGRAM', url: '' }, { platform: 'LINKEDIN', url: '' }, { platform: 'TIKTOK', url: '' }, { platform: 'WHATSAPP', url: '' }
   ]);
-  const [mpPublicKey, setMpPublicKey] = useState<string>('');
-  const [mpAccessToken, setMpAccessToken] = useState<string>('');
+  const [mpPublicKey, setMpPublicKey] = useState<string>('APP_USR.c7210355-efb1-4510-b26b-0ae4741b7103');
+  const [mpAccessToken, setMpAccessToken] = useState<string>('APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
