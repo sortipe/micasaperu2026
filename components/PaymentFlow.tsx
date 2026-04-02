@@ -16,13 +16,14 @@ interface PaymentFlowProps {
   user: User;
   paymentMethods: PaymentMethod[];
   culqiPublicKey?: string;
-  onSuccess: () => void;
+  mpAccessToken?: string;
+  onSuccess: (methodId: string, opNumber?: string) => void;
   onCancel: () => void;
   onRecordTransaction: (methodName: string, operationNumber?: string, securityCode?: string) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, culqiPublicKey, onSuccess, onCancel, onRecordTransaction, showToast }) => {
+const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, culqiPublicKey, mpAccessToken, onSuccess, onCancel, onRecordTransaction, showToast }) => {
   const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -78,6 +79,50 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
       }
     };
   }, [pkg, user]);
+
+  const handleProcessMP = async () => {
+    if (!mpAccessToken) {
+       window.open(selectedMethod?.paymentLink || '#', '_blank');
+       return;
+    }
+    try {
+      setIsProcessing(true);
+      const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${mpAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          items: [{
+            title: isCart ? 'Pago Múltiple' : pkg ? `Plan ${pkg.name}` : `Pago de Servicios - Mi Casa Perú`,
+            quantity: 1,
+            currency_id: 'PEN',
+            unit_price: totalAmount
+          }],
+          back_urls: {
+            success: window.location.href,
+            failure: window.location.href,
+            pending: window.location.href
+          },
+          auto_return: 'approved'
+        })
+      });
+      const data = await res.json();
+      if (data.init_point) {
+        window.open(data.init_point, '_blank');
+      } else {
+        throw new Error(data.message || "Error al crear preferencia con Mercado Pago");
+      }
+    } catch(err: any) {
+      showToast(err.message || "Error al conectar con Mercado Pago", "ERROR");
+      if (selectedMethod?.paymentLink) {
+         window.open(selectedMethod.paymentLink, '_blank');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleProcessPayment = async () => {
     if (!selectedMethod) return;
@@ -170,13 +215,15 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                             ) : m.type === 'CARD' ? (
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                            ) : m.type === 'MERCADOPAGO' ? (
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
                             ) : (
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01" /></svg>
                             )}
                           </div>
                           <div>
                             <h3 className="text-sm font-black text-gray-900 uppercase">{m.name}</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de Crédito/Débito' : 'Escaneo de Código QR'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de Crédito/Débito' : m.type === 'MERCADOPAGO' ? 'Mercado Pago' : 'Escaneo de Código QR'}</p>
                           </div>
                         </div>
                         <svg className="w-4 h-4 text-gray-300 group-hover:text-red-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
@@ -239,6 +286,19 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                              <p className="text-[8px] text-gray-400 font-medium">Ej: 4242 4242 4242 4242 | CVV: 123 | MM/AA: 12/26</p>
                            </div>
                          )}
+                      </div>
+                    ) : selectedMethod.type === 'MERCADOPAGO' ? (
+                      <div className="flex flex-col items-center text-center">
+                         <div className="w-32 h-32 bg-blue-50 text-[#009EE3] rounded-full flex items-center justify-center mb-6 relative shadow-inner">
+                           <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                         </div>
+                         <button onClick={handleProcessMP} disabled={isProcessing} className="bg-[#009EE3] text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-[#0089c7] transition-all mb-6 active:scale-95 flex items-center gap-3 disabled:opacity-50">
+                           {isProcessing ? 'Conectando...' : 'Ir a Pagar a Mercado Pago'}
+                           {!isProcessing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>}
+                         </button>
+                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
+                            {selectedMethod.instructions || 'Paga de forma rápida y segura a través de Mercado Pago y vuelve aquí.'}
+                         </p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center text-center">

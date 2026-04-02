@@ -52,10 +52,13 @@ const App: React.FC = () => {
   ]);
   const [culqiPublicKey, setCulqiPublicKey] = useState<string>('');
   const [culqiPrivateKey, setCulqiPrivateKey] = useState<string>('');
+  const [mpPublicKey, setMpPublicKey] = useState<string>('');
+  const [mpAccessToken, setMpAccessToken] = useState<string>('');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
     { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', instructions: 'Escanea el código QR desde tu app Yape y adjunta la captura de pantalla del pago.', isActive: true },
+    { id: '44444444-4444-4444-4444-444444444444', name: 'Mercado Pago', type: 'MERCADOPAGO', paymentLink: 'https://link.mercadopago.com.pe/demo', instructions: 'Paga de forma rápida y segura a través de Mercado Pago. Luego de pagar, ingresa tu número de operación y dale a "Ya realicé el pago".', isActive: true },
     { id: '33333333-3333-3333-3333-333333333333', name: 'Tarjeta de Crédito / Débito', type: 'CARD', instructions: 'Paga de forma segura usando Culqi con tu tarjeta de crédito o débito.', isActive: true }
   ]);
 
@@ -363,6 +366,8 @@ const App: React.FC = () => {
             if (item.key === 'social_links') setSocialLinks(parsedValue);
             if (item.key === 'culqi_public_key') setCulqiPublicKey(item.value);
             if (item.key === 'culqi_private_key') setCulqiPrivateKey(item.value);
+            if (item.key === 'mp_public_key') setMpPublicKey(item.value);
+            if (item.key === 'mp_access_token') setMpAccessToken(item.value);
           } catch (e) {
             // If parsing fails, it might just be a plain string
             if (item.key === 'app_logo') setAppLogo(item.value);
@@ -371,6 +376,8 @@ const App: React.FC = () => {
             if (item.key === 'favicon') setFavicon(item.value);
             if (item.key === 'culqi_public_key') setCulqiPublicKey(item.value);
             if (item.key === 'culqi_private_key') setCulqiPrivateKey(item.value);
+            if (item.key === 'mp_public_key') setMpPublicKey(item.value);
+            if (item.key === 'mp_access_token') setMpAccessToken(item.value);
             // For office_info and social_links, we expect JSON, so we don't set if it fails
           }
         });
@@ -773,6 +780,7 @@ const App: React.FC = () => {
             user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
             appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
             culqiPublicKey={culqiPublicKey} culqiPrivateKey={culqiPrivateKey}
+            mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken}
             onUpdateLogo={async url => { 
               const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
@@ -812,6 +820,16 @@ const App: React.FC = () => {
               const { error } = await supabase.from('settings').upsert({key: 'culqi_private_key', value: key}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar llave privada", "ERROR"); console.error(error); }
               else { setCulqiPrivateKey(key); showToast("Llave privada Culqi actualizada", "SUCCESS"); }
+            }}
+            onUpdateMpPublicKey={async key => {
+              const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
+              if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
+              else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
+            }}
+            onUpdateMpAccessToken={async token => {
+              const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
+              if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
+              else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
             }}
             onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
             onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 

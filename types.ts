@@ -69,11 +69,12 @@ export interface LocationItem {
 export interface PaymentMethod {
   id: string;
   name: string;
-  type: 'TRANSFER' | 'QR' | 'CARD';
+  type: 'TRANSFER' | 'QR' | 'CARD' | 'MERCADOPAGO';
   bankName?: string;
   accountNumber?: string;
   cci?: string;
   qrUrl?: string;
+  paymentLink?: string;
   instructions?: string;
   isActive: boolean;
 }

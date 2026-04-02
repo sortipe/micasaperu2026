@@ -32,6 +32,10 @@ interface ClientDashboardProps {
   onUpdateOfficeInfo: (info: OfficeInfo) => Promise<void>;
   onUpdateCulqiPublicKey?: (key: string) => Promise<void>;
   onUpdateCulqiPrivateKey?: (key: string) => Promise<void>;
+  mpPublicKey?: string;
+  mpAccessToken?: string;
+  onUpdateMpPublicKey?: (key: string) => Promise<void>;
+  onUpdateMpAccessToken?: (key: string) => Promise<void>;
   onAddProperty: () => void;
   onEditProperty: (id: string) => void;
   onDeleteProperty: (id: string) => void;
@@ -52,9 +56,9 @@ interface ClientDashboardProps {
 
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ 
   user, properties = [], legalDocs = [], complaints = [], appLogo, homeBanner, homeBannerMobile, favicon, socialLinks = [], officeInfo,
-  locations = [], packages = [], paymentMethods = [], culqiPublicKey = '', culqiPrivateKey = '',
+  locations = [], packages = [], paymentMethods = [], culqiPublicKey = '', culqiPrivateKey = '', mpPublicKey = '', mpAccessToken = '',
   onUpdateLogo, onUpdateBanner, onUpdateBannerMobile, onUpdateFavicon, onUpdateSocialLinks, onUpdateOfficeInfo, 
-  onUpdateCulqiPublicKey, onUpdateCulqiPrivateKey,
+  onUpdateCulqiPublicKey, onUpdateCulqiPrivateKey, onUpdateMpPublicKey, onUpdateMpAccessToken,
   onAddProperty, onEditProperty, onDeleteProperty, onLogout, onSaveLegalDoc, onSaveLocation, onDeleteLocation, 
   onSavePackage, onDeletePackage, onUpdatePaymentMethod, onDeletePaymentMethod, inquiries = [], onNavigate, onUpdateProfile, transactions = [],
   onUpdateTransactionStatus, onSyncCredits, showToast
@@ -889,14 +893,14 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <div key={method.id} className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6 relative group">
                      <button onClick={() => onDeletePaymentMethod(method.id)} className="absolute top-6 right-6 text-gray-300 hover:text-red-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2.5"/></svg></button>
                      <input className="w-full mt-2 bg-transparent font-black text-xl text-slate-900 outline-none" value={method.name} onChange={e => onUpdatePaymentMethod({...method, name: e.target.value})} />
-                     <div className="flex gap-2">
-                        {(['TRANSFER', 'QR', 'CARD'] as const).map(t => (
+                     <div className="flex flex-wrap gap-2">
+                        {(['TRANSFER', 'QR', 'MERCADOPAGO', 'CARD'] as const).map(t => (
                           <button 
                             key={t}
                             onClick={() => onUpdatePaymentMethod({...method, type: t})}
                             className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter transition-all ${method.type === t ? 'bg-red-600 text-white' : 'bg-white text-gray-400 border border-gray-100 hover:bg-gray-50'}`}
                           >
-                            {t === 'TRANSFER' ? 'Transferencia' : t === 'QR' ? 'QR / Billetera' : 'Tarjeta'}
+                            {t === 'TRANSFER' ? 'Transferencia' : t === 'QR' ? 'QR / Billetera' : t === 'MERCADOPAGO' ? 'Mercado Pago' : 'Tarjeta'}
                           </button>
                         ))}
                       </div>
@@ -929,6 +933,11 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                           </div>
                           <input type="file" ref={paymentMethodInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'QR_CODE')} />
                        </div>
+                     ) : method.type === 'MERCADOPAGO' ? (
+                       <div className="space-y-3">
+                          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Link de Pago (Mercado Pago)</p>
+                          <input className="w-full p-3 bg-white rounded-xl font-bold text-sm outline-none border border-transparent focus:border-red-500 transition-colors" placeholder="Ej: https://link.mercadopago.com.pe/..." value={method.paymentLink || ''} onChange={e => onUpdatePaymentMethod({...method, paymentLink: e.target.value})} />
+                       </div>
                      ) : (
                        <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed">Este método utiliza la configuración global de Culqi definida abajo.</p>
                      )}
@@ -943,6 +952,39 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      </div>
                   </div>
                 ))}
+             </div>
+             
+             {/* CREDENCIALES SECTION */}
+             <div className="pt-10 mt-10 border-t border-gray-100">
+               <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tight">Credenciales de Pasarelas de Pago</h3>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="p-8 bg-gray-50 rounded-3xl space-y-4">
+                     <p className="font-black text-slate-900 uppercase">Mercado Pago</p>
+                     <p className="text-[10px] text-gray-500 font-bold uppercase pb-2 leading-relaxed">Configura estas credenciales para generar links de pago automático de Checkout Pro. Si no configuras esto, usarás el link estático definido en el método de pago Mercado Pago.</p>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Key</p>
+                        <input className="w-full p-3 bg-white rounded-xl font-bold text-sm outline-none border border-transparent focus:border-blue-500" placeholder="APP_USR-..." value={mpPublicKey} onChange={e => onUpdateMpPublicKey?.(e.target.value)} />
+                     </div>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Access Token</p>
+                        <input type="password" className="w-full p-3 bg-white rounded-xl font-bold text-sm outline-none border border-transparent focus:border-blue-500" placeholder="APP_USR-..." value={mpAccessToken} onChange={e => onUpdateMpAccessToken?.(e.target.value)} />
+                     </div>
+                  </div>
+                  <div className="p-8 bg-gray-50 rounded-3xl space-y-4">
+                     <p className="font-black text-slate-900 uppercase">Culqi</p>
+                     <p className="text-[10px] text-gray-500 font-bold uppercase pb-2 leading-relaxed">Conecta tu cuenta de Culqi para aceptar pagos por tarjetas de crédito y débito. Usa pk_test para pruebas y pk_live para producción.</p>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Llave Pública (Public Key)</p>
+                        <input className="w-full p-3 bg-white rounded-xl font-bold text-sm outline-none border border-transparent focus:border-orange-500" placeholder="pk_..." value={culqiPublicKey} onChange={e => onUpdateCulqiPublicKey?.(e.target.value)} />
+                     </div>
+                     <div className="space-y-2">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Llave Privada (Private Key)</p>
+                        <input type="password" className="w-full p-3 bg-white rounded-xl font-bold text-sm outline-none border border-transparent focus:border-orange-500" placeholder="sk_..." value={culqiPrivateKey} onChange={e => onUpdateCulqiPrivateKey?.(e.target.value)} />
+                     </div>
+                  </div>
+               </div>
              </div>
           </div>
         );
