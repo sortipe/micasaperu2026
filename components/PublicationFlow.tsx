@@ -34,7 +34,6 @@ interface PublicationFlowProps {
   editingId?: string | null;
   packages: Package[];
   paymentMethods: PaymentMethod[];
-  culqiPublicKey: string;
   mpAccessToken?: string;
   onAdd: (p: Property) => Promise<void>;
   onUpdate: (p: Property) => Promise<void>;
@@ -101,7 +100,6 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   editingId, 
   packages,
   paymentMethods,
-  culqiPublicKey,
   mpAccessToken,
   onAdd, 
   onUpdate, 
@@ -862,7 +860,6 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               pkg={selectedPlan}
                               user={user}
                               paymentMethods={paymentMethods}
-                              culqiPublicKey={culqiPublicKey}
                               mpAccessToken={mpAccessToken}
                               onSuccess={() => {
                                 setPaymentStatus('SUCCESS');

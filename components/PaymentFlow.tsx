@@ -3,19 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Package, User, PaymentMethod, CartItem } from '../types';
 import { ToastType } from './Toast';
 
-declare const Culqi: any;
-declare global {
-  interface Window {
-    culqi: () => void;
-  }
-}
-
 interface PaymentFlowProps {
   pkg?: Package;
   cartItems?: CartItem[];
   user: User;
   paymentMethods: PaymentMethod[];
-  culqiPublicKey?: string;
   mpAccessToken?: string;
   onSuccess: (methodId: string, opNumber?: string) => void;
   onCancel: () => void;
@@ -23,7 +15,7 @@ interface PaymentFlowProps {
   showToast: (message: string, type: ToastType) => void;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, culqiPublicKey, mpAccessToken, onSuccess, onCancel, onRecordTransaction, showToast }) => {
+const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, onSuccess, onCancel, onRecordTransaction, showToast }) => {
   const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,50 +31,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
     ? `Compra de ${cartItems!.length} planes` 
     : `Suscripción: ${pkg?.name}`;
 
-  useEffect(() => {
-    if (typeof Culqi !== 'undefined') {
-      Culqi.publicKey = culqiPublicKey || (import.meta as any).env.VITE_CULQI_PUBLIC_KEY || 'pk_test_3269a3721e828114';
-      Culqi.settings({
-        title: 'Micasaperu',
-        currency: 'PEN',
-        description: description,
-        amount: Math.round(totalAmount * 100),
-      });
-      Culqi.options({
-        lang: 'auto',
-        modal: true,
-        installments: false,
-        customButton: 'Pagar',
-      });
-    }
 
-    window.culqi = async () => {
-      if (Culqi.token) {
-        const token = Culqi.token.id;
-        setIsProcessing(true);
-        try {
-          // Backend removed as per user request. Simulating success.
-          // const res = await fetch('/api/culqi/charge', { ... });
-          
-          console.log('Simulating payment success with token:', token);
-          await onRecordTransaction('Tarjeta de Crédito / Débito (Culqi)');
-          setStep('SUCCESS');
-        } catch (err) {
-          console.error(err);
-          showToast('Error de conexión al procesar el pago', 'ERROR');
-        } finally {
-          setIsProcessing(false);
-          Culqi.close();
-        }
-      } else if (Culqi.error) {
-        showToast(Culqi.error.user_message, 'ERROR');
-      }
-    };
-  }, [pkg, user]);
 
   const handleProcessMP = async () => {
     if (!mpAccessToken) {
-       window.open(selectedMethod?.paymentLink || '#', '_blank');
+       showToast("Las credenciales de Mercado Pago no están configuradas correctamente.", "ERROR");
        return;
     }
     try {
@@ -116,9 +69,6 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
       }
     } catch(err: any) {
       showToast(err.message || "Error al conectar con Mercado Pago", "ERROR");
-      if (selectedMethod?.paymentLink) {
-         window.open(selectedMethod.paymentLink, '_blank');
-      }
     } finally {
       setIsProcessing(false);
     }
@@ -127,11 +77,9 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   const handleProcessPayment = async () => {
     if (!selectedMethod) return;
 
-    if (selectedMethod.type !== 'CARD') {
-      if (!operationNumber.trim() && !securityCode.trim()) {
-        showToast("Por favor, ingresa al menos el número de operación o código de seguridad.", "WARNING");
-        return;
-      }
+    if (!operationNumber.trim() && !securityCode.trim()) {
+      showToast("Por favor, ingresa al menos el número de operación o código de seguridad.", "WARNING");
+      return;
     }
 
     setIsProcessing(true);
@@ -269,24 +217,6 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                             </p>
                           )}
                       </div>
-                    ) : selectedMethod.type === 'CARD' ? (
-                      <div className="flex flex-col items-center text-center">
-                         <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-slate-300 relative">
-                           <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                           {(culqiPublicKey?.startsWith('pk_test') || !culqiPublicKey) && (
-                             <div className="absolute -top-2 -right-2 bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-full shadow-lg animate-bounce">MODO PRUEBA</div>
-                           )}
-                         </div>
-                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                            {selectedMethod.instructions || 'Paga de forma segura usando Culqi con tu tarjeta de crédito o débito'}
-                         </p>
-                         {(culqiPublicKey?.startsWith('pk_test') || !culqiPublicKey) && (
-                           <div className="mt-2 space-y-1">
-                             <p className="text-[9px] text-amber-600 font-bold uppercase">Usa tarjetas de prueba de Culqi para simular</p>
-                             <p className="text-[8px] text-gray-400 font-medium">Ej: 4242 4242 4242 4242 | CVV: 123 | MM/AA: 12/26</p>
-                           </div>
-                         )}
-                      </div>
                     ) : selectedMethod.type === 'MERCADOPAGO' ? (
                       <div className="flex flex-col items-center text-center">
                          <div className="w-32 h-32 bg-blue-50 text-[#009EE3] rounded-full flex items-center justify-center mb-6 relative shadow-inner">
@@ -313,37 +243,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                   </div>
 
                   <div className="flex flex-col gap-3 mt-10">
-                    {selectedMethod.type === 'CARD' && (
-                      <div className="w-full space-y-3">
-                        <button 
-                          onClick={() => Culqi.open()}
-                          disabled={isProcessing}
-                          className="w-full bg-red-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-red-100 hover:bg-[#0f172a] transition-all text-xs uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-3 active:scale-95"
-                        >
-                          {isProcessing ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              <span>PROCESANDO...</span>
-                            </>
-                          ) : (
-                            <span>PAGAR CON TARJETA</span>
-                          )}
-                        </button>
-
-                        {(culqiPublicKey?.startsWith('pk_test') || !culqiPublicKey) && (
-                          <button 
-                            onClick={handleProcessPayment}
-                            disabled={isProcessing}
-                            className="w-full bg-amber-50 text-amber-600 border-2 border-dashed border-amber-200 font-black py-4 rounded-2xl hover:bg-amber-100 transition-all text-[10px] uppercase tracking-[0.2em] disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
-                            <span>SIMULAR PAGO (MODO PRUEBA)</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    
-                    {selectedMethod.type !== 'CARD' && (
+                    {selectedMethod.type !== 'MERCADOPAGO' && (
                       <div className="w-full space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
