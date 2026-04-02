@@ -986,6 +986,7 @@ const App: React.FC = () => {
             editingId={selectedPropertyId} 
             packages={packages}
             paymentMethods={paymentMethods}
+            mpAccessToken={mpAccessToken}
             onAdd={async p => { 
               const { agentName, agentAvatar, agentWhatsapp, profiles, ...cleanP } = p as any;
               
@@ -1120,6 +1121,7 @@ const App: React.FC = () => {
             cartItems={isCartCheckout ? cart : undefined}
             user={currentUser}
             paymentMethods={paymentMethods}
+            mpAccessToken={mpAccessToken}
             onSuccess={() => {
               setSelectedPackage(null);
               setCart([]);
