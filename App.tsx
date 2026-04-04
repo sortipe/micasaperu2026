@@ -50,7 +50,7 @@ const App: React.FC = () => {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
     { platform: 'FACEBOOK', url: '' }, { platform: 'INSTAGRAM', url: '' }, { platform: 'LINKEDIN', url: '' }, { platform: 'TIKTOK', url: '' }, { platform: 'WHATSAPP', url: '' }
   ]);
-  const [mpPublicKey, setMpPublicKey] = useState<string>('APP_USR.c7210355-efb1-4510-b26b-0ae4741b7103');
+  const [mpPublicKey, setMpPublicKey] = useState<string>('APP_USR.c72f0355-efb1-4510-b26b-0ae474fb71b3');
   const [mpAccessToken, setMpAccessToken] = useState<string>('APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
