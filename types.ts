@@ -203,4 +203,5 @@ export interface User {
   propertiesRemaining: number;
   featuredRemaining: number;
   superFeaturedRemaining?: number;
+  dni?: string;
 }

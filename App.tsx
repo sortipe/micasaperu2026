@@ -1134,6 +1134,15 @@ const App: React.FC = () => {
               setIsCartCheckout(false);
               setView(isCartCheckout ? 'CART' : 'PRICING');
             }}
+            onUpdateProfile={async (data) => {
+              if (!currentUser) return;
+              const { error } = await supabase.from('profiles').update(data).eq('id', currentUser.id);
+              if (error) {
+                console.error("Error updating profile:", error);
+                throw error;
+              }
+              setCurrentUser({ ...currentUser, ...data });
+            }}
             onRecordTransaction={async (methodName, operationNumber, securityCode) => {
               if (isCartCheckout) {
                 for (const item of cart) {

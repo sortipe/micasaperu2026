@@ -13,16 +13,19 @@ interface PaymentFlowProps {
   onSuccess: (methodId: string, opNumber?: string) => void;
   onCancel: () => void;
   onRecordTransaction: (methodName: string, operationNumber?: string, securityCode?: string) => Promise<void>;
+  onUpdateProfile?: (data: Partial<User>) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, mpPublicKey, onSuccess, onCancel, onRecordTransaction, showToast }) => {
+const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, mpPublicKey, onSuccess, onCancel, onRecordTransaction, onUpdateProfile, showToast }) => {
   const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [operationNumber, setOperationNumber] = useState('');
   const [securityCode, setSecurityCode] = useState('');
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [dni, setDni] = useState(user.dni || '');
+  const [saveDni, setSaveDni] = useState(true);
 
   const isCart = !!cartItems && cartItems.length > 0;
   const totalAmount = isCart 
@@ -41,8 +44,19 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
        return;
     }
     
+    if (dni.length < 8) {
+       showToast("Por favor, ingresa tu DNI o RUC para habilitar el pago.", "WARNING");
+       return;
+    }
+
     try {
       setIsProcessing(true);
+      
+      // Si el usuario pidió guardar el DNI, lo enviamos al perfil
+      if (saveDni && dni !== user.dni && onUpdateProfile) {
+        await onUpdateProfile({ dni });
+      }
+
       const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
         headers: {
@@ -59,7 +73,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
           payer: {
             email: user.email,
             first_name: user.name.split(' ')[0] || 'Cliente',
-            last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru'
+            last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru',
+            identification: {
+              type: dni.length === 11 ? 'RUC' : 'DNI',
+              number: dni
+            }
           },
           back_urls: {
             success: window.location.origin + window.location.pathname,
@@ -275,13 +293,45 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                          </div>
                          
                          {!preferenceId || isProcessing ? (
-                           <div className="w-full max-w-sm space-y-4 mb-6 flex flex-col items-center">
-                              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Iniciando Checkout Seguro...</p>
+                           <div className="w-full max-w-md space-y-5 mb-8 animate-fade-in">
+                              <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100">
+                                 <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Datos de Facturación
+                                 </h4>
+                                 <div className="space-y-4">
+                                    <div>
+                                       <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1 text-left">N° de Documento (DNI/RUC)</label>
+                                       <input 
+                                         type="text" 
+                                         className="w-full p-4 bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl font-black text-slate-900 outline-none transition-all placeholder:text-gray-200" 
+                                         value={dni} 
+                                         onChange={e => setDni(e.target.value.replace(/\D/g, '').slice(0, 11))} 
+                                         placeholder="Ej: 12345678" 
+                                       />
+                                    </div>
+                                    <div className="flex items-center gap-3 ml-1 cursor-pointer group" onClick={() => setSaveDni(!saveDni)}>
+                                       <div className={`w-5 h-5 rounded-lg border-2 transition-all flex items-center justify-center ${saveDni ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-100' : 'bg-white border-gray-200 group-hover:border-blue-400'}`}>
+                                          {saveDni && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="4"><path d="M5 13l4 4L19 7" /></svg>}
+                                       </div>
+                                       <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight group-hover:text-blue-600 transition-colors">Recordar mis datos para futuras compras</span>
+                                    </div>
+                                 </div>
+                              </div>
+                              
+                              <button 
+                                onClick={handleProcessMP} 
+                                disabled={isProcessing || dni.length < 8} 
+                                className="w-full bg-[#009EE3] text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-[#0089c7] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                              >
+                                {isProcessing ? 'Validando Datos...' : 'Generar Botón de Pago'}
+                                {!isProcessing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>}
+                              </button>
                            </div>
                          ) : (
-                           <div className="w-full max-w-sm animate-fade-in">
+                           <div className="w-full max-w-sm animate-fade-in flex flex-col items-center">
                               <div id="wallet_container" className="min-h-[60px] w-full"></div>
+                              <button onClick={() => setPreferenceId(null)} className="mt-6 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-[0.2em] border-b border-transparent hover:border-blue-200 pb-1">← Volver a Editar Datos</button>
                            </div>
                          )}
 
