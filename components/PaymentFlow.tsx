@@ -9,18 +9,21 @@ interface PaymentFlowProps {
   user: User;
   paymentMethods: PaymentMethod[];
   mpAccessToken?: string;
+  mpPublicKey?: string;
   onSuccess: (methodId: string, opNumber?: string) => void;
   onCancel: () => void;
   onRecordTransaction: (methodName: string, operationNumber?: string, securityCode?: string) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, onSuccess, onCancel, onRecordTransaction, showToast }) => {
+const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, mpPublicKey, onSuccess, onCancel, onRecordTransaction, showToast }) => {
   const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [operationNumber, setOperationNumber] = useState('');
   const [securityCode, setSecurityCode] = useState('');
+  const [dni, setDni] = useState('');
+  const [preferenceId, setPreferenceId] = useState<string | null>(null);
 
   const isCart = !!cartItems && cartItems.length > 0;
   const totalAmount = isCart 
@@ -38,6 +41,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
        showToast("Las credenciales de Mercado Pago no están configuradas correctamente.", "ERROR");
        return;
     }
+    if (dni.length < 8) {
+       showToast("Por favor ingresa un DNI/RUC válido para procesar el pago.", "WARNING");
+       return;
+    }
+    
     try {
       setIsProcessing(true);
       const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
@@ -47,20 +55,19 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          items: [{
-            title: isCart ? 'Pago Múltiple' : pkg ? `Plan ${pkg.name}` : `Pago de Servicios - Mi Casa Perú`,
-            quantity: 1,
+          items: (cartItems || (pkg ? [{ package: pkg, quantity: 1 }] : [])).map(item => ({
+            title: item.package.name,
+            quantity: item.quantity,
             currency_id: 'PEN',
-            unit_price: Number(totalAmount.toFixed(2))
-          }],
+            unit_price: Number(item.package.price.toFixed(2))
+          })),
           payer: {
             email: user.email,
             first_name: user.name.split(' ')[0] || 'Cliente',
             last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru',
-            phone: user.whatsapp ? { area_code: '51', number: user.whatsapp.replace(/\D/g, '').slice(-9) } : undefined,
             identification: {
-              type: "DNI",
-              number: "40404040" // Placeholder realista para activar Mercado Pago PE
+              type: dni.length === 11 ? 'RUC' : 'DNI',
+              number: dni
             }
           },
           back_urls: {
@@ -73,8 +80,9 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
         })
       });
       const data = await res.json();
-      if (data.init_point) {
-        window.open(data.init_point, '_blank');
+      if (data.id) {
+        setPreferenceId(data.id);
+        // El SDK se encargará de renderizar el botón oficial usando este ID
       } else {
         throw new Error(data.message || "Error al crear preferencia con Mercado Pago");
       }
@@ -84,6 +92,38 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
       setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    if (preferenceId && mpPublicKey && (window as any).MercadoPago) {
+      const container = document.getElementById('wallet_container');
+      if (container) container.innerHTML = ''; // Limpiar previo
+
+      const mp = new (window as any).MercadoPago(mpPublicKey, {
+        locale: 'es-PE'
+      });
+      const bricksBuilder = mp.bricks();
+      
+      const renderComponent = async (bricksBuilder: any) => {
+        try {
+          await bricksBuilder.create("wallet", "wallet_container", {
+            initialization: {
+                preferenceId: preferenceId,
+                redirectMode: 'modal'
+            },
+            customization: {
+               texts: {
+                 valueProp: 'smart_option',
+               },
+             },
+          });
+        } catch (error) {
+          console.error("Error rendering MP Wallet Brick:", error);
+        }
+      };
+
+      renderComponent(bricksBuilder);
+    }
+  }, [preferenceId, mpPublicKey]);
 
   const handleProcessPayment = async () => {
     if (!selectedMethod) return;
@@ -229,16 +269,41 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                           )}
                       </div>
                     ) : selectedMethod.type === 'MERCADOPAGO' ? (
-                      <div className="flex flex-col items-center text-center">
-                         <div className="w-32 h-32 bg-blue-50 text-[#009EE3] rounded-full flex items-center justify-center mb-6 relative shadow-inner">
-                           <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <div className="flex flex-col items-center text-center w-full">
+                         <div className="w-24 h-24 bg-blue-50 text-[#009EE3] rounded-full flex items-center justify-center mb-6 relative shadow-inner">
+                           <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                          </div>
-                         <button onClick={handleProcessMP} disabled={isProcessing} className="bg-[#009EE3] text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-[#0089c7] transition-all mb-6 active:scale-95 flex items-center gap-3 disabled:opacity-50">
-                           {isProcessing ? 'Conectando...' : 'Ir a Pagar a Mercado Pago'}
-                           {!isProcessing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>}
-                         </button>
+                         
+                         {!preferenceId ? (
+                           <div className="w-full max-w-sm space-y-4 mb-6">
+                              <div>
+                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1 text-left">Documento de Identidad (DNI/RUC)</label>
+                                <input 
+                                  type="text" 
+                                  className="w-full p-4 bg-gray-50 border-2 border-transparent hover:border-gray-200 focus:border-blue-500 rounded-2xl font-bold text-slate-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-medium" 
+                                  value={dni} 
+                                  onChange={e => setDni(e.target.value.replace(/\D/g, '').slice(0, 11))} 
+                                  placeholder="Ingresa tu DNI para habilitar el pago" 
+                                />
+                              </div>
+                              <button 
+                                onClick={handleProcessMP} 
+                                disabled={isProcessing || dni.length < 8} 
+                                className="w-full bg-[#009EE3] text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-[#0089c7] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                              >
+                                {isProcessing ? 'Generando...' : 'Confirmar Datos y Pagar'}
+                                {!isProcessing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>}
+                              </button>
+                           </div>
+                         ) : (
+                           <div className="w-full max-w-sm animate-fade-in">
+                              <div id="wallet_container" className="min-h-[60px] w-full"></div>
+                              <button onClick={() => setPreferenceId(null)} className="mt-4 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-widest">Cambiar Datos de Identificación</button>
+                           </div>
+                         )}
+
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                            {selectedMethod.instructions || 'Paga de forma rápida y segura a través de Mercado Pago y vuelve aquí.'}
+                            {selectedMethod.instructions || 'Paga de forma 100% segura con tu cuenta de Mercado Pago o tarjeta.'}
                          </p>
                       </div>
                     ) : (

@@ -1122,6 +1122,7 @@ const App: React.FC = () => {
             user={currentUser}
             paymentMethods={paymentMethods}
             mpAccessToken={mpAccessToken}
+            mpPublicKey={mpPublicKey}
             onSuccess={() => {
               setSelectedPackage(null);
               setCart([]);
