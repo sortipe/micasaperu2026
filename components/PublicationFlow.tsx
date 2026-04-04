@@ -435,6 +435,125 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Dormitorios</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.bedrooms || 0}
+                        onChange={(e) => updateField('bedrooms', Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Baños</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.bathrooms || 0}
+                        onChange={(e) => updateField('bathrooms', Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Estac.</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.parking || 0}
+                        onChange={(e) => updateField('parking', Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="flex items-end pb-5">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <input 
+                          type="checkbox" 
+                          className="w-5 h-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                          checked={editingProperty?.parkingCovered || false}
+                          onChange={(e) => updateField('parkingCovered', e.target.checked)}
+                        />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Techado</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Área Const. (m²)</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.builtArea || 0}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          updateField('builtArea', val);
+                          updateField('constructionArea', val); // Sync with legacy field
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Área Terreno (m²)</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.terrainArea || 0}
+                        onChange={(e) => updateField('terrainArea', Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Mantenimiento (S/.)</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.maintenanceFee || 0}
+                        onChange={(e) => updateField('maintenanceFee', Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Pisos / Nivel</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.floors || 1}
+                        onChange={(e) => updateField('floors', Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Antigüedad (Años)</label>
+                      <input 
+                        type="number" 
+                        className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
+                        value={editingProperty?.yearBuilt || 0}
+                        onChange={(e) => updateField('yearBuilt', Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+
+                  {editingProperty?.status === 'PROJECT' && (
+                    <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                      <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Fecha de Entrega</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <select 
+                          className="w-full p-4 bg-white border-none rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                          value={editingProperty?.deliveryMonth || 'Enero'}
+                          onChange={(e) => updateField('deliveryMonth', e.target.value)}
+                        >
+                          {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map(m => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                        <input 
+                          type="number" 
+                          className="w-full p-4 bg-white border-none rounded-xl font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                          value={editingProperty?.deliveryYear || new Date().getFullYear()}
+                          onChange={(e) => updateField('deliveryYear', Number(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-6">
                     <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-l-4 border-orange-500 pl-4">Ubicación</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

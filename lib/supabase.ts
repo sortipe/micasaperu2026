@@ -15,13 +15,14 @@ const isValidUrl = (url: string | undefined) => {
   }
 };
 
-export const isSupabaseConfigured = isValidUrl(envUrl) && !!envKey && envKey !== 'YOUR_SUPABASE_ANON_KEY_HERE';
+// We consider it configured if we have non-placeholder values
+export const isSupabaseConfigured = envUrl && envUrl !== 'YOUR_SUPABASE_URL_HERE' && !!envKey;
 
-const supabaseUrl = isSupabaseConfigured ? envUrl : 'https://uxdnhmkoiqqeiaoxeedw.supabase.co';
-const supabaseAnonKey = isSupabaseConfigured ? envKey : 'sb_publishable_RzdcCn5v-Xx-51FNP7F3fQ_X08NUO-h';
+const supabaseUrl = envUrl || 'https://uxdnhmkoiqqeiaoxeedw.supabase.co';
+const supabaseAnonKey = envKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE';
 
 if (!isSupabaseConfigured) {
-  console.warn('WARNING: Invalid or missing VITE_SUPABASE_URL. Using placeholder to prevent crash.');
+  console.info('Using hardcoded Supabase connection (VITE_ environment variables missing).');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -33,18 +34,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 /* 
   INSTRUCCIONES DE BASE DE DATOS:
-  Si tienes errores de columnas faltantes, ejecuta esto en el SQL Editor de Supabase:
-  
+  Para que todas las funciones de "Mi Casa Perú" operen correctamente, 
+  ejecuta estos comandos en el SQL Editor de Supabase:
+
+  -- 1. Campos para Mensajes (Inquiries)
   ALTER TABLE public.inquiries ADD COLUMN IF NOT EXISTS "senderDni" TEXT;
   ALTER TABLE public.inquiries ADD COLUMN IF NOT EXISTS "propertyTitle" TEXT;
   ALTER TABLE public.inquiries ADD COLUMN IF NOT EXISTS "isRead" BOOLEAN DEFAULT false;
 
-  -- Si quieres habilitar campos avanzados (Entrega, Área Construida, etc.), ejecuta esto:
+  -- 2. Campos Avanzados para Propiedades
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "deliveryMonth" TEXT;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "deliveryYear" INTEGER;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "builtArea" NUMERIC;
+  ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "terrainArea" NUMERIC;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "floors" INTEGER;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "yearBuilt" INTEGER;
+  ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "maintenanceFee" NUMERIC;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "parkingCovered" BOOLEAN DEFAULT false;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "allowAdsUsage" BOOLEAN DEFAULT false;
+  ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "lat" NUMERIC;
+  ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "lng" NUMERIC;
 */

@@ -106,11 +106,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
     }
   };
 
-  useEffect(() => {
-    if (mpPublicKey) {
-      initMercadoPago(mpPublicKey, { locale: 'es-PE' });
-    }
-  }, [mpPublicKey]);
+  // initMercadoPago moved to App.tsx to ensure it's ready before rendering
 
   useEffect(() => {
     if (step === 'DETAILS' && selectedMethod?.type === 'MERCADOPAGO' && !preferenceId && !isProcessing) {
@@ -308,14 +304,21 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                          ) : (
                            <div className="w-full max-w-sm animate-fade-in flex flex-col items-center">
                               <div className="min-h-[60px] w-full">
-                                <Wallet 
-                                  initialization={{ preferenceId: preferenceId, redirectMode: 'self' }} 
-                                  onReady={() => console.log("Mercado Pago Wallet Brick is ready")}
-                                  onError={(error) => {
-                                    console.error("Mercado Pago Brick Error:", error);
-                                    showToast("Error al cargar el botón de pago de Mercado Pago", "ERROR");
-                                  }}
-                                />
+                                {preferenceId && mpPublicKey ? (
+                                  <Wallet 
+                                    initialization={{ preferenceId: preferenceId, redirectMode: 'self' }} 
+                                    onReady={() => console.log("Mercado Pago Wallet Brick is ready")}
+                                    onError={(error) => {
+                                      console.error("Mercado Pago Brick Error:", error);
+                                      showToast("Error al cargar el botón de pago de Mercado Pago", "ERROR");
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center py-10">
+                                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                                    <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Inicializando pasarela...</p>
+                                  </div>
+                                )}
                               </div>
                               
                               <button onClick={() => setPreferenceId(null)} className="mt-6 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-[0.2em] border-b border-transparent hover:border-blue-200 pb-1">← Volver a Editar Datos</button>

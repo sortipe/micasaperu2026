@@ -21,6 +21,7 @@ import DevelopmentOptions from './components/DevelopmentOptions';
 import SupportButton from './components/SupportButton';
 import CartPage from './components/CartPage';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { initMercadoPago } from '@mercadopago/sdk-react';
 
 const ADMIN_EMAIL = 'jorgejoelifzyape@gmail.com';
 
@@ -154,50 +155,73 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    if (mpPublicKey) {
+      console.log("Initializing Mercado Pago with Public Key:", mpPublicKey.substring(0, 15) + "...");
+      initMercadoPago(mpPublicKey, { locale: 'es-PE' });
+    }
+  }, [mpPublicKey]);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [view, selectedPropertyId]);
 
   useEffect(() => {
     const initApp = async () => {
-      try {
-        const promises = [
-          fetchSettings(),
-          fetchProperties(),
-          fetchLocations(),
-          fetchLegalDocs(),
-          fetchPackages()
-        ];
-
-        if (isSupabaseConfigured) {
-          promises.push((async () => {
+      // Safety timeout: 5 seconds max
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
+      
+      const loadTask = (async () => {
+        try {
+          const runSafe = async (name: string, fn: () => Promise<any>) => {
             try {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (session?.user) await fetchProfile(session.user.id);
+              await fn();
             } catch (err) {
-              console.warn("Could not get session:", err);
+              console.error(`Error in ${name}:`, err);
             }
-          })());
-        }
+          };
 
-        await Promise.all(promises);
-        
-        // Check URL for propertyId to open details directly
-        const urlParams = new URLSearchParams(window.location.search);
-        const propertyIdFromUrl = urlParams.get('propertyId');
-        if (propertyIdFromUrl) {
-          setSelectedPropertyId(propertyIdFromUrl);
-          setView('DETAILS');
+          const promises = [
+            runSafe('fetchSettings', fetchSettings),
+            runSafe('fetchProperties', fetchProperties),
+            runSafe('fetchLocations', fetchLocations),
+            runSafe('fetchLegalDocs', fetchLegalDocs),
+            runSafe('fetchPackages', fetchPackages)
+          ];
+
+          if (isSupabaseConfigured) {
+            promises.push(runSafe('fetchSession', async () => {
+              const { data: { session }, error } = await supabase.auth.getSession();
+              if (error) throw error;
+              if (session?.user) await fetchProfile(session.user.id);
+            }));
+          }
+
+          await Promise.all(promises);
+          
+          // Check URL for propertyId to open details directly
+          const urlParams = new URLSearchParams(window.location.search);
+          const propertyIdFromUrl = urlParams.get('propertyId');
+          if (propertyIdFromUrl) {
+            setSelectedPropertyId(propertyIdFromUrl);
+            setView('DETAILS');
+          }
+        } catch (err) {
+          console.error("Critical error in initApp (handled):", err);
         }
-      } finally { 
-        setIsInitialLoading(false); 
-      }
+      })();
+
+      await Promise.race([loadTask, timeoutPromise]);
+      setIsInitialLoading(false);
     };
     initApp();
     
     if (isSupabaseConfigured) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) fetchProfile(session.user.id);
-        else setCurrentUser(null);
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+          if (session?.user) await fetchProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+        }
       });
       return () => subscription.unsubscribe();
     }
@@ -402,33 +426,24 @@ const App: React.FC = () => {
         return;
       }
       
-      // Try to fetch with profile join first
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('properties')
         .select('*, profiles:agentId(name, avatar, whatsapp)')
         .order('createdAt', { ascending: false });
       
-      // If full query fails (e.g. missing columns), try a simpler one
       if (error) {
-        console.warn("Full query failed, trying simple query:", error);
-        const simpleResult = await supabase
-          .from('properties')
-          .select('*')
-          .order('id', { ascending: false });
-        data = simpleResult.data;
-        error = simpleResult.error;
+        console.error("Error fetching properties from Supabase:", error);
+        setProperties(INITIAL_PROPERTIES);
+        return;
       }
 
-      if (error) throw error;
-      
-      if (data) {
+      if (data && data.length > 0) {
         const mapped = data.map((p: any) => ({ 
           ...p,
-          // Ensure mandatory fields have defaults if missing in DB
           title: p.title || 'Inmueble sin título',
           description: p.description || 'Sin descripción disponible',
-          pricePEN: p.pricePEN || 0,
-          priceUSD: p.priceUSD || 0,
+          pricePEN: Number(p.pricePEN) || 0,
+          priceUSD: Number(p.priceUSD) || 0,
           featuredImage: p.featuredImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000',
           gallery: Array.isArray(p.gallery) ? p.gallery : [],
           type: p.type || 'Departamento',
@@ -436,11 +451,11 @@ const App: React.FC = () => {
           district: p.district || 'Lima',
           department: p.department || 'Lima',
           address: p.address || 'Dirección no especificada',
-          bedrooms: p.bedrooms || 0,
-          bathrooms: p.bathrooms || 0,
-          parking: p.parking || 0,
-          builtArea: p.builtArea || p.constructionArea || 0,
-          terrainArea: p.terrainArea || p.constructionArea || 0,
+          bedrooms: Number(p.bedrooms) || 0,
+          bathrooms: Number(p.bathrooms) || 0,
+          parking: Number(p.parking) || 0,
+          builtArea: Number(p.builtArea || p.constructionArea) || 0,
+          terrainArea: Number(p.terrainArea || p.constructionArea) || 0,
           createdAt: p.createdAt || new Date().toISOString(),
           isFeatured: p.isFeatured || false,
           agentName: p.profiles?.name || p.agentName || 'Asesor', 
@@ -449,7 +464,8 @@ const App: React.FC = () => {
         }));
         setProperties(mapped as Property[]);
       } else { 
-        setProperties([]); 
+        // fallback only if actually no data returned
+        setProperties(INITIAL_PROPERTIES); 
       }
     } catch (err: any) { 
       console.error("Error fetching properties:", err);
@@ -463,21 +479,36 @@ const App: React.FC = () => {
   };
 
   const fetchPackages = async () => {
-    if (!isSupabaseConfigured) return;
-    const { data } = await supabase.from('packages').select('*').order('price', { ascending: true });
-    if (data) setPackages(data as Package[]);
+    try {
+      if (!isSupabaseConfigured) return;
+      const { data, error } = await supabase.from('packages').select('*').order('price', { ascending: true });
+      if (error) throw error;
+      if (data) setPackages(data as Package[]);
+    } catch (err) {
+      console.error('Error in fetchPackages:', err);
+    }
   };
 
   const fetchLegalDocs = async () => {
-    if (!isSupabaseConfigured) return;
-    const { data } = await supabase.from('legal_documents').select('*');
-    if (data) setLegalDocs(data as LegalDoc[]);
+    try {
+      if (!isSupabaseConfigured) return;
+      const { data, error } = await supabase.from('legal_documents').select('*');
+      if (error) throw error;
+      if (data) setLegalDocs(data as LegalDoc[]);
+    } catch (err) {
+      console.error('Error in fetchLegalDocs:', err);
+    }
   };
 
   const fetchLocations = async () => {
-    if (!isSupabaseConfigured) return;
-    const { data } = await supabase.from('locations').select('*');
-    if (data) setLocations([...PERU_LOCATIONS, ...data] as LocationItem[]);
+    try {
+      if (!isSupabaseConfigured) return;
+      const { data, error } = await supabase.from('locations').select('*');
+      if (error) throw error;
+      if (data) setLocations([...PERU_LOCATIONS, ...data] as LocationItem[]);
+    } catch (err) {
+      console.error('Error in fetchLocations:', err);
+    }
   };
 
   const fetchPaymentMethods = async () => {
