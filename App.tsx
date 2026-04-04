@@ -52,6 +52,8 @@ const App: React.FC = () => {
   ]);
   const [mpPublicKey, setMpPublicKey] = useState<string>('APP_USR-c72f0355-efb1-4510-b26b-0ae474fb71b3');
   const [mpAccessToken, setMpAccessToken] = useState<string>('APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
+  const [mpClientId, setMpClientId] = useState<string>('1960446256553701');
+  const [mpClientSecret, setMpClientSecret] = useState<string>('vB3NvBI7MC4mZaqZoO5228Fu0SgjOChG');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
@@ -359,6 +361,8 @@ const App: React.FC = () => {
             if (item.key === 'social_links') setSocialLinks(parsedValue);
             if (item.key === 'mp_public_key') setMpPublicKey(item.value);
             if (item.key === 'mp_access_token') setMpAccessToken(item.value);
+            if (item.key === 'mp_client_id') setMpClientId(item.value);
+            if (item.key === 'mp_client_secret') setMpClientSecret(item.value);
           } catch (e) {
             // If parsing fails, it might just be a plain string
             if (item.key === 'app_logo') setAppLogo(item.value);
@@ -367,6 +371,8 @@ const App: React.FC = () => {
             if (item.key === 'favicon') setFavicon(item.value);
             if (item.key === 'mp_public_key') setMpPublicKey(item.value);
             if (item.key === 'mp_access_token') setMpAccessToken(item.value);
+            if (item.key === 'mp_client_id') setMpClientId(item.value);
+            if (item.key === 'mp_client_secret') setMpClientSecret(item.value);
             // For office_info and social_links, we expect JSON, so we don't set if it fails
           }
         });
@@ -768,7 +774,7 @@ const App: React.FC = () => {
           <ClientDashboard 
             user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
             appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
-            mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken}
+            mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken} mpClientId={mpClientId} mpClientSecret={mpClientSecret}
             onUpdateLogo={async url => { 
               const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
@@ -808,6 +814,16 @@ const App: React.FC = () => {
               const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
               if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
               else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
+            }}
+            onUpdateMpClientId={async id => {
+              const { error } = await supabase.from('settings').upsert({key: 'mp_client_id', value: id}, { onConflict: 'key' });
+              if (error) { showToast("Error al guardar MP Client ID", "ERROR"); console.error(error); }
+              else { setMpClientId(id); showToast("MP Client ID actualizado", "SUCCESS"); }
+            }}
+            onUpdateMpClientSecret={async secret => {
+              const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
+              if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
+              else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
             }}
             onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
             onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 

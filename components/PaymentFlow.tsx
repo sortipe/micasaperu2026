@@ -310,6 +310,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                               <div className="min-h-[60px] w-full">
                                 <Wallet 
                                   initialization={{ preferenceId: preferenceId, redirectMode: 'self' }} 
+                                  onReady={() => console.log("Mercado Pago Wallet Brick is ready")}
+                                  onError={(error) => {
+                                    console.error("Mercado Pago Brick Error:", error);
+                                    showToast("Error al cargar el botón de pago de Mercado Pago", "ERROR");
+                                  }}
                                 />
                               </div>
                               

@@ -24,6 +24,8 @@ interface ClientDashboardProps {
   paymentMethods: PaymentMethod[];
   mpPublicKey?: string;
   mpAccessToken?: string;
+  mpClientId?: string;
+  mpClientSecret?: string;
   onUpdateLogo: (url: string) => Promise<void>;
   onUpdateBanner: (url: string) => Promise<void>;
   onUpdateBannerMobile: (url: string) => Promise<void>;
@@ -32,6 +34,8 @@ interface ClientDashboardProps {
   onUpdateOfficeInfo: (info: OfficeInfo) => Promise<void>;
   onUpdateMpPublicKey?: (key: string) => Promise<void>;
   onUpdateMpAccessToken?: (key: string) => Promise<void>;
+  onUpdateMpClientId?: (id: string) => Promise<void>;
+  onUpdateMpClientSecret?: (secret: string) => Promise<void>;
   onAddProperty: () => void;
   onEditProperty: (id: string) => void;
   onDeleteProperty: (id: string) => void;
@@ -52,9 +56,9 @@ interface ClientDashboardProps {
 
 const ClientDashboard: React.FC<ClientDashboardProps> = ({ 
   user, properties = [], legalDocs = [], complaints = [], appLogo, homeBanner, homeBannerMobile, favicon, socialLinks = [], officeInfo,
-  locations = [], packages = [], paymentMethods = [], mpPublicKey = '', mpAccessToken = '',
+  locations = [], packages = [], paymentMethods = [], mpPublicKey = '', mpAccessToken = '', mpClientId = '', mpClientSecret = '',
   onUpdateLogo, onUpdateBanner, onUpdateBannerMobile, onUpdateFavicon, onUpdateSocialLinks, onUpdateOfficeInfo, 
-  onUpdateMpPublicKey, onUpdateMpAccessToken,
+  onUpdateMpPublicKey, onUpdateMpAccessToken, onUpdateMpClientId, onUpdateMpClientSecret,
   onAddProperty, onEditProperty, onDeleteProperty, onLogout, onSaveLegalDoc, onSaveLocation, onDeleteLocation, 
   onSavePackage, onDeletePackage, onUpdatePaymentMethod, onDeletePaymentMethod, inquiries = [], onNavigate, onUpdateProfile, transactions = [],
   onUpdateTransactionStatus, onSyncCredits, showToast
@@ -637,6 +641,39 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      <input type="text" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.constructoraWhatsapp || ''} onChange={e => setTempOfficeInfo({...tempOfficeInfo, constructoraWhatsapp: e.target.value})} placeholder="WhatsApp para Constructoras" />
                   </div>
                </div>
+            </div>
+            
+            <div className="pt-8 border-t border-gray-100">
+               <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight mb-8">Credenciales Mercado Pago</h2>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Public Key (APP_USR-...)</label>
+                     <div className="flex gap-2">
+                        <input type="text" className="flex-grow p-4 bg-gray-50 rounded-2xl font-bold text-sm" defaultValue={mpPublicKey} onBlur={e => onUpdateMpPublicKey?.(e.target.value)} placeholder="APP_USR-..." />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Access Token (APP_USR-...)</label>
+                     <div className="flex gap-2">
+                        <input type="text" className="flex-grow p-4 bg-gray-50 rounded-2xl font-bold text-sm" defaultValue={mpAccessToken} onBlur={e => onUpdateMpAccessToken?.(e.target.value)} placeholder="APP_USR-..." />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Client ID</label>
+                     <div className="flex gap-2">
+                        <input type="text" className="flex-grow p-4 bg-gray-50 rounded-2xl font-bold text-sm" defaultValue={mpClientId} onBlur={e => onUpdateMpClientId?.(e.target.value)} placeholder="ID del Cliente" />
+                     </div>
+                  </div>
+                  <div className="space-y-2">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Client Secret</label>
+                     <div className="flex gap-2">
+                        <input type="password" name="mpClientSecret" className="flex-grow p-4 bg-gray-50 rounded-2xl font-bold text-sm" defaultValue={mpClientSecret} onBlur={e => onUpdateMpClientSecret?.(e.target.value)} placeholder="Secreto del Cliente" />
+                     </div>
+                  </div>
+               </div>
+               <p className="mt-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+                  * Las credenciales se guardan automáticamente al perder el foco del campo (onBlur). Asegúrate de que coincidan con tu cuenta de Mercado Pago Perú.
+               </p>
             </div>
           </div>
         );
