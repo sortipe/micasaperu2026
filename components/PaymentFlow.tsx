@@ -112,35 +112,54 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   }, [step, selectedMethod, preferenceId, isProcessing]);
 
   useEffect(() => {
-    if (preferenceId && mpPublicKey && (window as any).MercadoPago) {
-      const container = document.getElementById('wallet_container');
-      if (container) container.innerHTML = ''; // Limpiar previo
+    let checkCount = 0;
+    const intervalId = setInterval(() => {
+      checkCount++;
+      if (preferenceId && mpPublicKey && (window as any).MercadoPago) {
+        clearInterval(intervalId);
+        
+        const container = document.getElementById('wallet_container');
+        if (container) {
+          container.innerHTML = ''; // Limpiar previo
+          console.log("Rendering Mercado Pago Wallet Brick with Pref:", preferenceId);
 
-      const mp = new (window as any).MercadoPago(mpPublicKey, {
-        locale: 'es-PE'
-      });
-      const bricksBuilder = mp.bricks();
-      
-      const renderComponent = async (bricksBuilder: any) => {
-        try {
-          await bricksBuilder.create("wallet", "wallet_container", {
-            initialization: {
-                preferenceId: preferenceId,
-                redirectMode: 'modal'
-            },
-            customization: {
-               texts: {
-                 valueProp: 'smart_option',
-               },
-             },
+          const mp = new (window as any).MercadoPago(mpPublicKey, {
+            locale: 'es-PE'
           });
-        } catch (error) {
-          console.error("Error rendering MP Wallet Brick:", error);
-        }
-      };
+          const bricksBuilder = mp.bricks();
+          
+          const renderComponent = async (bricksBuilder: any) => {
+            try {
+              await bricksBuilder.create("wallet", "wallet_container", {
+                initialization: {
+                    preferenceId: preferenceId,
+                    redirectMode: 'modal'
+                },
+                customization: {
+                  texts: {
+                    valueProp: 'smart_option',
+                  },
+                },
+              });
+              console.log("Wallet Brick rendered successfully!");
+            } catch (error) {
+              console.error("Error rendering MP Wallet Brick:", error);
+            }
+          };
 
-      renderComponent(bricksBuilder);
-    }
+          renderComponent(bricksBuilder);
+        }
+      }
+      
+      if (checkCount > 15) { // 15 segundos máximo
+        clearInterval(intervalId);
+        if (preferenceId && mpPublicKey && !(window as any).MercadoPago) {
+          console.error("Mercado Pago SDK failed to load after 15s");
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, [preferenceId, mpPublicKey]);
 
   const handleProcessPayment = async () => {
