@@ -71,6 +71,7 @@ const App: React.FC = () => {
   const [spatialFilterIds, setSpatialFilterIds] = useState<string[] | null>(null);
   const [focusedLocation, setFocusedLocation] = useState<LocationItem | null>(null);
   
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const showToast = (message: string, type: ToastType = 'INFO') => {
@@ -421,54 +422,75 @@ const App: React.FC = () => {
 
   const fetchProperties = async () => {
     try {
+      setFetchError(null);
       if (!isSupabaseConfigured) {
+        console.info("Using INITIAL_PROPERTIES (Supabase not configured/Demo Mode)");
         setProperties(INITIAL_PROPERTIES);
         return;
       }
       
-      // Usamos una consulta base más sencilla para asegurar compatibilidad total
+      console.info("Fetching properties from Supabase...");
       const { data, error } = await supabase
         .from('properties')
         .select('*')
         .order('id', { ascending: false });
       
       if (error) {
-        console.error("Error crítico al leer de Supabase:", error);
-        // Solo fallback si hay un error real de red o configuración
-        setProperties(INITIAL_PROPERTIES);
+        console.error("Supabase Error:", error);
+        setFetchError(`Error de Supabase: ${error.message}`);
+        showToast(`Error al leer propiedades: ${error.message}`, "ERROR");
+        // Fallback to INITIAL only if explicitly desired or empty, 
+        // but here we want to show there's an error.
+        setProperties([]);
         return;
       }
 
       if (data) {
-        const mapped = data.map((p: any) => ({ 
-          ...p,
-          title: p.title || 'Inmueble sin título',
-          description: p.description || 'Sin descripción disponible',
-          pricePEN: Number(p.pricePEN) || 0,
-          priceUSD: Number(p.priceUSD) || 0,
-          featuredImage: p.featuredImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000',
-          gallery: Array.isArray(p.gallery) ? p.gallery : [],
-          type: p.type || 'Departamento',
-          status: p.status || 'FOR_SALE',
-          district: p.district || 'Lima',
-          department: p.department || 'Lima',
-          address: p.address || 'Dirección no especificada',
-          bedrooms: Number(p.bedrooms) || 0,
-          bathrooms: Number(p.bathrooms) || 0,
-          parking: Number(p.parking) || 0,
-          builtArea: Number(p.builtArea || p.constructionArea) || 0,
-          terrainArea: Number(p.terrainArea || p.constructionArea) || 0,
-          createdAt: p.createdAt || new Date().toISOString(),
-          isFeatured: p.isFeatured || false,
-          agentName: p.agentName || 'Asesor', 
-          agentAvatar: p.agentAvatar,
-          agentWhatsapp: p.agentWhatsapp || '51900000000'
-        }));
+        console.info(`Successfully fetched ${data.length} properties.`);
+        const mapped = data.map((p: any, index: number) => {
+          try {
+            return { 
+              ...p,
+              title: p.title || 'Inmueble sin título',
+              description: p.description || 'Sin descripción disponible',
+              pricePEN: Number(p.pricePEN) || 0,
+              priceUSD: Number(p.priceUSD) || 0,
+              featuredImage: p.featuredImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000',
+              gallery: Array.isArray(p.gallery) ? p.gallery : [],
+              type: p.type || 'Departamento',
+              status: p.status || 'FOR_SALE',
+              district: p.district || 'Lima',
+              department: p.department || 'Lima',
+              address: p.address || 'Dirección no especificada',
+              bedrooms: Number(p.bedrooms) || 0,
+              bathrooms: Number(p.bathrooms) || 0,
+              parking: Number(p.parking) || 0,
+              builtArea: Number(p.builtArea || p.constructionArea) || 0,
+              terrainArea: Number(p.terrainArea || p.constructionArea) || 0,
+              yearBuilt: Number(p.year_built || p.yearBuilt) || 0,
+              createdAt: p.createdAt || new Date().toISOString(),
+              isFeatured: p.isFeatured || false,
+              agentName: p.agentName || 'Asesor', 
+              agentAvatar: p.agentAvatar,
+              agentWhatsapp: p.agentWhatsapp || '51900000000'
+            };
+          } catch (e) {
+            console.error(`Error mapping property at index ${index}:`, p, e);
+            return null;
+          }
+        }).filter(item => item !== null);
         
         setProperties(mapped as Property[]);
+        if (mapped.length === 0 && data.length > 0) {
+          setFetchError("Error al procesar los datos recibidos de la base de datos.");
+        }
+      } else {
+        console.warn("Supabase returned no data for properties.");
+        setProperties([]);
       }
     } catch (err: any) { 
-      console.error("Error fetching properties:", err);
+      console.error("Unexpected error in fetchProperties:", err);
+      setFetchError(`Error inesperado: ${err.message || 'Error desconocido'}`);
       if (!isSupabaseConfigured) {
         setProperties(INITIAL_PROPERTIES); 
       } else {
@@ -732,7 +754,27 @@ const App: React.FC = () => {
 
 
               {properties.length === 0 && (
-                <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
+                <div className="flex flex-col items-center">
+                  <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
+                  {fetchError && (
+                    <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm max-w-lg text-center shadow-sm">
+                      <div className="flex items-center justify-center gap-2 mb-3 text-red-600">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <span className="font-black uppercase tracking-wider text-xs">Error de Conexión</span>
+                      </div>
+                      <p className="font-bold mb-2">No se pudo cargar la información de Supabase.</p>
+                      <div className="bg-white/50 p-3 rounded-lg border border-red-100 font-mono text-[10px] break-all mb-4 text-left">
+                        {fetchError}
+                      </div>
+                      <button 
+                        onClick={() => fetchProperties()}
+                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 transition-all shadow-md active:scale-95"
+                      >
+                        Reintentar carga ahora
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </>
@@ -1035,7 +1077,16 @@ const App: React.FC = () => {
             paymentMethods={paymentMethods}
             mpAccessToken={mpAccessToken}
             onAdd={async p => { 
-              const { agentName, agentAvatar, agentWhatsapp, profiles, ...cleanP } = p as any;
+              const { 
+                agentName, agentAvatar, agentWhatsapp, profiles, 
+                constructionArea, documents, yearBuilt,
+                ...cleanP 
+              } = p as any;
+              
+              const dbData = {
+                ...cleanP,
+                year_built: yearBuilt
+              };
               
               let finalPlanType = cleanP.planType || 'BASIC';
               let finalPublishedAt = new Date().toISOString();
@@ -1093,7 +1144,7 @@ const App: React.FC = () => {
               }
 
               const { error } = await supabase.from('properties').insert({
-                  ...cleanP,
+                  ...dbData,
                   planType: finalPlanType,
                   publishedAt: finalPublishedAt,
                   expiresAt: finalExpiresAt,
@@ -1101,8 +1152,8 @@ const App: React.FC = () => {
               }); 
               
               if (error) {
-                showToast("Error al subir inmueble", "ERROR");
-                console.error(error);
+                console.error("Supabase insert error details:", error);
+                showToast(`Error al subir inmueble: ${error.message}`, "ERROR");
                 throw error; 
               }
 
@@ -1111,11 +1162,21 @@ const App: React.FC = () => {
               setView('DASHBOARD'); 
             }} 
             onUpdate={async p => { 
-              const { agentName, agentAvatar, agentWhatsapp, profiles, ...cleanP } = p as any;
-              const { error } = await supabase.from('properties').update(cleanP).eq('id', p.id); 
+              const { 
+                agentName, agentAvatar, agentWhatsapp, profiles, 
+                constructionArea, documents, yearBuilt,
+                ...cleanP 
+              } = p as any;
+
+              const dbData = {
+                ...cleanP,
+                year_built: yearBuilt
+              };
+
+              const { error } = await supabase.from('properties').update(dbData).eq('id', p.id); 
               if (error) {
-                showToast("Error al actualizar inmueble", "ERROR");
-                console.error(error);
+                console.error("Supabase update error details:", error);
+                showToast(`Error al actualizar inmueble: ${error.message}`, "ERROR");
                 throw error; 
               }
               await fetchProperties(); 
