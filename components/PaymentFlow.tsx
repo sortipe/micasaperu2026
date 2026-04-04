@@ -51,14 +51,21 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
             title: isCart ? 'Pago Múltiple' : pkg ? `Plan ${pkg.name}` : `Pago de Servicios - Mi Casa Perú`,
             quantity: 1,
             currency_id: 'PEN',
-            unit_price: totalAmount
+            unit_price: Number(totalAmount.toFixed(2))
           }],
+          payer: {
+            email: user.email,
+            name: user.name,
+            phone: user.whatsapp ? { area_code: '51', number: user.whatsapp.replace(/\D/g, '').slice(-9) } : undefined
+          },
           back_urls: {
             success: window.location.href,
             failure: window.location.href,
             pending: window.location.href
           },
-          auto_return: 'approved'
+          auto_return: 'approved',
+          statement_descriptor: 'MICASAPERU',
+          binary_mode: true
         })
       });
       const data = await res.json();
