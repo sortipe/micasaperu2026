@@ -55,8 +55,13 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
           }],
           payer: {
             email: user.email,
-            name: user.name,
-            phone: user.whatsapp ? { area_code: '51', number: user.whatsapp.replace(/\D/g, '').slice(-9) } : undefined
+            first_name: user.name.split(' ')[0] || 'Cliente',
+            last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru',
+            phone: user.whatsapp ? { area_code: '51', number: user.whatsapp.replace(/\D/g, '').slice(-9) } : undefined,
+            identification: {
+              type: "DNI",
+              number: "40404040" // Placeholder realista para activar Mercado Pago PE
+            }
           },
           back_urls: {
             success: window.location.href,
@@ -64,8 +69,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
             pending: window.location.href
           },
           auto_return: 'approved',
-          statement_descriptor: 'MICASAPERU',
-          binary_mode: true
+          statement_descriptor: 'MICASAPERU'
         })
       });
       const data = await res.json();
