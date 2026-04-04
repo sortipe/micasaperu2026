@@ -269,11 +269,15 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
   const handleGenerateLocations = async () => {
     if (!aiPrompt.trim()) return;
+    if (!import.meta.env.VITE_GOOGLE_API_KEY) {
+      showToast("API Key de Google AI no configurada", "WARNING");
+      return;
+    }
     setIsAiGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY || '' });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.0-flash',
         contents: `Actúa como un experto en geografía e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
         Genera una lista de ubicaciones geográficas que coincidan exactamente con lo solicitado.
         

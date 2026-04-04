@@ -1084,8 +1084,7 @@ const App: React.FC = () => {
               } = p as any;
               
               const dbData = {
-                ...cleanP,
-                year_built: yearBuilt
+                ...cleanP
               };
               
               let finalPlanType = cleanP.planType || 'BASIC';
@@ -1169,8 +1168,7 @@ const App: React.FC = () => {
               } = p as any;
 
               const dbData = {
-                ...cleanP,
-                year_built: yearBuilt
+                ...cleanP
               };
 
               const { error } = await supabase.from('properties').update(dbData).eq('id', p.id); 
