@@ -803,6 +803,39 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                         </div>
                      </div>
 
+                     <div className="bg-green-50 p-4 rounded-2xl border-2 border-green-200">
+                        <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-3">Precio de Oferta (Vacío = Sin Oferta)</p>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div>
+                              <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Precio Oferta</p>
+                              <div className="flex items-baseline">
+                                 <span className="text-[10px] font-black text-gray-400 mr-1">S/</span>
+                                 <input 
+                                    type="number" 
+                                    className="w-full bg-white rounded-lg px-2 py-1.5 font-black text-green-600 text-sm outline-none border border-green-200" 
+                                    value={pkg.offerPrice || ''} 
+                                    onChange={e => handlePackageChange(pkg.id, 'offerPrice', e.target.value ? Number(e.target.value) : undefined)} 
+                                    placeholder="0"
+                                 />
+                              </div>
+                           </div>
+                           <div>
+                              <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Expira</p>
+                              <input 
+                                 type="date" 
+                                 className="w-full bg-white rounded-lg px-2 py-1.5 font-black text-green-600 text-xs outline-none border border-green-200" 
+                                 value={pkg.offerExpiresAt?.split('T')[0] || ''} 
+                                 onChange={e => handlePackageChange(pkg.id, 'offerExpiresAt', e.target.value ? new Date(e.target.value + 'T23:59:59').toISOString() : undefined)} 
+                              />
+                           </div>
+                        </div>
+                        {pkg.offerPrice && pkg.price > 0 && (
+                           <p className="text-[9px] font-black text-green-600 mt-2">
+                              Descuento: {Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%
+                           </p>
+                        )}
+                     </div>
+
                      <div className="bg-gray-50 p-6 rounded-2xl">
                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Descripción (Separar con | para varias líneas)</p>
                         <textarea 

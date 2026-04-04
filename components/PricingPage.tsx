@@ -12,15 +12,22 @@ interface PricingPageProps {
 
 const PricingPage: React.FC<PricingPageProps> = ({ onSelectPackage, onAddToCart, customPackages, userRole }) => {
   const displayPackages = (customPackages || DEFAULT_PACKAGES).filter(pkg => {
-    // If no roles are specified, it's available to everyone
     if (!pkg.allowedRoles || pkg.allowedRoles.length === 0) return true;
-    // If user is not logged in, they can only see public packages (no allowedRoles)
     if (!userRole) return false;
-    // Admins see everything
     if (userRole === 'ADMINISTRADOR') return true;
-    // Check if user's role is in the allowed list
     return pkg.allowedRoles.includes(userRole);
   });
+
+  const hasValidOffer = (pkg: Package) => {
+    if (!pkg.offerPrice || pkg.offerPrice <= 0) return false;
+    if (!pkg.offerExpiresAt) return true;
+    return new Date(pkg.offerExpiresAt) > new Date();
+  };
+
+  const getDiscount = (pkg: Package) => {
+    if (!hasValidOffer(pkg)) return 0;
+    return Math.round((1 - pkg.offerPrice! / pkg.price) * 100);
+  };
 
   return (
     <div className="bg-gray-50 py-12 md:py-20 animate-fade-in">
@@ -57,10 +64,24 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPackage, onAddToCart,
               </div>
 
               <div className="mb-8 flex items-baseline gap-2">
-                <span className="text-4xl font-black text-[#091F4F] tracking-tighter leading-none">S/ {pkg.price.toLocaleString()}</span>
-                <span className="text-gray-400 font-black text-[9px] uppercase tracking-widest opacity-60">
-                  / MENSUAL
-                </span>
+                {hasValidOffer(pkg) ? (
+                  <>
+                    <span className="text-4xl font-black text-[#e31e24] tracking-tighter leading-none">S/ {pkg.offerPrice!.toLocaleString()}</span>
+                    <span className="text-gray-400 font-black text-[9px] uppercase tracking-widest line-through opacity-60">
+                      S/ {pkg.price.toLocaleString()}
+                    </span>
+                    <div className="absolute -top-2 right-4 bg-green-500 text-white px-2 py-0.5 rounded-full font-black text-[9px]">
+                      -{getDiscount(pkg)}%
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-4xl font-black text-[#091F4F] tracking-tighter leading-none">S/ {pkg.price.toLocaleString()}</span>
+                    <span className="text-gray-400 font-black text-[9px] uppercase tracking-widest opacity-60">
+                      / MENSUAL
+                    </span>
+                  </>
+                )}
               </div>
 
               <div className="space-y-4 mb-10 flex-grow">

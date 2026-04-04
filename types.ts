@@ -55,6 +55,8 @@ export interface Package {
   isActive?: boolean;
   allowedRoles?: Role[];
   allowedOperation?: 'RENT' | 'SALE' | 'BOTH';
+  offerPrice?: number;
+  offerExpiresAt?: string;
 }
 
 export interface LocationItem {
