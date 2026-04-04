@@ -62,15 +62,18 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
             last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru'
           },
           back_urls: {
-            success: window.location.href,
-            failure: window.location.href,
-            pending: window.location.href
+            success: window.location.origin + window.location.pathname,
+            failure: window.location.origin + window.location.pathname,
+            pending: window.location.origin + window.location.pathname
           },
-          auto_return: 'approved',
           statement_descriptor: 'MICASAPERU'
         })
       });
       const data = await res.json();
+      if (!res.ok) {
+        console.error("Mercado Pago API Error:", data);
+        throw new Error(data.message || "Error de Mercado Pago API");
+      }
       if (data.id) {
         setPreferenceId(data.id);
         // El SDK se encargará de renderizar el botón oficial usando este ID
