@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, Property, Package, Transaction, LegalDoc, Inquiry, Notification, SocialLink, OfficeInfo, LocationItem, Complaint, PaymentMethod, LegalDocType } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { GoogleGenAI, Type } from "@google/genai";
 import { ToastType } from './Toast';
 
@@ -169,6 +169,28 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     else if (type === 'FAVICON') setIsUploadingFavicon(true);
     else if (type === 'QR_CODE') { /* No central loading state for QR, we handle it per method if needed, but for now we'll just use the flow */ }
     else setIsUpdatingProfile(true);
+
+    if (!isSupabaseConfigured) {
+      showToast("Modo Demo: Supabase no configurado. El archivo no se subirá permanentemente.", "WARNING");
+      const url = URL.createObjectURL(file);
+      if (type === 'LOGO') await onUpdateLogo(url);
+      else if (type === 'BANNER') await onUpdateBanner(url);
+      else if (type === 'BANNER_MOBILE') await onUpdateBannerMobile(url);
+      else if (type === 'FAVICON') await onUpdateFavicon(url);
+      else if (type === 'QR_CODE' && uploadingMethodId) {
+        const method = paymentMethods.find(m => m.id === uploadingMethodId);
+        if (method) await onUpdatePaymentMethod({ ...method, qrUrl: url });
+      } else {
+        await onUpdateProfile({ avatar: url });
+        setProfileData(prev => ({ ...prev, avatar: url }));
+      }
+      setIsUploadingLogo(false); 
+      setIsUploadingBanner(false); 
+      setIsUploadingBannerMobile(false);
+      setIsUploadingFavicon(false);
+      setIsUpdatingProfile(false);
+      return;
+    }
 
     try {
       const fileName = `${type.toLowerCase()}-${Date.now()}.${file.name.split('.').pop()}`;

@@ -426,18 +426,20 @@ const App: React.FC = () => {
         return;
       }
       
+      // Usamos una consulta base más sencilla para asegurar compatibilidad total
       const { data, error } = await supabase
         .from('properties')
-        .select('*, profiles:agentId(name, avatar, whatsapp)')
-        .order('createdAt', { ascending: false });
+        .select('*')
+        .order('id', { ascending: false });
       
       if (error) {
-        console.error("Error fetching properties from Supabase:", error);
+        console.error("Error crítico al leer de Supabase:", error);
+        // Solo fallback si hay un error real de red o configuración
         setProperties(INITIAL_PROPERTIES);
         return;
       }
 
-      if (data && data.length > 0) {
+      if (data) {
         const mapped = data.map((p: any) => ({ 
           ...p,
           title: p.title || 'Inmueble sin título',
@@ -458,14 +460,12 @@ const App: React.FC = () => {
           terrainArea: Number(p.terrainArea || p.constructionArea) || 0,
           createdAt: p.createdAt || new Date().toISOString(),
           isFeatured: p.isFeatured || false,
-          agentName: p.profiles?.name || p.agentName || 'Asesor', 
-          agentAvatar: p.profiles?.avatar || p.agentAvatar,
-          agentWhatsapp: p.profiles?.whatsapp || p.agentWhatsapp || '51900000000'
+          agentName: p.agentName || 'Asesor', 
+          agentAvatar: p.agentAvatar,
+          agentWhatsapp: p.agentWhatsapp || '51900000000'
         }));
+        
         setProperties(mapped as Property[]);
-      } else { 
-        // fallback only if actually no data returned
-        setProperties(INITIAL_PROPERTIES); 
       }
     } catch (err: any) { 
       console.error("Error fetching properties:", err);

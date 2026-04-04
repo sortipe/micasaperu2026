@@ -15,13 +15,20 @@ const isValidUrl = (url: string | undefined) => {
   }
 };
 
-// We consider it configured if we have non-placeholder values
-export const isSupabaseConfigured = envUrl && envUrl !== 'YOUR_SUPABASE_URL_HERE' && !!envKey;
+// FORCE_DEMO_MODE: Set to true to disconnect from live Supabase and use mock data
+const FORCE_DEMO_MODE = false;
+
+// We consider it configured if we have non-placeholder values and NOT in force demo mode
+export const isSupabaseConfigured = !FORCE_DEMO_MODE && !!envUrl && envUrl !== 'YOUR_SUPABASE_URL_HERE' && !!envKey;
 
 const supabaseUrl = envUrl || 'https://uxdnhmkoiqqeiaoxeedw.supabase.co';
 const supabaseAnonKey = envKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE';
 
-if (!isSupabaseConfigured) {
+if (FORCE_DEMO_MODE) {
+  console.info('Supabase DISCONNECTED (Forced Demo Mode). Using mock data.');
+} else if (isSupabaseConfigured) {
+  console.info('Supabase CONNECTED successfully.');
+} else {
   console.info('Using hardcoded Supabase connection (VITE_ environment variables missing).');
 }
 
