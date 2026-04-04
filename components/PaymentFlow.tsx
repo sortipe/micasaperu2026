@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Package, User, PaymentMethod, CartItem } from '../types';
 import { ToastType } from './Toast';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 
 interface PaymentFlowProps {
   pkg?: Package;
@@ -26,6 +26,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [dni, setDni] = useState(user.dni || '');
   const [saveDni, setSaveDni] = useState(true);
+  const [showRetry, setShowRetry] = useState(false);
 
   const isCart = !!cartItems && cartItems.length > 0;
   const totalAmount = isCart 
@@ -52,9 +53,9 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
     try {
       setIsProcessing(true);
       
-      // Si el usuario pidió guardar el DNI, lo enviamos al perfil
+      // Si el usuario pidió guardar el DNI, lo enviamos al perfil (Sin bloquear el pago)
       if (saveDni && dni !== user.dni && onUpdateProfile) {
-        await onUpdateProfile({ dni });
+        onUpdateProfile({ dni }).catch(err => console.error("Supabase Profile Sync failed (ignoring for payment):", err));
       }
 
       const res = await fetch('https://api.mercadopago.com/checkout/preferences', {
@@ -106,61 +107,18 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   };
 
   useEffect(() => {
+    if (mpPublicKey) {
+      initMercadoPago(mpPublicKey, { locale: 'es-PE' });
+    }
+  }, [mpPublicKey]);
+
+  useEffect(() => {
     if (step === 'DETAILS' && selectedMethod?.type === 'MERCADOPAGO' && !preferenceId && !isProcessing) {
       handleProcessMP();
     }
   }, [step, selectedMethod, preferenceId, isProcessing]);
 
-  useEffect(() => {
-    let checkCount = 0;
-    const intervalId = setInterval(() => {
-      checkCount++;
-      if (preferenceId && mpPublicKey && (window as any).MercadoPago) {
-        clearInterval(intervalId);
-        
-        const container = document.getElementById('wallet_container');
-        if (container) {
-          container.innerHTML = ''; // Limpiar previo
-          console.log("Rendering Mercado Pago Wallet Brick with Pref:", preferenceId);
 
-          const mp = new (window as any).MercadoPago(mpPublicKey, {
-            locale: 'es-PE'
-          });
-          const bricksBuilder = mp.bricks();
-          
-          const renderComponent = async (bricksBuilder: any) => {
-            try {
-              await bricksBuilder.create("wallet", "wallet_container", {
-                initialization: {
-                    preferenceId: preferenceId,
-                    redirectMode: 'modal'
-                },
-                customization: {
-                  texts: {
-                    valueProp: 'smart_option',
-                  },
-                },
-              });
-              console.log("Wallet Brick rendered successfully!");
-            } catch (error) {
-              console.error("Error rendering MP Wallet Brick:", error);
-            }
-          };
-
-          renderComponent(bricksBuilder);
-        }
-      }
-      
-      if (checkCount > 15) { // 15 segundos máximo
-        clearInterval(intervalId);
-        if (preferenceId && mpPublicKey && !(window as any).MercadoPago) {
-          console.error("Mercado Pago SDK failed to load after 15s");
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [preferenceId, mpPublicKey]);
 
   const handleProcessPayment = async () => {
     if (!selectedMethod) return;
@@ -349,7 +307,12 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                            </div>
                          ) : (
                            <div className="w-full max-w-sm animate-fade-in flex flex-col items-center">
-                              <div id="wallet_container" className="min-h-[60px] w-full"></div>
+                              <div className="min-h-[60px] w-full">
+                                <Wallet 
+                                  initialization={{ preferenceId: preferenceId, redirectMode: 'self' }} 
+                                />
+                              </div>
+                              
                               <button onClick={() => setPreferenceId(null)} className="mt-6 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-[0.2em] border-b border-transparent hover:border-blue-200 pb-1">← Volver a Editar Datos</button>
                            </div>
                          )}
