@@ -43,20 +43,33 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [dni, setDni] = useState(user.dni || '');
   const [saveDni, setSaveDni] = useState(true);
   const [showRetry, setShowRetry] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPkg, setSelectedPkg] = useState<Package | null>(initialPkg || null);
   const [pkgQuantity, setPkgQuantity] = useState(1);
 
   const isCart = !!initialCartItems && initialCartItems.length > 0;
   const showPackageSelection = !isCart && !initialPkg && !!allPackages && allPackages.length > 0;
   
-  const tabs = [
-    { id: 'all' as const, label: 'Todos' },
-  ];
+  const getCategories = () => {
+    if (!allPackages) return [];
+    const groups = new Set(allPackages.map(p => p.packageGroup).filter(Boolean));
+    return Array.from(groups) as string[];
+  };
 
   const getFilteredPackages = () => {
     if (!allPackages) return [];
-    return allPackages;
+    if (!selectedCategory) return [];
+    return allPackages.filter(p => p.packageGroup === selectedCategory);
+  };
+
+  const handleSelectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedPkg(null);
+  };
+
+  const handleBackToCategories = () => {
+    setSelectedCategory(null);
+    setSelectedPkg(null);
   };
 
   const handleSelectPackage = (pkg: Package) => {
@@ -236,27 +249,42 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               
               {step === 'SELECT' && showPackageSelection ? (
                 <div className="animate-fade-in flex flex-col h-full">
-                  {/* Tabs */}
-                  <div className="flex gap-2 mb-8 p-1 bg-gray-100 rounded-2xl">
-                    {tabs.map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setSelectedTab(tab.id)}
-                        className={`flex-1 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all ${
-                          selectedTab === tab.id 
-                            ? 'bg-white text-[#0f172a] shadow-md' 
-                            : 'text-gray-400 hover:text-gray-600'
-                        }`}
+                  {/* Si no hay categoría seleccionada, mostrar categorías */}
+                  {!selectedCategory ? (
+                    <>
+                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-6">Selecciona una categoría</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {getCategories().map(category => (
+                          <button
+                            key={category}
+                            onClick={() => handleSelectCategory(category)}
+                            className="p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-red-500 cursor-pointer transition-all flex items-center justify-between group"
+                          >
+                            <div className="text-left">
+                              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">{category}</h3>
+                              <p className="text-gray-400 text-[10px] font-bold uppercase">
+                                {allPackages?.filter(p => p.packageGroup === category).length} planes disponibles
+                              </p>
+                            </div>
+                            <svg className="w-6 h-6 text-gray-300 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    /* Si hay categoría seleccionada, mostrar paquetes */
+                    <>
+                      <button 
+                        onClick={handleBackToCategories}
+                        className="flex items-center gap-2 text-gray-400 hover:text-red-600 font-black text-[10px] uppercase tracking-widest mb-4 transition-colors"
                       >
-                        {tab.label}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                        Volver a categorías
                       </button>
-                    ))}
-                  </div>
-
-                  {/* Lista de paquetes */}
-                  <div className="flex-grow space-y-4 overflow-y-auto">
-                    {getFilteredPackages().length > 0 ? (
-                      getFilteredPackages().map(pkg => (
+                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-6">{selectedCategory}</h2>
+                      <div className="flex-grow space-y-4 overflow-y-auto">
+                        {getFilteredPackages().length > 0 ? (
+                          getFilteredPackages().map(pkg => (
                         <div 
                           key={pkg.id}
                           onClick={(e) => {
@@ -305,6 +333,8 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                       </div>
                     )}
                   </div>
+                </>
+                  )}
                 </div>
               ) : step === 'METHOD' ? (
                 <div className="animate-fade-in flex flex-col h-full">
