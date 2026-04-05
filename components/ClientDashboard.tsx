@@ -100,17 +100,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     setLocalPackages(prev => prev.map(p => {
       if (p.id === id) {
         let updated = { ...p, [field]: value };
-        // Lógica de exclusividad mutua para evitar conflictos de planes
-        if (field === 'propertyLimit' && value > 0) {
-          updated.featuredLimit = 0;
-          updated.superFeaturedLimit = 0;
-        } else if (field === 'featuredLimit' && value > 0) {
-          updated.propertyLimit = 0;
-          updated.superFeaturedLimit = 0;
-        } else if (field === 'superFeaturedLimit' && value > 0) {
-          updated.propertyLimit = 0;
-          updated.featuredLimit = 0;
-        }
+        return updated;
         return updated;
       }
       return p;
@@ -859,38 +849,35 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      </div>
 
                      <div className="grid grid-cols-2 gap-4">
-                        <div className={`p-3 rounded-xl transition-all ${pkg.featuredLimit > 0 || pkg.superFeaturedLimit > 0 ? 'bg-gray-100 opacity-50' : 'bg-gray-50'}`}>
+                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
                            <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Simple</p>
                            <input 
                               type="number" 
-                              className="w-full bg-transparent font-black text-sm text-[#091F4F] outline-none disabled:cursor-not-allowed" 
+                              className="w-full bg-transparent font-black text-sm text-[#091F4F] outline-none" 
                               value={pkg.propertyLimit} 
                               onChange={e => handlePackageChange(pkg.id, 'propertyLimit', Number(e.target.value))}
-                              disabled={pkg.featuredLimit > 0 || pkg.superFeaturedLimit > 0}
                            />
                         </div>
-                        <div className="bg-gray-50 p-3 rounded-xl">
-                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Días</p>
+                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Días de Duración</p>
                            <input type="number" className="w-full bg-transparent font-black text-sm text-[#091F4F] outline-none" value={pkg.durationDays} onChange={e => handlePackageChange(pkg.id, 'durationDays', Number(e.target.value))} />
                         </div>
-                        <div className={`p-3 rounded-xl transition-all ${pkg.propertyLimit > 0 || pkg.superFeaturedLimit > 0 ? 'bg-gray-100 opacity-50' : 'bg-gray-50'}`}>
+                        <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
                            <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">Destacados</p>
                            <input 
                               type="number" 
-                              className="w-full bg-transparent font-black text-sm text-blue-900 outline-none disabled:cursor-not-allowed" 
+                              className="w-full bg-transparent font-black text-sm text-blue-900 outline-none" 
                               value={pkg.featuredLimit || 0} 
                               onChange={e => handlePackageChange(pkg.id, 'featuredLimit', Number(e.target.value))}
-                              disabled={pkg.propertyLimit > 0 || pkg.superFeaturedLimit > 0}
                            />
                         </div>
-                        <div className={`p-3 rounded-xl transition-all ${pkg.propertyLimit > 0 || pkg.featuredLimit > 0 ? 'bg-gray-100 opacity-50' : 'bg-gray-50'}`}>
+                        <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
                            <p className="text-[8px] font-black text-yellow-600 uppercase tracking-widest mb-1">Super Destacados</p>
                            <input 
                               type="number" 
-                              className="w-full bg-transparent font-black text-sm text-yellow-900 outline-none disabled:cursor-not-allowed" 
+                              className="w-full bg-transparent font-black text-sm text-yellow-900 outline-none" 
                               value={pkg.superFeaturedLimit || 0} 
                               onChange={e => handlePackageChange(pkg.id, 'superFeaturedLimit', Number(e.target.value))}
-                              disabled={pkg.propertyLimit > 0 || pkg.featuredLimit > 0}
                            />
                         </div>
                      </div>
