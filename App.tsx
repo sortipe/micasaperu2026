@@ -1081,6 +1081,7 @@ const App: React.FC = () => {
             packages={packages}
             paymentMethods={paymentMethods}
             mpAccessToken={mpAccessToken}
+            mpPublicKey={mpPublicKey}
             onAdd={async p => { 
               const { 
                 agentName, agentAvatar, agentWhatsapp, profiles, 

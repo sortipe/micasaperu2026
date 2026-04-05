@@ -35,6 +35,7 @@ interface PublicationFlowProps {
   packages: Package[];
   paymentMethods: PaymentMethod[];
   mpAccessToken?: string;
+  mpPublicKey?: string;
   onAdd: (p: Property) => Promise<void>;
   onUpdate: (p: Property) => Promise<void>;
   onCancel: () => void;
@@ -101,6 +102,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   packages,
   paymentMethods,
   mpAccessToken,
+  mpPublicKey,
   onAdd, 
   onUpdate, 
   onCancel, 
@@ -1036,6 +1038,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               user={user}
                               paymentMethods={paymentMethods}
                               mpAccessToken={mpAccessToken}
+                              mpPublicKey={mpPublicKey}
                               onSuccess={() => {
                                 setPaymentStatus('SUCCESS');
                                 showToast("Pago procesado con éxito", "SUCCESS");
