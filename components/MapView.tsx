@@ -249,10 +249,13 @@ const MapView: React.FC<MapViewProps> = ({
       const isVisited = visitedIds.has(p.id);
       const isFocused = focusedPropertyId === p.id;
 
+      const markerColorHex = isFocused ? '#0f172a' : (isVisited ? '#6b7280' : '#dc2626');
+      
       const icon = L.divIcon({
         className: 'bg-transparent border-none', 
         html: `<div class="flex items-center justify-center w-0 h-0">
-                 <div class="bg-${isFocused ? 'slate-900' : (isVisited ? 'slate-400' : 'red-600')} text-white px-3 py-1.5 rounded-full text-[11px] font-black border-2 border-white shadow-lg whitespace-nowrap animate-fade-in transform -translate-x-1/2 -translate-y-1/2 transition-all ${isFocused ? 'scale-110 z-50' : 'z-10'}">
+                 <div class="text-white px-3 py-1.5 rounded-full text-[11px] font-black border-2 border-white shadow-xl whitespace-nowrap animate-fade-in transform -translate-x-1/2 -translate-y-1/2 transition-all ${isFocused ? 'scale-110 z-50' : 'z-10'}" 
+                      style="background-color: ${markerColorHex} !important; opacity: 1 !important; color: white !important;">
                    ${price}
                  </div>
                </div>`,

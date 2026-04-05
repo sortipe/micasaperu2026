@@ -1,5 +1,11 @@
-
 import React, { useState, useEffect, useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Navigation, Mousewheel, Autoplay } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 import { Property, User, PropertyCategory, Package, PaymentMethod } from '../types';
 import { DEPARTMENTS, COMMON_FEATURES, PROPERTY_CATEGORIES } from '../constants';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -917,107 +923,115 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
                                   Volver a categorías
                                 </button>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                  {getFilteredPackages(selectedPlanCategory).filter(pkg => {
-                                    const roleMatch = !pkg.allowedRoles || pkg.allowedRoles.length === 0 || user.role === 'ADMINISTRADOR' || pkg.allowedRoles.includes(user.role);
-                                    if (!roleMatch) return false;
-                                    const allowed = pkg.allowedOperation || 'BOTH';
-                                    if (allowed === 'BOTH') return true;
-                                    if (editingProperty?.status === 'FOR_RENT' && allowed === 'RENT') return true;
-                                    if (editingProperty?.status === 'FOR_SALE' && allowed === 'SALE') return true;
-                                    return false;
-                                  }).map(pkg => {
-                                    const isSuper = pkg.name.toLowerCase().includes('super');
-                                    const isFeatured = pkg.name.toLowerCase().includes('destacado') && !isSuper;
-                                    const isSimple = pkg.name.toLowerCase().includes('simple');
-                                    
-                                    let accentColor = 'text-orange-500';
-                                    if (isSuper) accentColor = 'text-purple-600';
-                                    if (isFeatured) accentColor = 'text-green-600';
-                                    if (isSimple) accentColor = 'text-yellow-600';
+                                <div className="relative group/swiper">
+                                  <Swiper
+                                    modules={[Pagination, Navigation, Mousewheel, Autoplay]}
+                                    spaceBetween={24}
+                                    slidesPerView={1}
+                                    mousewheel={{ forceToAxis: true }}
+                                    pagination={{ clickable: true, dynamicBullets: true }}
+                                    navigation={{
+                                      prevEl: '.swiper-button-prev-plans',
+                                      nextEl: '.swiper-button-next-plans',
+                                    }}
+                                    breakpoints={{
+                                      768: { slidesPerView: 2 },
+                                      1024: { slidesPerView: 3 }
+                                    }}
+                                    className="plans-swiper !pb-14 px-1"
+                                  >
+                                    {getFilteredPackages(selectedPlanCategory).filter(pkg => {
+                                      const roleMatch = !pkg.allowedRoles || pkg.allowedRoles.length === 0 || user.role === 'ADMINISTRADOR' || pkg.allowedRoles.includes(user.role);
+                                      if (!roleMatch) return false;
+                                      const allowed = pkg.allowedOperation || 'BOTH';
+                                      if (allowed === 'BOTH') return true;
+                                      if (editingProperty?.status === 'FOR_RENT' && allowed === 'RENT') return true;
+                                      if (editingProperty?.status === 'FOR_SALE' && allowed === 'SALE') return true;
+                                      return false;
+                                    }).map(pkg => {
+                                      const isSuper = pkg.name.toLowerCase().includes('super');
+                                      const isFeatured = pkg.name.toLowerCase().includes('destacado') && !isSuper;
+                                      const isSimple = pkg.name.toLowerCase().includes('simple');
+                                      
+                                      let accentColor = 'text-orange-500';
+                                      if (isSuper) accentColor = 'text-purple-600';
+                                      if (isFeatured) accentColor = 'text-green-600';
+                                      if (isSimple) accentColor = 'text-yellow-600';
 
-                                    const features = pkg.features && pkg.features.length > 0 
-                                      ? pkg.features 
-                                      : pkg.description.split('|');
+                                      const features = pkg.features && pkg.features.length > 0 
+                                        ? pkg.features 
+                                        : pkg.description.split('|');
 
-                                    return (
-                                      <div 
-                                        key={pkg.id} 
-                                        className={`relative p-8 rounded-3xl border transition-all flex flex-col bg-white shadow-sm hover:shadow-md ${selectedPlan?.id === pkg.id ? 'border-emerald-600 ring-1 ring-emerald-600' : 'border-gray-100'}`}
-                                      >
-                                        <h3 className={`text-sm font-black mb-6 ${accentColor}`}>{pkg.name}</h3>
-                                        
-                                        <div className="mb-6">
-                                          <div className="flex items-baseline gap-1">
-                                            {pkg.offerPrice ? (
-                                              <>
-                                                <span className="text-xl font-black text-gray-400 line-through">S/.</span>
-                                                <span className="text-xl font-black text-gray-400 line-through">{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                <span className="text-xs font-bold text-gray-500">/ mes*</span>
-                                                <span className="text-2xl font-black text-emerald-600">S/ {pkg.offerPrice.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                <span className="text-[10px] font-black text-green-600"> -{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%</span>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <span className="text-xl font-black text-slate-900">S/.</span>
-                                                <span className="text-2xl font-black text-slate-900">{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                <span className="text-xs font-bold text-gray-500">/ mes*</span>
-                                              </>
-                                            )}
+                                      return (
+                                        <SwiperSlide key={pkg.id} className="!h-auto !flex">
+                                          <div 
+                                            className={`w-full p-8 rounded-[2.5rem] border transition-all flex flex-col bg-white shadow-sm hover:shadow-md ${selectedPlan?.id === pkg.id ? 'border-emerald-600 ring-1 ring-emerald-600' : 'border-gray-100'}`}
+                                          >
+                                            <h3 className={`text-sm font-black mb-6 ${accentColor}`}>{pkg.name}</h3>
+                                            
+                                            <div className="mb-8 text-center bg-gray-50/30 p-6 rounded-[2rem] border border-gray-100/50 backdrop-blur-sm">
+                                              {pkg.offerPrice ? (
+                                                <div className="flex flex-col items-center gap-2">
+                                                  <div className="flex items-center gap-3">
+                                                    <span className="text-base font-black text-slate-400 line-through tracking-tighter">S/{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                                    <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">-{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%</span>
+                                                  </div>
+                                                  <div className="flex items-baseline gap-1">
+                                                    <span className="text-3xl font-black text-[#FF0000] tracking-tighter leading-none">S/{pkg.offerPrice.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">/MES*</span>
+                                                  </div>
+                                                  {pkg.offerExpiresAt && (
+                                                    <p className="text-[9px] font-black text-[#FF6B00] uppercase mt-2 tracking-[0.1em] leading-tight">
+                                                      OFERTA HASTA EL {new Date(pkg.offerExpiresAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                                                    </p>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <div className="flex flex-col items-center gap-1">
+                                                  <div className="flex items-baseline gap-1">
+                                                    <span className="text-3xl font-black text-slate-900 tracking-tighter">S/{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">/MES*</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+
+                                            <div className="space-y-4 mb-8 flex-grow">
+                                              {features.filter(f => f.trim() !== '').map((feature, i) => (
+                                                <div key={i} className="flex items-start gap-3">
+                                                  <div className="mt-1 bg-emerald-50 rounded-full p-0.5 shrink-0">
+                                                    <Check className="w-3 h-3 text-emerald-600" strokeWidth={3} />
+                                                  </div>
+                                                  <span className="text-[12px] font-bold text-slate-600 leading-tight">{feature}</span>
+                                                </div>
+                                              ))}
+                                            </div>
+
+                                            <button 
+                                              onClick={() => {
+                                                setSelectedPlan(pkg);
+                                                updateField('planType', isSuper ? 'SUPER_FEATURED' : isFeatured ? 'FEATURED' : 'BASIC');
+                                              }}
+                                              className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-[#065F46] text-white hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-100 active:scale-95"
+                                            >
+                                              Comprar
+                                            </button>
                                           </div>
-                                          {pkg.offerExpiresAt && (
-                                            <span className="text-[8px] font-black text-orange-500">
-                                              Oferta hasta el {new Date(pkg.offerExpiresAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                          )}
-                                        </div>
-
-                                        <div className="space-y-4 mb-8 flex-grow">
-                                          <div className="space-y-3 pb-4 border-b border-gray-100">
-                                            <div className="flex items-center gap-3">
-                                              <div className="w-5 h-5 bg-emerald-50 rounded-full flex items-center justify-center shrink-0">
-                                                <Check className="w-3 h-3 text-emerald-600" strokeWidth={4} />
-                                              </div>
-                                              <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Tiempo de publicación</span>
-                                                <span className="text-[12px] font-bold text-slate-800">{pkg.durationDays} días - Sin renovación automática</span>
-                                              </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                              <div className="w-5 h-5 bg-emerald-50 rounded-full flex items-center justify-center shrink-0">
-                                                <Check className="w-3 h-3 text-emerald-600" strokeWidth={4} />
-                                              </div>
-                                              <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Categoría</span>
-                                                <span className="text-[12px] font-bold text-slate-800">
-                                                  {isSuper ? 'Super Destacado' : isFeatured ? 'Destacado' : 'Simple'}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {features.filter(f => f.trim() !== '').map((feature, i) => (
-                                            <div key={i} className="flex items-start gap-3">
-                                              <div className="mt-1 bg-emerald-50 rounded-full p-0.5 shrink-0">
-                                                <Check className="w-3 h-3 text-emerald-600" strokeWidth={3} />
-                                              </div>
-                                              <span className="text-[12px] font-bold text-slate-600 leading-tight">{feature}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-
-                                        <button 
-                                          onClick={() => {
-                                            setSelectedPlan(pkg);
-                                            updateField('planType', isSuper ? 'SUPER_FEATURED' : isFeatured ? 'FEATURED' : 'BASIC');
-                                          }}
-                                          className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-[#065F46] text-white hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-100 active:scale-95"
-                                        >
-                                          Comprar
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
+                                        </SwiperSlide>
+                                      );
+                                    })}
+                                  </Swiper>
+                                  
+                                  {getFilteredPackages(selectedPlanCategory).length > 3 && (
+                                    <>
+                                      <button className="swiper-button-prev-plans absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-12 h-12 bg-white shadow-2xl rounded-full flex items-center justify-center z-20 hover:scale-110 active:scale-90 transition-all border border-gray-100 group/btn">
+                                        <svg className="w-6 h-6 text-gray-400 group-hover/btn:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg>
+                                      </button>
+                                      <button className="swiper-button-next-plans absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-12 h-12 bg-white shadow-2xl rounded-full flex items-center justify-center z-20 hover:scale-110 active:scale-90 transition-all border border-gray-100 group/btn">
+                                        <svg className="w-6 h-6 text-gray-400 group-hover/btn:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"/></svg>
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             )}
