@@ -34,7 +34,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   showToast,
   onSelectPackage 
 }) => {
-  const [step, setStep] = useState<'SELECT' | 'METHOD' | 'DETAILS' | 'SUCCESS'>('SELECT');
+  const isCartInitial = !!initialCartItems && initialCartItems.length > 0;
+  const [step, setStep] = useState<'SELECT' | 'METHOD' | 'DETAILS' | 'SUCCESS'>(
+    (initialPkg || isCartInitial) ? 'METHOD' : 'SELECT'
+  );
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [operationNumber, setOperationNumber] = useState('');

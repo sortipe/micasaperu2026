@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Property, User, Package, Transaction, PaymentMethod, LocationItem, Complaint, LegalDoc, LegalDocType, Notification, Inquiry, SocialLink, OfficeInfo, CartItem } from './types';
 import { INITIAL_PROPERTIES, PACKAGES as INITIAL_PACKAGES, PERU_LOCATIONS } from './constants';
 import Navbar from './components/Navbar';
@@ -166,7 +166,12 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, [view, selectedPropertyId]);
 
+  const initRef = useRef(false);
+
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+    
     const initApp = async () => {
       // Safety timeout: 5 seconds max
       const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
