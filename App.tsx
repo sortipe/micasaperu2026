@@ -1225,6 +1225,7 @@ const App: React.FC = () => {
           <PaymentFlow
             pkg={isCartCheckout ? undefined : selectedPackage!}
             cartItems={isCartCheckout ? cart : undefined}
+            allPackages={packages}
             user={currentUser}
             paymentMethods={paymentMethods}
             mpAccessToken={mpAccessToken}

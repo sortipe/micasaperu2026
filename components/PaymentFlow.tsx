@@ -6,6 +6,7 @@ import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 interface PaymentFlowProps {
   pkg?: Package;
   cartItems?: CartItem[];
+  allPackages?: Package[];
   user: User;
   paymentMethods: PaymentMethod[];
   mpAccessToken?: string;
@@ -15,10 +16,25 @@ interface PaymentFlowProps {
   onRecordTransaction: (methodName: string, operationNumber?: string, securityCode?: string) => Promise<void>;
   onUpdateProfile?: (data: Partial<User>) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
+  onSelectPackage?: (pkg: Package) => void;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, paymentMethods, mpAccessToken, mpPublicKey, onSuccess, onCancel, onRecordTransaction, onUpdateProfile, showToast }) => {
-  const [step, setStep] = useState<'METHOD' | 'DETAILS' | 'SUCCESS'>('METHOD');
+const PaymentFlow: React.FC<PaymentFlowProps> = ({ 
+  pkg: initialPkg, 
+  cartItems: initialCartItems, 
+  allPackages,
+  user, 
+  paymentMethods, 
+  mpAccessToken, 
+  mpPublicKey, 
+  onSuccess, 
+  onCancel, 
+  onRecordTransaction, 
+  onUpdateProfile, 
+  showToast,
+  onSelectPackage 
+}) => {
+  const [step, setStep] = useState<'SELECT' | 'METHOD' | 'DETAILS' | 'SUCCESS'>('SELECT');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [operationNumber, setOperationNumber] = useState('');
@@ -27,15 +43,49 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
   const [dni, setDni] = useState(user.dni || '');
   const [saveDni, setSaveDni] = useState(true);
   const [showRetry, setShowRetry] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'30' | '90' | 'PACKS'>('30');
+  const [selectedPkg, setSelectedPkg] = useState<Package | null>(initialPkg || null);
+  const [pkgQuantity, setPkgQuantity] = useState(1);
 
-  const isCart = !!cartItems && cartItems.length > 0;
+  const isCart = !!initialCartItems && initialCartItems.length > 0;
+  const showPackageSelection = !isCart && !initialPkg && !!allPackages && allPackages.length > 0;
+  
+  const tabs = [
+    { id: '30' as const, label: 'Individual 30 Días' },
+    { id: '90' as const, label: 'Individual 90 Días' },
+    { id: 'PACKS' as const, label: 'Packs de Avisos' },
+  ];
+
+  const getFilteredPackages = () => {
+    if (!allPackages) return [];
+    
+    if (selectedTab === '30') {
+      return allPackages.filter(p => p.durationDays === 30);
+    } else if (selectedTab === '90') {
+      return allPackages.filter(p => p.durationDays === 90);
+    } else {
+      return allPackages.filter(p => p.durationDays > 90 || (p.durationDays <= 30 && p.propertyLimit > 1));
+    }
+  };
+
+  const handleSelectPackage = (pkg: Package) => {
+    setSelectedPkg(pkg);
+    setPkgQuantity(1);
+    setStep('METHOD');
+    if (onSelectPackage) {
+      onSelectPackage(pkg);
+    }
+  };
+
   const totalAmount = isCart 
-    ? cartItems!.reduce((acc, item) => acc + (item.package.price * item.quantity), 0)
-    : (pkg?.price || 0);
+    ? initialCartItems!.reduce((acc, item) => acc + ((item.package.offerPrice || item.package.price) * item.quantity), 0)
+    : selectedPkg 
+      ? (selectedPkg.offerPrice || selectedPkg.price) * pkgQuantity 
+      : 0;
   
   const description = isCart 
-    ? `Compra de ${cartItems!.length} planes` 
-    : `Suscripción: ${pkg?.name}`;
+    ? `Compra de ${initialCartItems!.length} planes` 
+    : `Suscripción: ${selectedPkg?.name}`;
 
 
 
@@ -65,11 +115,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          items: (cartItems || (pkg ? [{ package: pkg, quantity: 1 }] : [])).map(item => ({
+          items: (initialCartItems || (selectedPkg ? [{ package: selectedPkg, quantity: pkgQuantity }] : [])).map(item => ({
             title: item.package.name,
             quantity: item.quantity,
             currency_id: 'PEN',
-            unit_price: Number(item.package.price.toFixed(2))
+            unit_price: Number((item.package.offerPrice || item.package.price).toFixed(2))
           })),
           payer: {
             email: user.email,
@@ -150,7 +200,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
           <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">¡Solicitud Enviada!</h1>
           <p className="text-gray-500 text-base font-medium mb-10 leading-relaxed">
             Hemos recibido tu comprobante de <span className="text-red-600 font-black">{selectedMethod?.name}</span>. <br/>
-            Validaremos tu pago en breve para activar {isCart ? 'tus planes' : <span className="font-bold text-slate-900">{pkg?.name}</span>}.
+            Validaremos tu pago en breve para activar {isCart ? 'tus planes' : <span className="font-bold text-slate-900">{selectedPkg?.name}</span>}.
           </p>
           <button 
             onClick={onSuccess} 
@@ -172,24 +222,92 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
         {/* Header con estilo de la captura */}
         <div className="flex items-center gap-4 mb-8">
           <button 
-            onClick={step === 'DETAILS' ? () => setStep('METHOD') : onCancel} 
+            onClick={step === 'DETAILS' ? () => setStep('METHOD') : step === 'SELECT' ? onCancel : onCancel} 
             className="bg-white p-3 rounded-2xl shadow-sm text-gray-400 hover:text-red-600 transition-all active:scale-90"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-black text-[#0f172a] tracking-tighter uppercase leading-none">Finalizar Compra</h1>
-            <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.2em] mt-1">Paso {step === 'METHOD' ? '1' : '2'} de 2</p>
+            <h1 className="text-2xl font-black text-[#0f172a] tracking-tighter uppercase leading-none">
+              {step === 'SELECT' ? 'Selecciona tu Plan' : 'Finalizar Compra'}
+            </h1>
+            <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.2em] mt-1">
+              {step === 'SELECT' ? 'Paso 1 de 2' : step === 'METHOD' ? 'Paso 2 de 2' : 'Pago Completado'}
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Columna Izquierda: Detalles del Pago */}
+          {/* Columna Izquierda */}
           <div className="lg:col-span-7">
             <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-gray-100 min-h-[450px] flex flex-col">
               
-              {step === 'METHOD' ? (
+              {step === 'SELECT' && showPackageSelection ? (
+                <div className="animate-fade-in flex flex-col h-full">
+                  {/* Tabs */}
+                  <div className="flex gap-2 mb-8 p-1 bg-gray-100 rounded-2xl">
+                    {tabs.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSelectedTab(tab.id)}
+                        className={`flex-1 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all ${
+                          selectedTab === tab.id 
+                            ? 'bg-white text-[#0f172a] shadow-md' 
+                            : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Lista de paquetes */}
+                  <div className="flex-grow space-y-4 overflow-y-auto">
+                    {getFilteredPackages().length > 0 ? (
+                      getFilteredPackages().map(pkg => (
+                        <div 
+                          key={pkg.id}
+                          onClick={() => handleSelectPackage(pkg)}
+                          className="bg-gray-50 p-6 rounded-3xl border-2 border-transparent hover:border-red-500 cursor-pointer transition-all"
+                        >
+                          <div className="flex justify-between items-start gap-4">
+                            <div className="flex-1">
+                              <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-1">{pkg.name}</h3>
+                              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{pkg.description}</p>
+                              <div className="flex gap-4 mt-3">
+                                <span className="text-[9px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-1 rounded-lg">
+                                  {pkg.durationDays} días
+                                </span>
+                                <span className="text-[9px] font-black text-purple-600 uppercase bg-purple-50 px-2 py-1 rounded-lg">
+                                  {pkg.propertyLimit} {pkg.propertyLimit === 1 ? 'propiedad' : 'propiedades'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              {pkg.offerPrice ? (
+                                <div className="flex flex-col items-end">
+                                  <span className="text-sm font-black text-gray-400 line-through">S/ {pkg.price}</span>
+                                  <span className="text-2xl font-black text-red-600 tracking-tighter">S/ {pkg.offerPrice}</span>
+                                  <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                    -{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-2xl font-black text-red-600 tracking-tighter">S/ {pkg.price}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <p className="text-gray-400 font-bold text-xs uppercase">No hay planes disponibles en esta categoría</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : step === 'METHOD' ? (
                 <div className="animate-fade-in flex flex-col h-full">
                   <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-8">Selecciona tu método de pago</h2>
                   <div className="space-y-4 flex-grow">
@@ -397,53 +515,61 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, cartItems, user, payment
                <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-12">Resumen de Compra</h3>
                
                <div className="space-y-10 mb-10 pb-10 border-b border-white/10">
-                  {isCart && cartItems ? (
-                    <div className="space-y-6">
-                      {cartItems.map(item => (
-                        <div key={item.id} className="flex justify-between items-start gap-4">
-                          <div>
-                            <h4 className="text-lg font-black tracking-tight leading-none mb-1">{item.package.name}</h4>
-                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">Cant: {item.quantity}</p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="text-lg font-black text-red-500 tracking-tighter whitespace-nowrap">S/ {(item.package.price * item.quantity).toFixed(2)}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : pkg ? (
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h4 className="text-2xl font-black tracking-tight leading-none mb-2">{pkg.name}</h4>
-                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">Suscripción Mensual Inmobiliaria</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-xl font-black text-red-500 tracking-tighter whitespace-nowrap">S/ {pkg.price}</span>
-                      </div>
-                    </div>
-                  ) : null}
-               </div>
+                   {isCart && initialCartItems ? (
+                     <div className="space-y-6">
+                       {initialCartItems.map(item => (
+                         <div key={item.id} className="flex justify-between items-start gap-4">
+                           <div>
+                             <h4 className="text-lg font-black tracking-tight leading-none mb-1">{item.package.name}</h4>
+                             <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">Cant: {item.quantity}</p>
+                           </div>
+                           <div className="text-right shrink-0">
+                             <span className="text-lg font-black text-red-500 tracking-tighter whitespace-nowrap">S/ {((item.package.offerPrice || item.package.price) * item.quantity).toFixed(2)}</span>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   ) : selectedPkg ? (
+                     <div className="flex justify-between items-start gap-4">
+                       <div>
+                         <h4 className="text-2xl font-black tracking-tight leading-none mb-2">{selectedPkg.name}</h4>
+                         <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">
+                           {pkgQuantity > 1 ? `Cant: ${pkgQuantity}` : `Vigencia: ${selectedPkg.durationDays} días`}
+                         </p>
+                       </div>
+                       <div className="text-right shrink-0">
+                         {selectedPkg.offerPrice ? (
+                           <div className="flex flex-col items-end">
+                             <span className="text-sm font-black text-gray-500 line-through">S/ {selectedPkg.price}</span>
+                             <span className="text-xl font-black text-red-500 tracking-tighter whitespace-nowrap">S/ {selectedPkg.offerPrice * pkgQuantity}</span>
+                           </div>
+                         ) : (
+                           <span className="text-xl font-black text-red-500 tracking-tighter whitespace-nowrap">S/ {selectedPkg.price * pkgQuantity}</span>
+                         )}
+                       </div>
+                     </div>
+                   ) : null}
+                </div>
 
-               <div className="flex justify-between items-center pt-4 border-t border-white/10">
-                  <span className="text-sm font-black uppercase tracking-widest">Total a Pagar</span>
-                  <div className="flex items-baseline gap-1 shrink-0">
-                    <span className="text-2xl font-black text-white tracking-tighter whitespace-nowrap">S/ {totalAmount.toFixed(2)}</span>
+                <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                   <span className="text-sm font-black uppercase tracking-widest">Total a Pagar</span>
+                   <div className="flex items-baseline gap-1 shrink-0">
+                     <span className="text-2xl font-black text-white tracking-tighter whitespace-nowrap">S/ {totalAmount.toFixed(2)}</span>
+                   </div>
+                </div>
+
+                {selectedPkg && (
+                  <div className="mt-10 pt-8 border-t border-white/5 space-y-3">
+                     <div className="flex items-center gap-3">
+                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{selectedPkg.propertyLimit} Anuncios incluidos</p>
+                     </div>
+                     <div className="flex items-center gap-3">
+                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {selectedPkg.durationDays} días</p>
+                     </div>
                   </div>
-               </div>
-
-               {/* Beneficios rápidos en el resumen */}
-               {!isCart && pkg && (
-                 <div className="mt-10 pt-8 border-t border-white/5 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{pkg.propertyLimit} Anuncios incluidos</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {pkg.durationDays} días</p>
-                    </div>
-                 </div>
-               )}
+                )}
             </div>
           </div>
 
