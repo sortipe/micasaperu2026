@@ -895,28 +895,39 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                         </div>
                      </div>
 
-                     <div className="space-y-3">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Operación Permitida</p>
-                        <div className="flex gap-2">
-                          {(['RENT', 'SALE', 'BOTH'] as const).map(op => (
-                            <button
-                              key={op}
-                              type="button"
-                              onClick={() => handlePackageChange(pkg.id, 'allowedOperation', op)}
-                              className={`flex-1 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all border ${
-                                (pkg.allowedOperation || 'BOTH') === op
-                                  ? 'bg-blue-600 border-blue-600 text-white'
-                                  : 'bg-white border-gray-200 text-gray-400 hover:border-blue-300'
-                              }`}
-                            >
-                              {op === 'RENT' ? 'Alquiler' : op === 'SALE' ? 'Venta' : 'Ambos'}
-                            </button>
-                          ))}
-                        </div>
+                      <div className="space-y-3">
+                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Operación Permitida</p>
+                         <div className="flex gap-2">
+                           {(['RENT', 'SALE', 'BOTH'] as const).map(op => (
+                             <button
+                               key={op}
+                               type="button"
+                               onClick={() => handlePackageChange(pkg.id, 'allowedOperation', op)}
+                               className={`flex-1 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-tighter transition-all border ${
+                                 (pkg.allowedOperation || 'BOTH') === op
+                                   ? 'bg-blue-600 border-blue-600 text-white'
+                                   : 'bg-white border-gray-200 text-gray-400 hover:border-blue-300'
+                               }`}
+                             >
+                               {op === 'RENT' ? 'Alquiler' : op === 'SALE' ? 'Venta' : 'Ambos'}
+                             </button>
+                           ))}
+                         </div>
                       </div>
 
-                     <div className="space-y-3">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Roles Permitidos (Vacío = Todos)</p>
+                       <div className="space-y-3">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Grupo de Plan</p>
+                          <input 
+                            type="text" 
+                            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[10px] font-black text-gray-700 uppercase placeholder-gray-300 outline-none focus:border-purple-500"
+                            value={pkg.packageGroup || ''}
+                            onChange={e => handlePackageChange(pkg.id, 'packageGroup', e.target.value)}
+                            placeholder="Ej: Mensual, Trimestral, Premium, Basic..."
+                          />
+                       </div>
+
+                      <div className="space-y-3">
+                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Roles Permitidos (Vacío = Todos)</p>
                         <div className="flex flex-wrap gap-2">
                           {(['PARTICULAR DUEÑO DIRECTO', 'INMOBILARIA CORREDOR', 'CONSTRUCTORA DESARROLLADORA'] as const).map(role => (
                             <button

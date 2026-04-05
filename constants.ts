@@ -37,7 +37,7 @@ export const PROPERTY_CATEGORIES = [
 
 export const PACKAGES: Package[] = [
   {
-    id: '00000000-0000-0000-0000-000000000001',
+    id: 'pkg-001-monthly',
     name: 'Pack 1 Simple Alquiler Mensual',
     price: 100,
     propertyLimit: 1,
@@ -45,10 +45,11 @@ export const PACKAGES: Package[] = [
     featuredLimit: 0,
     superFeaturedLimit: 0,
     description: '30 días de publicación - Sin renovación automática|NO VÁLIDO PARA VENTA - SOLO ALQUILER|Visibilidad estándar',
-    features: ['1 Propiedad', '30 días de publicación - Sin renovación automática', 'Solo Alquiler']
+    features: ['1 Propiedad', '30 días de publicación - Sin renovación automática', 'Solo Alquiler'],
+    packageGroup: 'Mensual'
   },
   {
-    id: '00000000-0000-0000-0000-000000000002',
+    id: 'pkg-002-quarterly',
     name: 'Pack 1 Superdestacado Trimestral',
     price: 390,
     propertyLimit: 1,
@@ -56,10 +57,11 @@ export const PACKAGES: Package[] = [
     featuredLimit: 0,
     superFeaturedLimit: 1,
     description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Máxima exposición',
-    features: ['1 Propiedad', '90 días de publicación - Sin renovación automática', '1 Super Destacado', 'Máxima Exposición']
+    features: ['1 Propiedad', '90 días de publicación - Sin renovación automática', '1 Super Destacado', 'Máxima Exposición'],
+    packageGroup: 'Trimestral'
   },
   {
-    id: '00000000-0000-0000-0000-000000000003',
+    id: 'pkg-003-quarterly',
     name: 'Pack 1 Destacado Trimestral',
     price: 196,
     propertyLimit: 1,
@@ -67,67 +69,74 @@ export const PACKAGES: Package[] = [
     featuredLimit: 1,
     superFeaturedLimit: 0,
     description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Visibilidad destacada en el portal',
-    features: ['1 Propiedad', '90 días de publicación - Sin renovación automática', '1 Destacado', 'Visibilidad Mejorada']
+    features: ['1 Propiedad', '90 días de publicación - Sin renovación automática', '1 Destacado', 'Visibilidad Mejorada'],
+    packageGroup: 'Trimestral'
   },
   {
-    id: '00000000-0000-0000-0000-000000000004',
+    id: 'pkg-004-quarterly',
     name: 'Pack 1 Simple Trimestral',
     price: 169,
     propertyLimit: 1,
     durationDays: 90,
     featuredLimit: 0,
     superFeaturedLimit: 0,
-    description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Visibilidad estándar'
+    description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Visibilidad estándar',
+    packageGroup: 'Trimestral'
   },
   {
-    id: '00000000-0000-0000-0000-000000000005',
+    id: 'pkg-005-monthly',
     name: 'Pack 3 Avisos destacados',
     price: 415,
     propertyLimit: 3,
     durationDays: 30,
     featuredLimit: 3,
     superFeaturedLimit: 0,
-    description: '30 días de publicación|PAGO MENSUAL hasta el vencimiento|Visibilidad destacada en el portal'
+    description: '30 días de publicación|PAGO MENSUAL hasta el vencimiento|Visibilidad destacada en el portal',
+    packageGroup: 'Mensual'
   },
   {
-    id: '00000000-0000-0000-0000-000000000006',
+    id: 'pkg-006-quarterly',
     name: 'Pack 3 Avisos Súper destacados',
     price: 815,
     propertyLimit: 3,
     durationDays: 90,
     featuredLimit: 0,
     superFeaturedLimit: 3,
-    description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Máxima exposición'
+    description: '90 días de publicación|PAGO MENSUAL hasta el vencimiento|Máxima exposición',
+    packageGroup: 'Trimestral'
   },
   {
-    id: '00000000-0000-0000-0000-000000000007',
+    id: 'pkg-007-monthly',
     name: 'Pack 5 avisos (mixto)',
     price: 730,
     propertyLimit: 5,
     durationDays: 30,
     featuredLimit: 2,
     superFeaturedLimit: 1,
-    description: 'Aprox. S/730 al mes + IGV|Pack mixto de 5 avisos'
+    description: 'Aprox. S/730 al mes + IGV|Pack mixto de 5 avisos',
+    packageGroup: 'Mensual'
   },
   {
-    id: '00000000-0000-0000-0000-000000000008',
+    id: 'pkg-008-monthly',
     name: 'Pack 10 avisos (7 simples + 2 destacados + 1 Súper destacado)',
     price: 690,
     propertyLimit: 10,
     durationDays: 30,
     featuredLimit: 2,
     superFeaturedLimit: 1,
-    description: '7 simples + 2 destacados + 1 Súper destacado|Aprox. S/690 al mes + IGV'
+    description: '7 simples + 2 destacados + 1 Súper destacado|Aprox. S/690 al mes + IGV',
+    packageGroup: 'Mensual'
   },
   {
-    id: '00000000-0000-0000-0000-000000000009',
+    id: 'pkg-009-monthly',
     name: 'Pack 5 avisos destacados',
     price: 980,
     propertyLimit: 5,
     durationDays: 30,
     featuredLimit: 5,
     superFeaturedLimit: 0,
-    description: 'Aprox. S/980 al mes + IGV|5 avisos destacados'
+    description: 'Aprox. S/980 al mes + IGV|5 avisos destacados',
+    packageGroup: 'Mensual'
   }
 ];
 

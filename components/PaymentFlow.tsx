@@ -43,7 +43,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [dni, setDni] = useState(user.dni || '');
   const [saveDni, setSaveDni] = useState(true);
   const [showRetry, setShowRetry] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'30' | '90' | 'PACKS'>('30');
+  const [selectedTab, setSelectedTab] = useState<'all'>('all');
   const [selectedPkg, setSelectedPkg] = useState<Package | null>(initialPkg || null);
   const [pkgQuantity, setPkgQuantity] = useState(1);
 
@@ -51,21 +51,12 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const showPackageSelection = !isCart && !initialPkg && !!allPackages && allPackages.length > 0;
   
   const tabs = [
-    { id: '30' as const, label: 'Individual 30 Días' },
-    { id: '90' as const, label: 'Individual 90 Días' },
-    { id: 'PACKS' as const, label: 'Packs de Avisos' },
+    { id: 'all' as const, label: 'Todos' },
   ];
 
   const getFilteredPackages = () => {
     if (!allPackages) return [];
-    
-    if (selectedTab === '30') {
-      return allPackages.filter(p => p.durationDays === 30);
-    } else if (selectedTab === '90') {
-      return allPackages.filter(p => p.durationDays === 90);
-    } else {
-      return allPackages.filter(p => p.durationDays > 90 || (p.durationDays <= 30 && p.propertyLimit > 1));
-    }
+    return allPackages;
   };
 
   const handleSelectPackage = (pkg: Package) => {
@@ -268,7 +259,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                       getFilteredPackages().map(pkg => (
                         <div 
                           key={pkg.id}
-                          onClick={() => handleSelectPackage(pkg)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectPackage(pkg);
+                          }}
                           className="bg-gray-50 p-6 rounded-3xl border-2 border-transparent hover:border-red-500 cursor-pointer transition-all"
                         >
                           <div className="flex justify-between items-start gap-4">
@@ -282,6 +276,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                 <span className="text-[9px] font-black text-purple-600 uppercase bg-purple-50 px-2 py-1 rounded-lg">
                                   {pkg.propertyLimit} {pkg.propertyLimit === 1 ? 'propiedad' : 'propiedades'}
                                 </span>
+                                {pkg.packageGroup && (
+                                  <span className="text-[9px] font-black text-green-600 uppercase bg-green-50 px-2 py-1 rounded-lg">
+                                    {pkg.packageGroup}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <div className="text-right shrink-0">

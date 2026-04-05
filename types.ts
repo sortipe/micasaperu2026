@@ -57,6 +57,7 @@ export interface Package {
   allowedOperation?: 'RENT' | 'SALE' | 'BOTH';
   offerPrice?: number;
   offerExpiresAt?: string;
+  packageGroup?: string;
 }
 
 export interface LocationItem {
