@@ -25,6 +25,9 @@ import { initMercadoPago } from '@mercadopago/sdk-react';
 
 const ADMIN_EMAIL = 'jorgejoelifzyape@gmail.com';
 
+// Guardia global para evitar doble inicialización en modo estricto o HMR
+let isAppInitialized = false;
+
 const App: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [packages, setPackages] = useState<Package[]>(INITIAL_PACKAGES);
@@ -166,11 +169,11 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, [view, selectedPropertyId]);
 
-  const initRef = useRef(false);
+
 
   useEffect(() => {
-    if (initRef.current) return;
-    initRef.current = true;
+    if (isAppInitialized) return;
+    isAppInitialized = true;
     
     const initApp = async () => {
       // Safety timeout: 5 seconds max

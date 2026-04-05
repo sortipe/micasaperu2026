@@ -62,6 +62,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         }
       },
     },
+    storageKey: 'micasaperu-auth-session',
   }
 });
 

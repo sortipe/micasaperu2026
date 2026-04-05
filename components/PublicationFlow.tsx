@@ -972,9 +972,12 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                             <div className="mb-8 text-center bg-gray-50/30 p-6 rounded-[2rem] border border-gray-100/50 backdrop-blur-sm">
                                               {pkg.offerPrice ? (
                                                 <div className="flex flex-col items-center gap-2">
-                                                  <div className="flex items-center gap-3">
-                                                    <span className="text-base font-black text-slate-400 line-through tracking-tighter">S/{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                    <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">-{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%</span>
+                                                  <div className="flex flex-col items-center gap-1">
+                                                    <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Precio Normal</span>
+                                                    <div className="flex items-center gap-3">
+                                                      <span className="text-base font-black text-slate-400 line-through tracking-tighter">S/{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+                                                      <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">-{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%</span>
+                                                    </div>
                                                   </div>
                                                   <div className="flex items-baseline gap-1">
                                                     <span className="text-3xl font-black text-[#FF0000] tracking-tighter leading-none">S/{pkg.offerPrice.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
