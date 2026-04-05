@@ -319,6 +319,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                   <span className="text-[9px] font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                                     -{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%
                                   </span>
+                                  {pkg.offerExpiresAt && (
+                                    <span className="text-[8px] font-black text-orange-500 mt-1">
+                                      Oferta hasta el {new Date(pkg.offerExpiresAt).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </span>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-2xl font-black text-red-600 tracking-tighter">S/ {pkg.price}</span>
