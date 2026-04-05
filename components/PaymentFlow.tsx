@@ -132,6 +132,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
             email: user.email,
             first_name: user.name.split(' ')[0] || 'Cliente',
             last_name: user.name.split(' ').slice(1).join(' ') || 'MiCasaPeru',
+            phone: {
+              area_code: '51',
+              number: user.whatsapp?.replace(/\D/g, '') || '999999999'
+            },
             identification: {
               type: dni.length === 11 ? 'RUC' : 'DNI',
               number: dni
