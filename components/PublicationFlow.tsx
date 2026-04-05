@@ -1056,6 +1056,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
                             <PaymentFlow 
                               pkg={selectedPlan}
+                              allPackages={packages}
                               user={user}
                               paymentMethods={paymentMethods}
                               mpAccessToken={mpAccessToken}
