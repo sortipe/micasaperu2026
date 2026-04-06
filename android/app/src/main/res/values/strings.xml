@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">micasaperu</string>
+    <string name="title_activity_main">micasaperu</string>
+    <string name="package_name">com.micasaperu.app</string>
+    <string name="custom_url_scheme">com.micasaperu.app</string>
+</resources>

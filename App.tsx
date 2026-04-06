@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Property, User, Package, Transaction, PaymentMethod, LocationItem, Complaint, LegalDoc, LegalDocType, Notification, Inquiry, SocialLink, OfficeInfo, CartItem } from './types';
+import { Property, User, Role, Package, Transaction, PaymentMethod, LocationItem, Complaint, LegalDoc, LegalDocType, Notification, Inquiry, SocialLink, OfficeInfo, CartItem } from './types';
 import { INITIAL_PROPERTIES, PACKAGES as INITIAL_PACKAGES, PERU_LOCATIONS } from './constants';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -247,14 +247,34 @@ const App: React.FC = () => {
   }, [currentUser]);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-    if (data) {
-      if (data.email === ADMIN_EMAIL) {
-        data.role = 'ADMINISTRADOR';
-      } else if (data.email === 'jorgejoel-ifz@hotmail.com') {
-        data.role = 'PARTICULAR DUEÑO DIRECTO';
+    try {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      
+      if (error) {
+        if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
+          console.error("⛔ Error de permisos en RLS (profiles). Ejecuta el SQL facilitado en Supabase.");
+          showToast("Error de permisos: Comunícate con soporte para habilitar tu perfil.", "ERROR");
+        } else {
+          console.error("Error fetching profile:", error);
+        }
+        throw error;
       }
-      setCurrentUser(data as User);
+
+      if (data) {
+        if (data.email === ADMIN_EMAIL) {
+          data.role = 'ADMINISTRADOR';
+        } else if (data.email === 'jorgejoel-ifz@hotmail.com') {
+          data.role = 'PARTICULAR DUEÑO DIRECTO';
+        }
+        setCurrentUser(data as User);
+        return data as User;
+      } else {
+        console.warn("No profile found for user in 'profiles' table:", userId);
+        return null;
+      }
+    } catch (err) {
+      console.error("fetchProfile critical error:", err);
+      return null;
     }
   };
 
@@ -579,26 +599,113 @@ const App: React.FC = () => {
       showToast("Supabase no está configurado. No se puede iniciar sesión en modo demostración.", "ERROR");
       return;
     }
-    let result;
-    if (isReg) {
-      result = await supabase.auth.signUp({ email, password: password || '123456' });
-      if (result.data.user) {
-        let finalRole = role || 'INMOBILARIA CORREDOR';
-        if (email.toLowerCase() === ADMIN_EMAIL) {
-          finalRole = 'ADMINISTRADOR';
-        } else if (email.toLowerCase() === 'jorgejoel-ifz@hotmail.com') {
-          finalRole = 'PARTICULAR DUEÑO DIRECTO';
+
+    setIsInitialLoading(true); // Mostrar loader durante el proceso
+    try {
+      let result;
+      if (isReg) {
+        console.info("Intentando registro para:", email);
+        result = await supabase.auth.signUp({ 
+          email, 
+          password: password || '123456',
+          options: {
+            data: {
+              role: role || 'INMOBILARIA CORREDOR'
+            }
+          }
+        });
+
+        if (result.error) throw result.error;
+
+        if (result.data.user) {
+          let finalRole = role || 'INMOBILARIA CORREDOR';
+          if (email.toLowerCase() === ADMIN_EMAIL) {
+            finalRole = 'ADMINISTRADOR';
+          } else if (email.toLowerCase() === 'jorgejoel-ifz@hotmail.com') {
+            finalRole = 'PARTICULAR DUEÑO DIRECTO';
+          }
+
+          console.info("Creando perfil en tabla 'profiles'...");
+          const { error: profileError } = await supabase.from('profiles').upsert([{ 
+            id: result.data.user.id, 
+            email: email.toLowerCase(), 
+            name: email.split('@')[0], 
+            role: finalRole, 
+            propertiesRemaining: 0, 
+            featuredRemaining: 0, 
+            superFeaturedRemaining: 0 
+          }]);
+
+          if (profileError) {
+            console.error("Error al crear perfil:", profileError);
+            showToast(`Usuario creado pero error en perfil: ${profileError.message}`, "WARNING");
+          } else {
+            showToast("Cuenta creada con éxito", "SUCCESS");
+          }
         }
-        await supabase.from('profiles').insert([{ id: result.data.user.id, email, name: email.split('@')[0], role: finalRole, propertiesRemaining: 0, featuredRemaining: 0, superFeaturedRemaining: 0 }]);
-      }
-    } else { result = await supabase.auth.signInWithPassword({ email, password: password || '' }); }
-    if (result.data.user) { 
-      await fetchProfile(result.data.user.id); 
-      if (selectedPackage) {
-        setView('PAYMENT');
       } else {
-        setView('DASHBOARD'); 
+        console.info("Intentando inicio de sesión...");
+        result = await supabase.auth.signInWithPassword({ email, password: password || '' });
+        if (result.error) throw result.error;
       }
+
+      if (result.data.user) {
+        // En registro, damos más margen para que Supabase actualice sus índices internos
+        if (isReg) {
+          console.info("Esperando propagación de datos en base de datos...");
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
+        let profile = await fetchProfile(result.data.user.id);
+        
+        // Si no hay perfil y venimos de un inicio de sesión exitoso (Auth OK)
+        // intentamos auto-crearlo para evitar el "bloqueo" por falta de registro previo
+        if (!profile) {
+           console.warn("Perfil ausente. Intentando auto-creación de emergencia...");
+           let finalRole = (result.data.user.user_metadata?.role as Role) || 'PARTICULAR DUEÑO DIRECTO';
+           
+           // Normalización de roles según requerimiento del usuario
+           if (finalRole.includes('PARTICULAR')) finalRole = 'PARTICULAR DUEÑO DIRECTO';
+           else if (finalRole.includes('INMOBILARIA')) finalRole = 'INMOBILARIA CORREDOR';
+           else if (finalRole.includes('CONSTRUCTORA')) finalRole = 'CONSTRUCTORA DESARROLLADORA';
+
+           const { error: recoveryError } = await supabase.from('profiles').upsert([{ 
+             id: result.data.user.id, 
+             email: email.toLowerCase(), 
+             name: email.split('@')[0], 
+             role: finalRole, 
+             propertiesRemaining: 0, 
+             featuredRemaining: 0, 
+             superFeaturedRemaining: 0 
+           }]);
+
+           if (!recoveryError) {
+             profile = await fetchProfile(result.data.user.id);
+           } else {
+             console.error("Error crítico de recuperación de perfil:", recoveryError);
+           }
+        }
+
+        if (profile) {
+          if (selectedPackage) {
+            setView('PAYMENT');
+          } else {
+            setView('DASHBOARD'); 
+          }
+        } else {
+          showToast("Tu cuenta está activa pero no pudimos cargar tu perfil. Contacta a soporte.", "ERROR");
+          setView('HOME');
+        }
+      } else if (isReg && !result.data.session) {
+        // Caso donde aunque el usuario dijo que está desactivado, Supabase pide confirmación
+        showToast("Registro exitoso. Por favor, verifica tu correo antes de entrar.", "INFO");
+        setView('HOME');
+      }
+    } catch (err: any) {
+      console.error("Error en flujo de auth:", err);
+      showToast(err.message || "Error al procesar la autenticación", "ERROR");
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
@@ -851,172 +958,173 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
-        {view === 'DASHBOARD' && currentUser && (
-          <ClientDashboard 
-            user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
-            appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
-            mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken} mpClientId={mpClientId} mpClientSecret={mpClientSecret}
-            onUpdateLogo={async url => { 
-              const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
-              else { setAppLogo(url); showToast("Logo actualizado", "SUCCESS"); }
-            }} 
-            onUpdateBanner={async url => { 
-              const { error } = await supabase.from('settings').upsert({key: 'home_banner', value: url}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar banner", "ERROR"); console.error(error); }
-              else { setHomeBanner(url); showToast("Banner actualizado", "SUCCESS"); }
-            }} 
-            onUpdateBannerMobile={async url => { 
-              const { error } = await supabase.from('settings').upsert({key: 'home_banner_mobile', value: url}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar banner móvil", "ERROR"); console.error(error); }
-              else { setHomeBannerMobile(url); showToast("Banner móvil actualizado", "SUCCESS"); }
-            }} 
-            onUpdateFavicon={async url => { 
-              const { error } = await supabase.from('settings').upsert({key: 'favicon', value: url}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar favicon", "ERROR"); console.error(error); }
-              else { setFavicon(url); showToast("Favicon actualizado", "SUCCESS"); }
-            }} 
-            onUpdateOfficeInfo={async info => { 
-              const { error } = await supabase.from('settings').upsert({key: 'office_info', value: JSON.stringify(info)}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar oficina", "ERROR"); console.error(error); }
-              else { setOfficeInfo(info); showToast("Información de oficina guardada", "SUCCESS"); }
-            }} 
-            onUpdateSocialLinks={async links => { 
-              const { error } = await supabase.from('settings').upsert({key: 'social_links', value: JSON.stringify(links)}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar redes", "ERROR"); console.error(error); }
-              else { setSocialLinks(links); showToast("Redes sociales actualizadas", "SUCCESS"); }
-            }}
-            onUpdateMpPublicKey={async key => {
-              const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
-              else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
-            }}
-            onUpdateMpAccessToken={async token => {
-              const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
-              else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
-            }}
-            onUpdateMpClientId={async id => {
-              const { error } = await supabase.from('settings').upsert({key: 'mp_client_id', value: id}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar MP Client ID", "ERROR"); console.error(error); }
-              else { setMpClientId(id); showToast("MP Client ID actualizado", "SUCCESS"); }
-            }}
-            onUpdateMpClientSecret={async secret => {
-              const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
-              if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
-              else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
-            }}
-            onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
-            onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 
-            onDeleteProperty={async id => { 
-              try {
-                const { error } = await supabase.from('properties').delete().eq('id', id); 
-                if (error) throw error;
-                await fetchProperties(); 
-                showToast("Inmueble eliminado", "SUCCESS"); 
-              } catch (err) {
-                showToast("Error al eliminar el inmueble", "ERROR");
-                console.error(err);
-              }
-            }}
-            onLogout={handleLogout} 
-            onUpdateTransactionStatus={async (id, s) => { 
-              try {
-                const { data: transaction, error: txError } = await supabase.from('transactions').update({status: s}).eq('id', id).select().single();
-                if (txError) throw txError;
-
-                if (s === 'COMPLETED' && transaction) {
-                  await handleSyncCredits(true, transaction.userId);
-                }
-
-                fetchTransactions(); 
-                showToast(`Transacción ${s === 'COMPLETED' ? 'aprobada' : s === 'CANCELLED' ? 'rechazada' : 'actualizada'}`, "SUCCESS"); 
-              } catch (err) {
-                console.error("Error updating transaction status:", err);
-                showToast("Error al actualizar el estado", "ERROR");
-              }
-            }} 
-            onSaveLegalDoc={async d => { await supabase.from('legal_documents').upsert(d); fetchLegalDocs(); showToast("Documento legal guardado", "SUCCESS"); }} 
-            onSavePackage={async p => { 
-              try {
-                // Filter out empty features before saving
-                const packageToSave = {
-                  ...p,
-                  features: p.features ? p.features.filter(f => f.trim() !== '') : []
-                };
-                const { error } = await supabase.from('packages').upsert(packageToSave); 
-                if (error) {
-                  console.error("Error al guardar plan en Supabase:", error);
-                  if (error.code === 'PGRST204' || error.message?.includes('column')) {
-                    // Intento de guardado sin columnas que podrían faltar en la DB
-                    const { superFeaturedLimit, features, allowedRoles, ...fallbackP } = packageToSave as any;
-                    const { error: error2 } = await supabase.from('packages').upsert(fallbackP);
-                    if (error2) throw error2;
-                    fetchPackages();
-                    showToast("Plan guardado (sin beneficios/roles/super-destacados por falta de columnas en DB)", "WARNING");
-                  } else {
-                    throw error;
-                  }
-                } else {
-                  fetchPackages(); 
-                  showToast("Plan guardado", "SUCCESS"); 
-                }
-              } catch (err: any) {
-                if (err.code === '42P01') {
-                  showToast("Falta crear la tabla 'packages' en Supabase", "ERROR");
-                } else {
-                  showToast("Error al guardar plan", "ERROR");
+        {view === 'DASHBOARD' && (
+          currentUser ? (
+            <ClientDashboard 
+              user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
+              appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
+              mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken} mpClientId={mpClientId} mpClientSecret={mpClientSecret}
+              onUpdateLogo={async url => { 
+                const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
+                else { setAppLogo(url); showToast("Logo actualizado", "SUCCESS"); }
+              }} 
+              onUpdateBanner={async url => { 
+                const { error } = await supabase.from('settings').upsert({key: 'home_banner', value: url}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar banner", "ERROR"); console.error(error); }
+                else { setHomeBanner(url); showToast("Banner actualizado", "SUCCESS"); }
+              }} 
+              onUpdateBannerMobile={async url => { 
+                const { error } = await supabase.from('settings').upsert({key: 'home_banner_mobile', value: url}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar banner móvil", "ERROR"); console.error(error); }
+                else { setHomeBannerMobile(url); showToast("Banner móvil actualizado", "SUCCESS"); }
+              }} 
+              onUpdateFavicon={async url => { 
+                const { error } = await supabase.from('settings').upsert({key: 'favicon', value: url}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar favicon", "ERROR"); console.error(error); }
+                else { setFavicon(url); showToast("Favicon actualizado", "SUCCESS"); }
+              }} 
+              onUpdateOfficeInfo={async info => { 
+                const { error } = await supabase.from('settings').upsert({key: 'office_info', value: JSON.stringify(info)}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar oficina", "ERROR"); console.error(error); }
+                else { setOfficeInfo(info); showToast("Información de oficina guardada", "SUCCESS"); }
+              }} 
+              onUpdateSocialLinks={async links => { 
+                const { error } = await supabase.from('settings').upsert({key: 'social_links', value: JSON.stringify(links)}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar redes", "ERROR"); console.error(error); }
+                else { setSocialLinks(links); showToast("Redes sociales actualizadas", "SUCCESS"); }
+              }}
+              onUpdateMpPublicKey={async key => {
+                const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
+                else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
+              }}
+              onUpdateMpAccessToken={async token => {
+                const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
+                else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
+              }}
+              onUpdateMpClientId={async id => {
+                const { error } = await supabase.from('settings').upsert({key: 'mp_client_id', value: id}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar MP Client ID", "ERROR"); console.error(error); }
+                else { setMpClientId(id); showToast("MP Client ID actualizado", "SUCCESS"); }
+              }}
+              onUpdateMpClientSecret={async secret => {
+                const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
+                if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
+                else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
+              }}
+              onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
+              onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 
+              onDeleteProperty={async id => { 
+                try {
+                  const { error } = await supabase.from('properties').delete().eq('id', id); 
+                  if (error) throw error;
+                  await fetchProperties(); 
+                  showToast("Inmueble eliminado", "SUCCESS"); 
+                } catch (err) {
+                  showToast("Error al eliminar el inmueble", "ERROR");
                   console.error(err);
                 }
-              }
-            }} 
-            onDeletePackage={async id => { 
-              try {
-                const { error } = await supabase.from('packages').delete().eq('id', id); 
-                if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
-                    setPackages(prev => prev.filter(p => p.id !== id));
-                    showToast("Eliminado mock (falta tabla)", "INFO");
-                    return;
+              }}
+              onLogout={handleLogout} 
+              onUpdateTransactionStatus={async (id, s) => { 
+                try {
+                  const { data: transaction, error: txError } = await supabase.from('transactions').update({status: s}).eq('id', id).select().single();
+                  if (txError) throw txError;
+  
+                  if (s === 'COMPLETED' && transaction) {
+                    await handleSyncCredits(true, transaction.userId);
                   }
-                  throw error;
+  
+                  fetchTransactions(); 
+                  showToast(`Transacción ${s === 'COMPLETED' ? 'aprobada' : s === 'CANCELLED' ? 'rechazada' : 'actualizada'}`, "SUCCESS"); 
+                } catch (err) {
+                  console.error("Error updating transaction status:", err);
+                  showToast("Error al actualizar el estado", "ERROR");
                 }
-                setPackages(prev => prev.filter(p => p.id !== id));
-                showToast("Plan eliminado", "SUCCESS"); 
-              } catch (err: any) {
-                showToast(err.message || "Error al eliminar plan", "ERROR");
-                console.error(err);
-              }
-            }}
-            onUpdatePaymentMethod={async m => { 
-               // Actualización optimista del estado local
-               setPaymentMethods(prev => {
-                 const exists = prev.find(item => item.id === m.id);
-                 if (exists) {
-                   return prev.map(item => item.id === m.id ? m : item);
-                 }
-                 return [...prev, m];
-               });
-
-               try {
-                 const { error } = await supabase.from('payment_methods').upsert(m); 
-                 if (error) {
-                   if (error.code === 'PGRST204' || error.code === '42P01') {
-                     showToast("Falta crear tabla 'payment_methods' en Supabase", "ERROR");
-                     return;
+              }} 
+              onSaveLegalDoc={async d => { await supabase.from('legal_documents').upsert(d); fetchLegalDocs(); showToast("Documento legal guardado", "SUCCESS"); }} 
+              onSavePackage={async p => { 
+                try {
+                  // Filter out empty features before saving
+                  const packageToSave = {
+                    ...p,
+                    features: p.features ? p.features.filter(f => f.trim() !== '') : []
+                  };
+                  const { error } = await supabase.from('packages').upsert(packageToSave); 
+                  if (error) {
+                    console.error("Error al guardar plan en Supabase:", error);
+                    if (error.code === 'PGRST204' || error.message?.includes('column')) {
+                      // Intento de guardado sin columnas que podrían faltar en la DB
+                      const { superFeaturedLimit, features, allowedRoles, ...fallbackP } = packageToSave as any;
+                      const { error: error2 } = await supabase.from('packages').upsert(fallbackP);
+                      if (error2) throw error2;
+                      fetchPackages();
+                      showToast("Plan guardado (sin beneficios/roles/super-destacados por falta de columnas en DB)", "WARNING");
+                    } else {
+                      throw error;
+                    }
+                  } else {
+                    fetchPackages(); 
+                    showToast("Plan guardado", "SUCCESS"); 
+                  }
+                } catch (err: any) {
+                  if (err.code === '42P01') {
+                    showToast("Falta crear la tabla 'packages' in Supabase", "ERROR");
+                  } else {
+                    showToast("Error al guardar plan", "ERROR");
+                    console.error(err);
+                  }
+                }
+              }} 
+              onDeletePackage={async id => { 
+                try {
+                  const { error } = await supabase.from('packages').delete().eq('id', id); 
+                  if (error) {
+                    if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
+                      setPackages(prev => prev.filter(p => p.id !== id));
+                      showToast("Eliminado mock (falta tabla)", "INFO");
+                      return;
+                    }
+                    throw error;
+                  }
+                  setPackages(prev => prev.filter(p => p.id !== id));
+                  showToast("Plan eliminado", "SUCCESS"); 
+                } catch (err: any) {
+                  showToast(err.message || "Error al eliminar plan", "ERROR");
+                  console.error(err);
+                }
+              }}
+              onUpdatePaymentMethod={async m => { 
+                 // Actualización optimista del estado local
+                 setPaymentMethods(prev => {
+                   const exists = prev.find(item => item.id === m.id);
+                   if (exists) {
+                     return prev.map(item => item.id === m.id ? m : item);
                    }
-                   throw error;
+                   return [...prev, m];
+                 });
+  
+                 try {
+                   const { error } = await supabase.from('payment_methods').upsert(m); 
+                   if (error) {
+                     if (error.code === 'PGRST204' || error.code === '42P01') {
+                       showToast("Falta crear tabla 'payment_methods' en Supabase", "ERROR");
+                       return;
+                     }
+                     throw error;
+                   }
+                   showToast("Método de pago guardado", "SUCCESS"); 
+                   fetchPaymentMethods(); // Sincronizar con el servidor para obtener IDs reales si aplica
+                 } catch (err: any) {
+                   showToast(err.message || "Error al actualizar método de pago", "ERROR");
+                   console.error(err);
+                   // Opcional: Revertir el estado local en caso de error crítico
+                   fetchPaymentMethods();
                  }
-                 showToast("Método de pago guardado", "SUCCESS"); 
-                 fetchPaymentMethods(); // Sincronizar con el servidor para obtener IDs reales si aplica
-               } catch (err: any) {
-                 showToast(err.message || "Error al actualizar método de pago", "ERROR");
-                 console.error(err);
-                 // Opcional: Revertir el estado local en caso de error crítico
-                 fetchPaymentMethods();
-               }
-             }} 
-             onDeletePaymentMethod={async id => { 
+               }} 
+               onDeletePaymentMethod={async id => { 
                // Actualización optimista: eliminar de la lista local inmediatamente
                setPaymentMethods(prev => prev.filter(m => m.id !== id));
 
@@ -1075,6 +1183,13 @@ const App: React.FC = () => {
             onSyncCredits={handleSyncCredits}
             showToast={showToast}
           />
+          ) : (
+            <div className="flex-grow flex flex-col items-center justify-center p-20">
+              <div className="w-12 h-12 border-4 border-[#091F4F] border-t-red-600 rounded-full animate-spin mb-6"></div>
+              <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tighter">Cargando tu perfil...</h3>
+              <p className="text-gray-400 text-sm font-medium mt-2">Estamos preparando tu panel personalizado.</p>
+            </div>
+          )
         )}
         {view === 'ADMIN' && (
           <PublicationFlow 
