@@ -123,6 +123,54 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const [selectedPlanCategory, setSelectedPlanCategory] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'SUCCESS'>('IDLE');
   const [useCredits, setUseCredits] = useState((user.propertiesRemaining || 0) > 0 || (user.featuredRemaining || 0) > 0 || (user.superFeaturedRemaining || 0) > 0);
+  
+  // Search state
+  const [addressSearch, setAddressSearch] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (addressSearch && addressSearch.length > 2) {
+        (async () => {
+          setIsSearching(true);
+          try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressSearch)}&countrycodes=pe&addressdetails=1&limit=5`);
+            const data = await resp.json();
+            setSuggestions(data);
+          } catch (e) {
+            console.error("Search error:", e);
+          } finally {
+            setIsSearching(false);
+          }
+        })();
+      } else {
+        setSuggestions([]);
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [addressSearch]);
+
+  const handleSelectSuggestion = (s: any) => {
+    const lat = parseFloat(s.lat);
+    const lng = parseFloat(s.lon);
+    updateField('lat', lat);
+    updateField('lng', lng);
+    
+    const addr = s.address;
+    const district = addr.city_district || addr.suburb || addr.town || addr.village || addr.city || '';
+    const street = addr.road || addr.pedestrian || '';
+    const houseNumber = addr.house_number || '';
+    
+    if (district) updateField('district', district);
+    if (street) updateField('address', `${street}${houseNumber ? ' ' + houseNumber : ''}`);
+    
+    if (mapRef.current) mapRef.current.setView([lat, lng], 17);
+    if (pickerMarkerRef.current) pickerMarkerRef.current.setLatLng([lat, lng]);
+    
+    setSuggestions([]);
+    setAddressSearch(s.display_name);
+  };
 
   const getPlanCategories = () => {
     const groups = new Set(packages.map(p => p.packageGroup).filter(Boolean));
@@ -577,6 +625,46 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Distrito" value={editingProperty?.district || ''} onChange={(e) => updateField('district', e.target.value)} />
                       <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Dirección" value={editingProperty?.address || ''} onChange={(e) => updateField('address', e.target.value)} />
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2 ml-1">Buscar dirección exacta (Sugerido)</label>
+                      <div className="relative group">
+                        <input 
+                          type="text" 
+                          className="w-full p-5 bg-orange-50/50 border-2 border-orange-100 rounded-3xl font-bold text-lg outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all placeholder:text-orange-200"
+                          placeholder="Escribe para buscar... Ej: Av. Larco 123"
+                          value={addressSearch}
+                          onChange={(e) => setAddressSearch(e.target.value)}
+                        />
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                          {isSearching ? (
+                            <div className="w-6 h-6 border-3 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg className="w-6 h-6 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                          )}
+                        </div>
+                      </div>
+
+                      {suggestions.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-slide-up">
+                          {suggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSelectSuggestion(s)}
+                              className="w-full p-5 text-left hover:bg-orange-50 transition-colors border-b last:border-0 border-gray-50 flex items-start gap-4 group"
+                            >
+                              <div className="mt-1 w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                              </div>
+                              <div className="flex-grow">
+                                <p className="font-bold text-slate-900 leading-tight">{s.display_name.split(',')[0]}, {s.display_name.split(',')[1]}</p>
+                                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="flex flex-col">
