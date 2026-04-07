@@ -128,8 +128,8 @@ const PricingPage: React.FC<PricingPageProps> = ({ onSelectPackage, onAddToCart,
                         <span className="text-gray-400 font-black text-[9px] uppercase tracking-widest line-through opacity-60">
                           S/ {pkg.price.toLocaleString()}
                         </span>
-                        <div className="absolute -top-2 right-4 bg-green-500 text-white px-2 py-0.5 rounded-full font-black text-[9px]">
-                          -{getDiscount(pkg)}%
+                        <div className="absolute -top-2 right-4 bg-[#e31e24] text-white px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider shadow-sm">
+                          -{getDiscount(pkg)}% DESCUENTO
                         </div>
                         {pkg.offerExpiresAt && (
                           <div className="absolute -bottom-6 right-0 text-[8px] font-black text-orange-500">

@@ -1071,7 +1071,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                                     <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Precio Normal</span>
                                                     <div className="flex items-center gap-3">
                                                       <span className="text-base font-black text-slate-400 line-through tracking-tighter">S/{pkg.price.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-                                                      <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">-{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}%</span>
+                                                      <span className="text-[10px] font-black text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-100">-{Math.round((1 - pkg.offerPrice / pkg.price) * 100)}% DESCUENTO</span>
                                                     </div>
                                                   </div>
                                                   <div className="flex items-baseline gap-1">
