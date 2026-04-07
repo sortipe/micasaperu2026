@@ -185,27 +185,38 @@ const App: React.FC = () => {
       };
 
       // Sincronizar tareas de carga
-      const loadTask = Promise.all([
+      const promises = [
         runSafe('fetchProperties', fetchProperties),
         runSafe('fetchSettings', fetchSettings),
         runSafe('fetchPackages', fetchPackages),
         runSafe('fetchLegalDocs', fetchLegalDocs),
         runSafe('fetchLocations', fetchLocations),
         runSafe('fetchPaymentMethods', fetchPaymentMethods)
-      ]);
+      ];
+
+      if (isSupabaseConfigured) {
+        promises.push(runSafe('fetchSession', async () => {
+          try {
+            setIsSessionRestoring(true);
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            if (session?.user) await fetchProfile(session.user.id);
+          } finally {
+            setIsSessionRestoring(false);
+          }
+        }));
+      } else {
+        setIsSessionRestoring(false);
+      }
+
+      const loadTask = Promise.all(promises);
 
       const timeoutPromise = new Promise(resolve => setTimeout(resolve, 8000)); // Aumentar un poco el margen
 
       // Esperar a que todo cargue o que pase el tiempo límite
       await Promise.race([loadTask, timeoutPromise]);
 
-      // Verificación final del estado de sesión: si todavía se está restaurando, esperamos un poco más
-      // pero no bloqueamos indefinidamente
-      let totalWait = 0;
-      while (isSessionRestoring && totalWait < 2000) {
-        await new Promise(r => setTimeout(r, 100));
-        totalWait += 100;
-      }
+      // Eliminar el bloqueo innecesario que mencionaba el usuario
 
       setIsInitialLoading(false);
       
