@@ -23,12 +23,11 @@ import CartPage from './components/CartPage';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 
+
 const ADMIN_EMAIL = 'jorgejoelifzyape@gmail.com';
 
-// Guardia global para evitar doble inicialización en modo estricto o HMR
-let isAppInitialized = false;
-
 const App: React.FC = () => {
+  const isAppInitialized = useRef(false);
   const [properties, setProperties] = useState<Property[]>([]);
   const [packages, setPackages] = useState<Package[]>(INITIAL_PACKAGES);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -45,6 +44,7 @@ const App: React.FC = () => {
   const [homeBannerMobile, setHomeBannerMobile] = useState<string | null>(null);
   const [favicon, setFavicon] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSessionRestoring, setIsSessionRestoring] = useState(true);
   const [officeInfo, setOfficeInfo] = useState<OfficeInfo>({ 
     address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
     email: 'hola@aquivivir.com', 
@@ -172,8 +172,8 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    if (isAppInitialized) return;
-    isAppInitialized = true;
+    if (isAppInitialized.current) return;
+    isAppInitialized.current = true;
     
     const initApp = async () => {
       // Safety timeout: 5 seconds max
@@ -199,10 +199,17 @@ const App: React.FC = () => {
 
           if (isSupabaseConfigured) {
             promises.push(runSafe('fetchSession', async () => {
-              const { data: { session }, error } = await supabase.auth.getSession();
-              if (error) throw error;
-              if (session?.user) await fetchProfile(session.user.id);
+              try {
+                setIsSessionRestoring(true);
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+                if (session?.user) await fetchProfile(session.user.id);
+              } finally {
+                setIsSessionRestoring(false);
+              }
             }));
+          } else {
+            setIsSessionRestoring(false);
           }
 
           await Promise.all(promises);
