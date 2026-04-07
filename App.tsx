@@ -594,7 +594,7 @@ const App: React.FC = () => {
     handleClearFilters(); 
   };
 
-  const handleLogin = async (email: string, role: string, password?: string, isReg: boolean = false) => {
+  const handleLogin = async (email: string, role: string, password?: string, isReg: boolean = false, name?: string) => {
     if (!isSupabaseConfigured) {
       showToast("Supabase no está configurado. No se puede iniciar sesión en modo demostración.", "ERROR");
       return;
@@ -629,7 +629,7 @@ const App: React.FC = () => {
           const { error: profileError } = await supabase.from('profiles').upsert([{ 
             id: result.data.user.id, 
             email: email.toLowerCase(), 
-            name: email.split('@')[0], 
+            name: name || email.split('@')[0], 
             role: finalRole, 
             propertiesRemaining: 0, 
             featuredRemaining: 0, 
@@ -672,7 +672,7 @@ const App: React.FC = () => {
            const { error: recoveryError } = await supabase.from('profiles').upsert([{ 
              id: result.data.user.id, 
              email: email.toLowerCase(), 
-             name: email.split('@')[0], 
+             name: name || email.split('@')[0], 
              role: finalRole, 
              propertiesRemaining: 0, 
              featuredRemaining: 0, 

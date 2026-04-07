@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { OfficeInfo } from '../types';
 
 interface AuthPageProps {
-  onLogin: (email: string, role: string, password?: string, isRegistration?: boolean) => Promise<void>;
+  onLogin: (email: string, role: string, password?: string, isRegistration?: boolean, name?: string) => Promise<void>;
   onBack: () => void;
   officeInfo: OfficeInfo;
 }
@@ -16,6 +16,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
   const [regStep, setRegStep] = useState<'SELECT' | 'FORM' | 'CONSTRUCTORA_INFO'>('SELECT');
   const [selectedProfile, setSelectedProfile] = useState<RegistrationProfile>('PARTICULAR DUEÑO DIRECTO');
   
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +27,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
     e.preventDefault();
     setError('');
     
-    if (!email || !password) {
+    if (!email || !password || (!isLogin && !fullName)) {
       setError('Por favor, completa todos los campos.');
       return;
     }
@@ -41,7 +42,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
         }
       }
 
-      await onLogin(email, isLogin ? '' : selectedProfile, password, !isLogin);
+      await onLogin(email, isLogin ? '' : selectedProfile, password, !isLogin, fullName);
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al intentar acceder.');
     } finally {
@@ -204,6 +205,21 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {!isLogin && (
+            <div>
+              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Nombre Completo</label>
+              <input 
+                type="text" 
+                required
+                disabled={isLoading}
+                className="w-full p-4 bg-gray-50 border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-red-500 transition-all placeholder:text-gray-300 disabled:opacity-50"
+                placeholder="Juan Pérez"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+          )}
+          
           <div>
             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
             <input 
