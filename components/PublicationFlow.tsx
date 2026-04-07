@@ -802,6 +802,9 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                         </div>
                       </SortableContext>
                     </DndContext>
+                    <p className="mt-4 text-[10px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
+                      Puede arrastar las imagenes y acomodarlo al orden que desee que se muestre.
+                    </p>
                     <input type="file" ref={galleryInputRef} className="hidden" accept="image/*" multiple onChange={async (e) => {
                       const files = Array.from(e.target.files || []);
                       if (files.length && editingProperty?.id) {
