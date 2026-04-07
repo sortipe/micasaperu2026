@@ -647,19 +647,26 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       </div>
 
                       {suggestions.length > 0 && (
-                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-[2rem] shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-slide-up">
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden z-[100] animate-slide-up">
                           {suggestions.map((s, i) => (
                             <button
                               key={i}
                               onClick={() => handleSelectSuggestion(s)}
-                              className="w-full p-5 text-left hover:bg-orange-50 transition-colors border-b last:border-0 border-gray-50 flex items-start gap-4 group"
+                              className="w-full px-5 py-4 text-left hover:bg-gray-50 transition-colors border-b last:border-0 border-gray-50 flex items-center gap-4 group"
                             >
-                              <div className="mt-1 w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /></svg>
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                               </div>
-                              <div className="flex-grow">
-                                <p className="font-bold text-slate-900 leading-tight">{s.display_name.split(',')[0]}, {s.display_name.split(',')[1]}</p>
-                                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate">{s.display_name.split(',').slice(2).join(',').trim()}</p>
+                              <div className="flex-grow min-w-0">
+                                <span className="font-semibold text-[15px] text-gray-900 truncate block">
+                                  {s.display_name.split(',')[0]}
+                                  {s.display_name.split(',')[1] && <span className="font-normal text-gray-400 ml-1 truncate">
+                                    {s.display_name.split(',').slice(1, 3).join(', ')}
+                                  </span>}
+                                </span>
+                                <span className="text-xs text-gray-400 uppercase tracking-tight block truncate">
+                                  {s.display_name.split(',').slice(3).join(', ').trim()}
+                                </span>
                               </div>
                             </button>
                           ))}
