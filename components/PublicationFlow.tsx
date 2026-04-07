@@ -880,7 +880,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
                   <div className="bg-gray-50 p-8 rounded-[2rem]">
                     <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-3">Autorización de Anuncios</h4>
-                    <p className="text-xs text-gray-500 mb-6 font-medium">¿Permites usar tu publicación para anuncios pagados por nosotros para darte mayor alcance?</p>
+                    <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed">Autorizo expresamente a MICASAPERÚ a publicar, difundir y promocionar las imágenes e información del inmueble en redes sociales, páginas web y medios digitales, con fines comerciales.</p>
                     <div className="flex gap-8">
                       <label className="flex items-center gap-3 cursor-pointer group">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingProperty?.allowAdsUsage === true ? 'border-orange-500' : 'border-gray-300'}`}>
