@@ -176,58 +176,46 @@ const App: React.FC = () => {
     isAppInitialized.current = true;
     
     const initApp = async () => {
-      // Safety timeout: 5 seconds max
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
-      
-      const loadTask = (async () => {
+      const runSafe = async (name: string, fn: () => Promise<any>) => {
         try {
-          const runSafe = async (name: string, fn: () => Promise<any>) => {
-            try {
-              await fn();
-            } catch (err) {
-              console.error(`Error in ${name}:`, err);
-            }
-          };
-
-          const promises = [
-            runSafe('fetchSettings', fetchSettings),
-            runSafe('fetchProperties', fetchProperties),
-            runSafe('fetchLocations', fetchLocations),
-            runSafe('fetchLegalDocs', fetchLegalDocs),
-            runSafe('fetchPackages', fetchPackages)
-          ];
-
-          if (isSupabaseConfigured) {
-            promises.push(runSafe('fetchSession', async () => {
-              try {
-                setIsSessionRestoring(true);
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (error) throw error;
-                if (session?.user) await fetchProfile(session.user.id);
-              } finally {
-                setIsSessionRestoring(false);
-              }
-            }));
-          } else {
-            setIsSessionRestoring(false);
-          }
-
-          await Promise.all(promises);
-          
-          // Check URL for propertyId to open details directly
-          const urlParams = new URLSearchParams(window.location.search);
-          const propertyIdFromUrl = urlParams.get('propertyId');
-          if (propertyIdFromUrl) {
-            setSelectedPropertyId(propertyIdFromUrl);
-            setView('DETAILS');
-          }
+          await fn();
         } catch (err) {
-          console.error("Critical error in initApp (handled):", err);
+          console.error(`Error in ${name}:`, err);
         }
-      })();
+      };
 
+      // Sincronizar tareas de carga
+      const loadTask = Promise.all([
+        runSafe('fetchProperties', fetchProperties),
+        runSafe('fetchSettings', fetchSettings),
+        runSafe('fetchPackages', fetchPackages),
+        runSafe('fetchLegalDocs', fetchLegalDocs),
+        runSafe('fetchLocations', fetchLocations),
+        runSafe('fetchPaymentMethods', fetchPaymentMethods)
+      ]);
+
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 8000)); // Aumentar un poco el margen
+
+      // Esperar a que todo cargue o que pase el tiempo límite
       await Promise.race([loadTask, timeoutPromise]);
+
+      // Verificación final del estado de sesión: si todavía se está restaurando, esperamos un poco más
+      // pero no bloqueamos indefinidamente
+      let totalWait = 0;
+      while (isSessionRestoring && totalWait < 2000) {
+        await new Promise(r => setTimeout(r, 100));
+        totalWait += 100;
+      }
+
       setIsInitialLoading(false);
+      
+      // Check URL for propertyId to open details directly
+      const urlParams = new URLSearchParams(window.location.search);
+      const propertyIdFromUrl = urlParams.get('propertyId');
+      if (propertyIdFromUrl) {
+        setSelectedPropertyId(propertyIdFromUrl);
+        setView('DETAILS');
+      }
     };
     initApp();
     
@@ -455,83 +443,53 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchProperties = async () => {
+  const fetchProperties = async (retryCount = 0): Promise<void> => {
     try {
-      setFetchError(null);
       if (!isSupabaseConfigured) {
-        console.info("Using INITIAL_PROPERTIES (Supabase not configured/Demo Mode)");
         setProperties(INITIAL_PROPERTIES);
         return;
       }
-      
-      console.info("Fetching properties from Supabase...");
+
+      setFetchError(null);
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
-        .order('id', { ascending: false });
-      
+        .select(`
+          *,
+          profiles:agentId (*)
+        `)
+        .order('publishedAt', { ascending: false });
+
       if (error) {
-        console.error("Supabase Error:", error);
-        setFetchError(`Error de Supabase: ${error.message}`);
-        showToast(`Error al leer propiedades: ${error.message}`, "ERROR");
-        // Fallback to INITIAL only if explicitly desired or empty, 
-        // but here we want to show there's an error.
+        console.error(`Error fetching properties (Attempt ${retryCount + 1}):`, error);
+        if (retryCount < 2) {
+          await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+          return fetchProperties(retryCount + 1);
+        }
+        setFetchError(`Error de conexión: ${error.message}`);
         setProperties([]);
         return;
       }
 
       if (data) {
-        console.info(`Successfully fetched ${data.length} properties.`);
-        const mapped = data.map((p: any, index: number) => {
-          try {
-            return { 
-              ...p,
-              title: p.title || 'Inmueble sin título',
-              description: p.description || 'Sin descripción disponible',
-              pricePEN: Number(p.pricePEN) || 0,
-              priceUSD: Number(p.priceUSD) || 0,
-              featuredImage: p.featuredImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1000',
-              gallery: Array.isArray(p.gallery) ? p.gallery : [],
-              type: p.type || 'Departamento',
-              status: p.status || 'FOR_SALE',
-              district: p.district || 'Lima',
-              department: p.department || 'Lima',
-              address: p.address || 'Dirección no especificada',
-              bedrooms: Number(p.bedrooms) || 0,
-              bathrooms: Number(p.bathrooms) || 0,
-              parking: Number(p.parking) || 0,
-              builtArea: Number(p.builtArea || p.constructionArea) || 0,
-              terrainArea: Number(p.terrainArea || p.constructionArea) || 0,
-              yearBuilt: Number(p.year_built || p.yearBuilt) || 0,
-              createdAt: p.createdAt || new Date().toISOString(),
-              isFeatured: p.isFeatured || false,
-              agentName: p.agentName || 'Asesor', 
-              agentAvatar: p.agentAvatar,
-              agentWhatsapp: p.agentWhatsapp || '51900000000'
-            };
-          } catch (e) {
-            console.error(`Error mapping property at index ${index}:`, p, e);
-            return null;
-          }
-        }).filter(item => item !== null);
-        
+        const mapped = data.map((p: any) => ({
+          ...p,
+          agentName: p.profiles?.name || 'Asesor',
+          agentAvatar: p.profiles?.avatar_url || '',
+          agentWhatsapp: p.profiles?.whatsapp || '51900000000',
+          contactEmail: p.profiles?.email || ''
+        }));
         setProperties(mapped as Property[]);
-        if (mapped.length === 0 && data.length > 0) {
-          setFetchError("Error al procesar los datos recibidos de la base de datos.");
-        }
-      } else {
-        console.warn("Supabase returned no data for properties.");
-        setProperties([]);
-      }
-    } catch (err: any) { 
-      console.error("Unexpected error in fetchProperties:", err);
-      setFetchError(`Error inesperado: ${err.message || 'Error desconocido'}`);
-      if (!isSupabaseConfigured) {
-        setProperties(INITIAL_PROPERTIES); 
       } else {
         setProperties([]);
-        showToast(`Error cargando propiedades: ${err.message || 'Verifica la tabla en Supabase'}`, 'ERROR');
       }
+    } catch (err: any) {
+      console.error('Unexpected error in fetchProperties:', err);
+      if (retryCount < 2) {
+        await new Promise(r => setTimeout(r, 1000));
+        return fetchProperties(retryCount + 1);
+      }
+      setFetchError('Error interno al cargar datos.');
+      setProperties([]);
     }
   };
 
