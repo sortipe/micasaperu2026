@@ -477,7 +477,7 @@ const App: React.FC = () => {
           return fetchProperties(retryCount + 1);
         }
         setFetchError(`Error de conexión: ${error.message}`);
-        setProperties([]);
+        // setProperties([]); // Preserve existing properties on error
         return;
       }
 
@@ -491,7 +491,7 @@ const App: React.FC = () => {
         }));
         setProperties(mapped as Property[]);
       } else {
-        setProperties([]);
+        // setProperties([]); // Preserve existing properties on error
       }
     } catch (err: any) {
       console.error('Unexpected error in fetchProperties:', err);
@@ -500,7 +500,7 @@ const App: React.FC = () => {
         return fetchProperties(retryCount + 1);
       }
       setFetchError('Error interno al cargar datos.');
-      setProperties([]);
+      // setProperties([]); // Preserve existing properties on error
     }
   };
 
@@ -842,6 +842,17 @@ const App: React.FC = () => {
                 </div>
               )}
 
+              {/* Mostrar inmuebles recientes si no hay destacados */}
+              {properties.length > 0 && properties.filter(p => p.planType === 'SUPER_FEATURED' || p.planType === 'FEATURED' || p.isFeatured).length === 0 && (
+                <div className="mb-16">
+                  <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-2xl font-black uppercase border-l-8 border-slate-900 pl-6">Nuevos Inmuebles</h2>
+                    <button onClick={() => setView('SEARCH')} className="text-red-600 font-black uppercase text-[10px] tracking-widest hover:underline">Ver Todos</button>
+                  </div>
+                  <PropertyList layout="slider" properties={properties.slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                </div>
+              )}
+
 
 
               {properties.length === 0 && (
@@ -912,19 +923,21 @@ const App: React.FC = () => {
               </div>
             </div>
 
-                    <div className="max-w-7xl mx-auto pb-6">
-                      {fetchError ? (
-                        <div className="p-12 bg-red-50 border border-red-200 rounded-[2.5rem] text-center">
-                          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <div className={`flex-grow overflow-y-auto custom-scrollbar ${searchLayout === 'LIST' ? 'block' : 'hidden'}`}>
+                      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-6 w-full">
+                        {fetchError ? (
+                          <div className="p-12 bg-red-50 border border-red-200 rounded-[2.5rem] text-center">
+                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Error de Conexión</h3>
+                            <p className="text-slate-500 mb-8 font-medium max-w-md mx-auto">{fetchError}</p>
+                            <button onClick={() => fetchProperties()} className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-red-100 hover:shadow-blue-100">Reintentar Carga</button>
                           </div>
-                          <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Error de Conexión</h3>
-                          <p className="text-slate-500 mb-8 font-medium max-w-md mx-auto">{fetchError}</p>
-                          <button onClick={() => fetchProperties()} className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-red-100 hover:shadow-blue-100">Reintentar Carga</button>
-                        </div>
-                      ) : (
-                        <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
-                      )}
+                        ) : (
+                          <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                        )}
+                      </div>
                     </div>
             
             <div className={`flex-grow relative ${searchLayout === 'MAP' ? 'block' : 'hidden'}`}>

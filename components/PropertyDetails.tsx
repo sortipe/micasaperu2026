@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Property, User, Inquiry } from '../types';
 import { ToastType } from './Toast';
 
-declare const L: any;
+import L from 'leaflet';
 
 const PhotoViewer = ({ images, initialIndex, onClose }: { images: string[], initialIndex: number, onClose: () => void }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);

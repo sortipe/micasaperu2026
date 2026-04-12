@@ -32,7 +32,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
-declare const L: any;
+import { CapacitorHttp } from '@capacitor/core';
+import L from 'leaflet';
 
 interface PublicationFlowProps {
   user: User;
@@ -135,8 +136,16 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
         (async () => {
           setIsSearching(true);
           try {
-            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressSearch)}&countrycodes=pe&addressdetails=1&limit=5`);
-            const data = await resp.json();
+            const resp = await CapacitorHttp.get({
+              url: `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressSearch)}&countrycodes=pe&addressdetails=1&limit=5&email=soporte@micasaperu.com`,
+              headers: {
+                'Accept-Language': 'es-PE,es;q=0.9',
+                'User-Agent': 'MiCasaPeruApp/1.0.0'
+              }
+            });
+            
+            if (resp.status !== 200) throw new Error(`HTTP Error: ${resp.status}`);
+            const data = resp.data;
             setSuggestions(data);
           } catch (e) {
             console.error("Search error:", e);
@@ -363,10 +372,6 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
     if (currentStep !== 'PRINCIPALES' || !mapContainerRef.current || !editingProperty) return;
     
     const initMap = () => {
-      if (typeof L === 'undefined') {
-        setTimeout(initMap, 200);
-        return;
-      }
       if (mapRef.current) return;
 
       mapRef.current = L.map(mapContainerRef.current, {

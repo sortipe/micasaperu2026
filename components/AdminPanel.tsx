@@ -5,7 +5,7 @@ import { DEPARTMENTS, COMMON_FEATURES, PROPERTY_CATEGORIES } from '../constants'
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ToastType } from './Toast';
 
-declare const L: any;
+import L from 'leaflet';
 
 interface AdminPanelProps {
   user: User;

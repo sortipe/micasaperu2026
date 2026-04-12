@@ -1,10 +1,10 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
+import L from 'leaflet';
+import { CapacitorHttp } from '@capacitor/core';
 import { Property, LocationItem } from '../types';
 import { PERU_LOCATIONS } from '../constants';
-
-declare const L: any;
 
 interface MapViewProps {
   properties: Property[]; 
@@ -42,7 +42,6 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
     const initMap = () => {
-      if (typeof L === 'undefined') { setTimeout(initMap, 100); return; }
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         zoomControl: false, attributionControl: false, maxBounds: PERU_BOUNDS, minZoom: 5, zoomSnap: 1
       }).setView(initialState?.center || [-12.046, -77.042], initialState?.zoom || 12);
@@ -138,17 +137,18 @@ const MapView: React.FC<MapViewProps> = ({
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&polygon_geojson=1&limit=1&countrycodes=pe&email=soporte@micasaperu.com`, {
-          signal: controller.signal,
+        const res = await CapacitorHttp.get({
+          url: `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&polygon_geojson=1&limit=1&countrycodes=pe&email=soporte@micasaperu.com`,
           headers: {
-            'Accept-Language': 'es-PE,es;q=0.9'
+            'Accept-Language': 'es-PE,es;q=0.9',
+            'User-Agent': 'MiCasaPeruApp/1.0.0'
           }
         });
         clearTimeout(timeoutId);
 
-        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        if (res.status !== 200) throw new Error(`HTTP Error: ${res.status}`);
         
-        const data = await res.json();
+        const data = res.data;
         
         if (data && data[0]) {
           boundaryLayerRef.current?.clearLayers();
