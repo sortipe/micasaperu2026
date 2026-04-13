@@ -186,26 +186,27 @@ const App: React.FC = () => {
       };
 
       // 1. First Restore Session (Critical for Auth state)
-      if (isSupabaseConfigured) {
-        setIsSessionRestoring(true);
-        try {
-          const { data: { session }, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          if (session?.user) await fetchProfile(session.user.id);
-        } catch (err) {
-          console.error("Error restoring session:", err);
-        } finally {
+      const restoreSessionTask = (async () => {
+        if (isSupabaseConfigured) {
+          setIsSessionRestoring(true);
+          try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error) throw error;
+            if (session?.user) await fetchProfile(session.user.id);
+          } catch (err) {
+            console.error("Error restoring session:", err);
+          } finally {
+            setIsSessionRestoring(false);
+          }
+        } else {
           setIsSessionRestoring(false);
         }
-      } else {
-        setIsSessionRestoring(false);
-      }
+      })();
 
-      // 2. Fetch critical data (Properties)
-      await runSafe('fetchProperties', fetchProperties);
-
-      // 3. Fetch non-critical data in background
-      const backgroundTasks = [
+      // 2. Prepare critical background tasks
+      const fetchPropertiesTask = runSafe('fetchProperties', fetchProperties);
+      
+      const otherBackgroundTasks = [
         runSafe('fetchSettings', fetchSettings),
         runSafe('fetchPackages', fetchPackages),
         runSafe('fetchLegalDocs', fetchLegalDocs),
@@ -213,11 +214,20 @@ const App: React.FC = () => {
         runSafe('fetchPaymentMethods', fetchPaymentMethods)
       ];
 
-      // Limit initial wait to properties + session
+      // 3. Safety Timeout (12 seconds)
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 12000));
+
+      // 4. Wait for Critical Data OR Timeout
+      await Promise.race([
+        Promise.all([restoreSessionTask, fetchPropertiesTask]), 
+        timeoutPromise
+      ]);
+
+      // Release the splash screen
       setIsInitialLoading(false);
       
-      // Complete background tasks
-      Promise.all(backgroundTasks).catch(err => console.error("Background fetch error:", err));
+      // Ensure all other tasks complete in background
+      Promise.all(otherBackgroundTasks).catch(err => console.error("Background fetch error:", err));
       
       // Check URL for propertyId to open details directly
       const urlParams = new URLSearchParams(window.location.search);
