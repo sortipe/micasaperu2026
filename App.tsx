@@ -29,6 +29,7 @@ const ADMIN_EMAIL = 'jorgejoelifzyape@gmail.com';
 const App: React.FC = () => {
   const isAppInitialized = useRef(false);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [isFetchingProperties, setIsFetchingProperties] = useState(false);
   const [packages, setPackages] = useState<Package[]>(INITIAL_PACKAGES);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -184,9 +185,27 @@ const App: React.FC = () => {
         }
       };
 
-      // Sincronizar tareas de carga
-      const promises = [
-        runSafe('fetchProperties', fetchProperties),
+      // 1. First Restore Session (Critical for Auth state)
+      if (isSupabaseConfigured) {
+        setIsSessionRestoring(true);
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (session?.user) await fetchProfile(session.user.id);
+        } catch (err) {
+          console.error("Error restoring session:", err);
+        } finally {
+          setIsSessionRestoring(false);
+        }
+      } else {
+        setIsSessionRestoring(false);
+      }
+
+      // 2. Fetch critical data (Properties)
+      await runSafe('fetchProperties', fetchProperties);
+
+      // 3. Fetch non-critical data in background
+      const backgroundTasks = [
         runSafe('fetchSettings', fetchSettings),
         runSafe('fetchPackages', fetchPackages),
         runSafe('fetchLegalDocs', fetchLegalDocs),
@@ -194,31 +213,11 @@ const App: React.FC = () => {
         runSafe('fetchPaymentMethods', fetchPaymentMethods)
       ];
 
-      if (isSupabaseConfigured) {
-        promises.push(runSafe('fetchSession', async () => {
-          try {
-            setIsSessionRestoring(true);
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error) throw error;
-            if (session?.user) await fetchProfile(session.user.id);
-          } finally {
-            setIsSessionRestoring(false);
-          }
-        }));
-      } else {
-        setIsSessionRestoring(false);
-      }
-
-      const loadTask = Promise.all(promises);
-
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 8000)); // Aumentar un poco el margen
-
-      // Esperar a que todo cargue o que pase el tiempo límite
-      await Promise.race([loadTask, timeoutPromise]);
-
-      // Eliminar el bloqueo innecesario que mencionaba el usuario
-
+      // Limit initial wait to properties + session
       setIsInitialLoading(false);
+      
+      // Complete background tasks
+      Promise.all(backgroundTasks).catch(err => console.error("Background fetch error:", err));
       
       // Check URL for propertyId to open details directly
       const urlParams = new URLSearchParams(window.location.search);
@@ -455,6 +454,7 @@ const App: React.FC = () => {
   };
 
   const fetchProperties = async (retryCount = 0): Promise<void> => {
+    setIsFetchingProperties(true);
     try {
       if (!isSupabaseConfigured) {
         setProperties(INITIAL_PROPERTIES);
@@ -501,6 +501,8 @@ const App: React.FC = () => {
       }
       setFetchError('Error interno al cargar datos.');
       // setProperties([]); // Preserve existing properties on error
+    } finally {
+      setIsFetchingProperties(false);
     }
   };
 
@@ -857,24 +859,33 @@ const App: React.FC = () => {
 
               {properties.length === 0 && (
                 <div className="flex flex-col items-center">
-                  <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
-                  {fetchError && (
-                    <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm max-w-lg text-center shadow-sm">
-                      <div className="flex items-center justify-center gap-2 mb-3 text-red-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <span className="font-black uppercase tracking-wider text-xs">Error de Conexión</span>
-                      </div>
-                      <p className="font-bold mb-2">No se pudo cargar la información de Supabase.</p>
-                      <div className="bg-white/50 p-3 rounded-lg border border-red-100 font-mono text-[10px] break-all mb-4 text-left">
-                        {fetchError}
-                      </div>
-                      <button 
-                        onClick={() => fetchProperties()}
-                        className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 transition-all shadow-md active:scale-95"
-                      >
-                        Reintentar carga ahora
-                      </button>
+                  {isFetchingProperties ? (
+                    <div className="flex flex-col items-center py-20 animate-fade-in">
+                       <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                       <p className="text-slate-500 font-extrabold uppercase text-[10px] tracking-widest text-center px-4">Conectando con Supabase...</p>
                     </div>
+                  ) : (
+                    <>
+                      <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
+                      {fetchError && (
+                        <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm max-w-lg text-center shadow-sm">
+                          <div className="flex items-center justify-center gap-2 mb-3 text-red-600">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            <span className="font-black uppercase tracking-wider text-xs">Error de Conexión</span>
+                          </div>
+                          <p className="font-bold mb-2">No se pudo cargar la información de Supabase.</p>
+                          <div className="bg-white/50 p-3 rounded-lg border border-red-100 font-mono text-[10px] break-all mb-4 text-left">
+                            {fetchError}
+                          </div>
+                          <button 
+                            onClick={() => fetchProperties()}
+                            className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 transition-all shadow-md active:scale-95"
+                          >
+                            Reintentar carga ahora
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
