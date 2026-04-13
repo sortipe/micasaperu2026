@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [homeBannerMobile, setHomeBannerMobile] = useState<string | null>(null);
   const [favicon, setFavicon] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [loadingTime, setLoadingTime] = useState(0);
   const [isSessionRestoring, setIsSessionRestoring] = useState(true);
   const [officeInfo, setOfficeInfo] = useState<OfficeInfo>({ 
     address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
@@ -167,6 +168,22 @@ const App: React.FC = () => {
   }, [mpPublicKey]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isInitialLoading) {
+      timer = setInterval(() => {
+        setLoadingTime(prev => prev + 1000);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isInitialLoading]);
+
+  const handleRescueReset = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [view, selectedPropertyId]);
 
@@ -185,25 +202,7 @@ const App: React.FC = () => {
         }
       };
 
-      // 1. First Restore Session (Critical for Auth state)
-      const restoreSessionTask = (async () => {
-        if (isSupabaseConfigured) {
-          setIsSessionRestoring(true);
-          try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-            if (error) throw error;
-            if (session?.user) await fetchProfile(session.user.id);
-          } catch (err) {
-            console.error("Error restoring session:", err);
-          } finally {
-            setIsSessionRestoring(false);
-          }
-        } else {
-          setIsSessionRestoring(false);
-        }
-      })();
-
-      // 2. Prepare critical background tasks
+      // 1. Prepare critical background tasks
       const fetchPropertiesTask = runSafe('fetchProperties', fetchProperties);
       
       const otherBackgroundTasks = [
@@ -214,12 +213,13 @@ const App: React.FC = () => {
         runSafe('fetchPaymentMethods', fetchPaymentMethods)
       ];
 
-      // 3. Safety Timeout (12 seconds)
+      // 2. Safety Timeout (12 seconds)
       const timeoutPromise = new Promise(resolve => setTimeout(resolve, 12000));
 
-      // 4. Wait for Critical Data OR Timeout
+      // 3. Wait for Properties OR Timeout
+      // Rely on onAuthStateChange for session restoration
       await Promise.race([
-        Promise.all([restoreSessionTask, fetchPropertiesTask]), 
+        fetchPropertiesTask, 
         timeoutPromise
       ]);
 
@@ -263,7 +263,16 @@ const App: React.FC = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+      const controller = new AbortController();
+      const profileTimeout = setTimeout(() => controller.abort(), 8000);
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      clearTimeout(profileTimeout);
       
       if (error) {
         if (error.code === 'PGRST301' || error.message.includes('permission denied')) {
