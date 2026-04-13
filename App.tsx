@@ -818,8 +818,22 @@ const App: React.FC = () => {
   if (isInitialLoading) {
     return (
       <div className="fixed inset-0 bg-[#091F4F] flex flex-col items-center justify-center z-[9999]">
-        <div className="w-12 h-12 border-4 border-white border-t-red-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-white text-xs font-black uppercase tracking-[0.3em]">Cargando MICASAPERU...</p>
+        <div className="w-16 h-16 border-4 border-white/10 rounded-full relative mb-8">
+           <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p className="text-white text-xs font-black uppercase tracking-[0.3em] mb-4">Cargando MICASAPERU...</p>
+        
+        {loadingTime > 6000 && (
+          <div className="mt-8 flex flex-col items-center gap-4 px-6 text-center animate-fade-in">
+             <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold max-w-xs leading-relaxed">¿Tarda demasiado? Es probable que tu conexión sea inestable.</p>
+             <button 
+               onClick={handleRescueReset}
+               className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border border-white/20 transition-all active:scale-95 shadow-2xl"
+             >
+               Limpiar memoria y reiniciar
+             </button>
+          </div>
+        )}
       </div>
     );
   }
