@@ -41,7 +41,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       getItem: (key) => {
         try {
           return Promise.resolve(localStorage.getItem(key));
-        } catch {
+        } catch (err) {
+          console.error("Supabase Storage Error (getItem):", err);
           return Promise.resolve(null);
         }
       },
@@ -49,7 +50,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         try {
           localStorage.setItem(key, value);
           return Promise.resolve();
-        } catch {
+        } catch (err) {
+          console.error("Supabase Storage Error (setItem):", err);
           return Promise.resolve();
         }
       },
@@ -57,7 +59,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         try {
           localStorage.removeItem(key);
           return Promise.resolve();
-        } catch {
+        } catch (err) {
+          console.error("Supabase Storage Error (removeItem):", err);
           return Promise.resolve();
         }
       },

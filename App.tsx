@@ -46,7 +46,6 @@ const App: React.FC = () => {
   const [favicon, setFavicon] = useState<string | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingTime, setLoadingTime] = useState(0);
-  const [isSessionRestoring, setIsSessionRestoring] = useState(true);
   const [officeInfo, setOfficeInfo] = useState<OfficeInfo>({ 
     address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
     email: 'hola@aquivivir.com', 
@@ -226,6 +225,14 @@ const App: React.FC = () => {
       // Release the splash screen
       setIsInitialLoading(false);
       
+      // 4. Ensure Auth is checked if not already fired by event
+      if (isSupabaseConfigured) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && !currentUser) {
+           await fetchProfile(session.user.id);
+        }
+      }
+      
       // Ensure all other tasks complete in background
       Promise.all(otherBackgroundTasks).catch(err => console.error("Background fetch error:", err));
       
@@ -241,10 +248,19 @@ const App: React.FC = () => {
     
     if (isSupabaseConfigured) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-          if (session?.user) await fetchProfile(session.user.id);
+        console.info(`🔐 Auth Event: ${event}`, session?.user?.email || 'No Session');
+        
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED') {
+          if (session?.user) {
+            try {
+              await fetchProfile(session.user.id);
+            } catch (err) {
+              console.error("Authentication error during profile fetch:", err);
+            }
+          }
         } else if (event === 'SIGNED_OUT') {
           setCurrentUser(null);
+          // Opcional: Limpiar estados específicos del usuario si es necesario
         }
       });
       return () => subscription.unsubscribe();
