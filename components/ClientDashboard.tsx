@@ -402,22 +402,22 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <div className="flex flex-col">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Simples</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-black text-slate-900">{user.propertiesRemaining}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">disponibles</p>
+                      <p className="text-3xl font-black text-slate-900">{isAdmin ? 'Ilimitado' : user.propertiesRemaining}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">{isAdmin ? 'para publicar' : 'disponibles'}</p>
                     </div>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Destacados</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-black text-blue-600">{user.featuredRemaining}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">disponibles</p>
+                      <p className="text-3xl font-black text-blue-600">{isAdmin ? 'Ilimitado' : user.featuredRemaining}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">{isAdmin ? 'para destacar' : 'disponibles'}</p>
                     </div>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[9px] font-black text-yellow-500 uppercase tracking-widest mb-1">Super Destacados</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-black text-yellow-600">{user.superFeaturedRemaining || 0}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">disponibles</p>
+                      <p className="text-3xl font-black text-yellow-600">{isAdmin ? 'Ilimitado' : (user.superFeaturedRemaining || 0)}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">{isAdmin ? 'para super destacar' : 'disponibles'}</p>
                     </div>
                   </div>
                 </div>
@@ -440,7 +440,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   </div>
                 </div>
                 
-                {user.propertiesRemaining === 0 && user.featuredRemaining === 0 && (user.superFeaturedRemaining || 0) === 0 && (
+                {!isAdmin && user.propertiesRemaining === 0 && user.featuredRemaining === 0 && (user.superFeaturedRemaining || 0) === 0 && (
                   <div className="mt-10 p-6 bg-red-50 rounded-2xl border border-red-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-xs font-bold text-red-600 uppercase tracking-wide">No tienes publicaciones disponibles en este momento.</p>
                     <button 

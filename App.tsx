@@ -24,7 +24,7 @@ import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 
 
-const ADMIN_EMAIL = 'jorgejoelifzyape@gmail.com';
+const ADMIN_EMAILS = ['jorgejoelifzyape@gmail.com', 'A.pereira@aquivivir.pe'];
 
 const App: React.FC = () => {
   const isAppInitialized = useRef(false);
@@ -301,7 +301,7 @@ const App: React.FC = () => {
       }
 
       if (data) {
-        if (data.email === ADMIN_EMAIL) {
+        if (ADMIN_EMAILS.includes(data.email)) {
           data.role = 'ADMINISTRADOR';
         } else if (data.email === 'jorgejoel-ifz@hotmail.com') {
           data.role = 'PARTICULAR DUEÑO DIRECTO';
@@ -632,7 +632,7 @@ const App: React.FC = () => {
 
         if (result.data.user) {
           let finalRole = role || 'INMOBILARIA CORREDOR';
-          if (email.toLowerCase() === ADMIN_EMAIL) {
+          if (ADMIN_EMAILS.includes(email.toLowerCase())) {
             finalRole = 'ADMINISTRADOR';
           } else if (email.toLowerCase() === 'jorgejoel-ifz@hotmail.com') {
             finalRole = 'PARTICULAR DUEÑO DIRECTO';
