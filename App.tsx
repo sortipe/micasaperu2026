@@ -28,43 +28,64 @@ const ADMIN_EMAILS = ['jorgejoelifzyape@gmail.com', 'A.pereira@aquivivir.pe'];
 
 const App: React.FC = () => {
   const isAppInitialized = useRef(false);
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_properties');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [isFetchingProperties, setIsFetchingProperties] = useState(false);
-  const [packages, setPackages] = useState<Package[]>(INITIAL_PACKAGES);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [packages, setPackages] = useState<Package[]>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_packages');
+    return cached ? JSON.parse(cached) : INITIAL_PACKAGES;
+  });
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_user');
+    return cached ? JSON.parse(cached) : null;
+  });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartCheckout, setIsCartCheckout] = useState(false);
-  const [locations, setLocations] = useState<LocationItem[]>(PERU_LOCATIONS as LocationItem[]);
+  const [locations, setLocations] = useState<LocationItem[]>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_locations');
+    return cached ? JSON.parse(cached) : (PERU_LOCATIONS as LocationItem[]);
+  });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [legalDocs, setLegalDocs] = useState<LegalDoc[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [appLogo, setAppLogo] = useState<string | null>(null);
-  const [homeBanner, setHomeBanner] = useState<string | null>(null);
-  const [homeBannerMobile, setHomeBannerMobile] = useState<string | null>(null);
-  const [favicon, setFavicon] = useState<string | null>(null);
+  const [appLogo, setAppLogo] = useState<string | null>(localStorage.getItem('micasaperu_cache_logo'));
+  const [homeBanner, setHomeBanner] = useState<string | null>(localStorage.getItem('micasaperu_cache_home_banner'));
+  const [homeBannerMobile, setHomeBannerMobile] = useState<string | null>(localStorage.getItem('micasaperu_cache_home_banner_mobile'));
+  const [favicon, setFavicon] = useState<string | null>(localStorage.getItem('micasaperu_cache_favicon'));
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [loadingTime, setLoadingTime] = useState(0);
-  const [officeInfo, setOfficeInfo] = useState<OfficeInfo>({ 
-    address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
-    email: 'hola@aquivivir.com', 
-    phone: '',
-    constructoraWhatsapp: ''
+  const [officeInfo, setOfficeInfo] = useState<OfficeInfo>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_office_info');
+    return cached ? JSON.parse(cached) : { 
+      address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
+      email: 'hola@aquivivir.com', 
+      phone: '',
+      constructoraWhatsapp: ''
+    };
   });
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-    { platform: 'FACEBOOK', url: '' }, { platform: 'INSTAGRAM', url: '' }, { platform: 'LINKEDIN', url: '' }, { platform: 'TIKTOK', url: '' }, { platform: 'WHATSAPP', url: '' }
-  ]);
-  const [mpPublicKey, setMpPublicKey] = useState<string>('APP_USR-c72f0355-efb1-4510-b26b-0ae474fb71b3');
-  const [mpAccessToken, setMpAccessToken] = useState<string>('APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
-  const [mpClientId, setMpClientId] = useState<string>('1960446256553701');
-  const [mpClientSecret, setMpClientSecret] = useState<string>('vB3NvBI7MC4mZaqZoO5228Fu0SgjOChG');
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_social_links');
+    return cached ? JSON.parse(cached) : [
+      { platform: 'FACEBOOK', url: '' }, { platform: 'INSTAGRAM', url: '' }, { platform: 'LINKEDIN', url: '' }, { platform: 'TIKTOK', url: '' }, { platform: 'WHATSAPP', url: '' }
+    ];
+  });
+  const [mpPublicKey, setMpPublicKey] = useState<string>(localStorage.getItem('micasaperu_cache_mp_public_key') || 'APP_USR-c72f0355-efb1-4510-b26b-0ae474fb71b3');
+  const [mpAccessToken, setMpAccessToken] = useState<string>(localStorage.getItem('micasaperu_cache_mp_access_token') || 'APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
+  const [mpClientId, setMpClientId] = useState<string>(localStorage.getItem('micasaperu_cache_mp_client_id') || '1960446256553701');
+  const [mpClientSecret, setMpClientSecret] = useState<string>(localStorage.getItem('micasaperu_cache_mp_client_secret') || 'vB3NvBI7MC4mZaqZoO5228Fu0SgjOChG');
   
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
-    { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
-    { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', instructions: 'Escanea el código QR desde tu app Yape y adjunta la captura de pantalla del pago.', isActive: true },
-    { id: '44444444-4444-4444-4444-444444444444', name: 'Mercado Pago', type: 'MERCADOPAGO', instructions: 'Paga de forma rápida y segura a través de Mercado Pago. Luego de pagar, el sistema confirmará tu pago automáticamente.', isActive: true }
-  ]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(() => {
+    const cached = localStorage.getItem('micasaperu_cache_payment_methods');
+    return cached ? JSON.parse(cached) : [
+      { id: '11111111-1111-1111-1111-111111111111', name: 'BCP Soles', type: 'TRANSFER', bankName: 'BCP', accountNumber: '193-99238472-0-12', cci: '002-193009923847201211', instructions: 'Realiza la transferencia y adjunta una captura del comprobante con el número de operación.', isActive: true },
+      { id: '22222222-2222-2222-2222-222222222222', name: 'Yape Oficial', type: 'QR', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=Yape-Demo', instructions: 'Escanea el código QR desde tu app Yape y adjunta la captura de pantalla del pago.', isActive: true },
+      { id: '44444444-4444-4444-4444-444444444444', name: 'Mercado Pago', type: 'MERCADOPAGO', instructions: 'Paga de forma rápida y segura a través de Mercado Pago. Luego de pagar, el sistema confirmará tu pago automáticamente.', isActive: true }
+    ];
+  });
 
   const [view, setView] = useState<'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART'>('HOME');
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
@@ -251,8 +272,10 @@ const App: React.FC = () => {
         runSafe('fetchPaymentMethods', fetchPaymentMethods)
       ];
 
-      // 2. Safety Timeout (12 seconds)
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, 12000));
+      // 2. Safety Timeout (Optimistic UI)
+      // Si ya tenemos propiedades en cache, bajamos el timeout a 2 segundos
+      const hasCachedProperties = (properties || []).length > 0;
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, hasCachedProperties ? 1800 : 8000));
 
       // 3. Wait for Properties OR Timeout
       // Rely on onAuthStateChange for session restoration
@@ -363,6 +386,7 @@ const App: React.FC = () => {
         }
 
         setCurrentUser(data as User);
+        localStorage.setItem('micasaperu_cache_user', JSON.stringify(data));
         return data as User;
       } else {
         console.warn("No profile found for user in 'profiles' table:", userId);
@@ -517,23 +541,40 @@ const App: React.FC = () => {
 
           try {
             const parsedValue = JSON.parse(item.value);
-            if (item.key === 'office_info') setOfficeInfo(parsedValue);
-            if (item.key === 'social_links') setSocialLinks(parsedValue);
-            if (item.key === 'mp_public_key') setMpPublicKey(item.value);
-            if (item.key === 'mp_access_token') setMpAccessToken(item.value);
-            if (item.key === 'mp_client_id') setMpClientId(item.value);
-            if (item.key === 'mp_client_secret') setMpClientSecret(item.value);
+            if (item.key === 'office_info') {
+              setOfficeInfo(parsedValue);
+              localStorage.setItem('micasaperu_cache_office_info', item.value);
+            }
+            if (item.key === 'social_links') {
+              setSocialLinks(parsedValue);
+              localStorage.setItem('micasaperu_cache_social_links', item.value);
+            }
+            if (item.key === 'mp_public_key') {
+              setMpPublicKey(item.value);
+              localStorage.setItem('micasaperu_cache_mp_public_key', item.value);
+            }
+            if (item.key === 'mp_access_token') {
+              setMpAccessToken(item.value);
+              localStorage.setItem('micasaperu_cache_mp_access_token', item.value);
+            }
+            if (item.key === 'mp_client_id') {
+              setMpClientId(item.value);
+              localStorage.setItem('micasaperu_cache_mp_client_id', item.value);
+            }
+            if (item.key === 'mp_client_secret') {
+              setMpClientSecret(item.value);
+              localStorage.setItem('micasaperu_cache_mp_client_secret', item.value);
+            }
           } catch (e) {
             // If parsing fails, it might just be a plain string
-            if (item.key === 'app_logo') setAppLogo(item.value);
-            if (item.key === 'home_banner') setHomeBanner(item.value);
-            if (item.key === 'home_banner_mobile') setHomeBannerMobile(item.value);
-            if (item.key === 'favicon') setFavicon(item.value);
-            if (item.key === 'mp_public_key') setMpPublicKey(item.value);
-            if (item.key === 'mp_access_token') setMpAccessToken(item.value);
-            if (item.key === 'mp_client_id') setMpClientId(item.value);
-            if (item.key === 'mp_client_secret') setMpClientSecret(item.value);
-            // For office_info and social_links, we expect JSON, so we don't set if it fails
+            if (item.key === 'app_logo') { setAppLogo(item.value); localStorage.setItem('micasaperu_cache_logo', item.value); }
+            if (item.key === 'home_banner') { setHomeBanner(item.value); localStorage.setItem('micasaperu_cache_home_banner', item.value); }
+            if (item.key === 'home_banner_mobile') { setHomeBannerMobile(item.value); localStorage.setItem('micasaperu_cache_home_banner_mobile', item.value); }
+            if (item.key === 'favicon') { setFavicon(item.value); localStorage.setItem('micasaperu_cache_favicon', item.value); }
+            if (item.key === 'mp_public_key') { setMpPublicKey(item.value); localStorage.setItem('micasaperu_cache_mp_public_key', item.value); }
+            if (item.key === 'mp_access_token') { setMpAccessToken(item.value); localStorage.setItem('micasaperu_cache_mp_access_token', item.value); }
+            if (item.key === 'mp_client_id') { setMpClientId(item.value); localStorage.setItem('micasaperu_cache_mp_client_id', item.value); }
+            if (item.key === 'mp_client_secret') { setMpClientSecret(item.value); localStorage.setItem('micasaperu_cache_mp_client_secret', item.value); }
           }
         });
       }
@@ -564,22 +605,28 @@ const App: React.FC = () => {
       }
 
       setFetchError(null);
+      
+      // Select only needed fields for the main list to improve performance
+      // Joining profiles:agentId but only specific fields
       const { data, error } = await supabase
         .from('properties')
         .select(`
-          *,
-          profiles:agentId (*)
+          id, title, priceUSD, pricePEN, status, type, featuredImage, 
+          district, department, address, bedrooms, bathrooms, builtArea, 
+          terrainArea, planType, isFeatured, createdAt, publishedAt, agentId,
+          maintenanceFee, agentWhatsapp, yearBuilt,
+          profiles:agentId (id, name, avatar_url, whatsapp, email)
         `)
-        .order('publishedAt', { ascending: false });
+        .order('publishedAt', { ascending: false })
+        .abortSignal(AbortSignal.timeout(10000)); // 10s timeout
 
       if (error) {
         console.error(`Error fetching properties (Attempt ${retryCount + 1}):`, error);
-        if (retryCount < 2) {
-          await new Promise(r => setTimeout(r, 1000 * (retryCount + 1)));
+        if (retryCount < 1) {
+          await new Promise(r => setTimeout(r, 1500));
           return fetchProperties(retryCount + 1);
         }
-        setFetchError(`Error de conexión: ${error.message}`);
-        // setProperties([]); // Preserve existing properties on error
+        setFetchError(`Error de conexión con Supabase: ${error.message}`);
         return;
       }
 
@@ -592,6 +639,7 @@ const App: React.FC = () => {
           contactEmail: p.profiles?.email || ''
         }));
         setProperties(mapped as Property[]);
+        localStorage.setItem('micasaperu_cache_properties', JSON.stringify(mapped));
       } else {
         // setProperties([]); // Preserve existing properties on error
       }
@@ -613,7 +661,10 @@ const App: React.FC = () => {
       if (!isSupabaseConfigured) return;
       const { data, error } = await supabase.from('packages').select('*').order('price', { ascending: true });
       if (error) throw error;
-      if (data) setPackages(data as Package[]);
+      if (data) {
+        setPackages(data as Package[]);
+        localStorage.setItem('micasaperu_cache_packages', JSON.stringify(data));
+      }
     } catch (err) {
       console.error('Error in fetchPackages:', err);
     }
@@ -635,7 +686,11 @@ const App: React.FC = () => {
       if (!isSupabaseConfigured) return;
       const { data, error } = await supabase.from('locations').select('*');
       if (error) throw error;
-      if (data) setLocations([...PERU_LOCATIONS, ...data] as LocationItem[]);
+      if (data) {
+        const fullLocations = [...PERU_LOCATIONS, ...data] as LocationItem[];
+        setLocations(fullLocations);
+        localStorage.setItem('micasaperu_cache_locations', JSON.stringify(fullLocations));
+      }
     } catch (err) {
       console.error('Error in fetchLocations:', err);
     }
@@ -644,7 +699,10 @@ const App: React.FC = () => {
   const fetchPaymentMethods = async () => {
     if (!isSupabaseConfigured) return;
     const { data } = await supabase.from('payment_methods').select('*');
-    if (data) setPaymentMethods(data as PaymentMethod[]);
+    if (data) {
+      setPaymentMethods(data as PaymentMethod[]);
+      localStorage.setItem('micasaperu_cache_payment_methods', JSON.stringify(data));
+    }
   };
 
   const fetchTransactions = async () => {
@@ -976,10 +1034,21 @@ const App: React.FC = () => {
               {properties.length === 0 && (
                 <div className="flex flex-col items-center">
                   {isFetchingProperties ? (
-                    <div className="flex flex-col items-center py-20 animate-fade-in">
-                       <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                       <p className="text-slate-500 font-extrabold uppercase text-[10px] tracking-widest text-center px-4">Conectando con Supabase...</p>
-                    </div>
+                     <div className="flex flex-col items-center py-20 animate-fade-in w-full">
+                        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                        <p className="text-slate-900 font-black uppercase text-xs tracking-[0.2em] text-center px-4 mb-2">Conectando con Supabase...</p>
+                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest text-center px-4 mb-8">Esto puede tardar unos segundos dependiendo de tu conexión</p>
+                        
+                        <button 
+                          onClick={() => {
+                            localStorage.clear();
+                            window.location.reload();
+                          }}
+                          className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
+                        >
+                          Reiniciar Conexión Forzada
+                        </button>
+                     </div>
                   ) : (
                     <>
                       <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
