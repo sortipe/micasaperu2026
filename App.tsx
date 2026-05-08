@@ -177,9 +177,39 @@ const App: React.FC = () => {
   }, [isInitialLoading]);
 
   const handleRescueReset = () => {
+    console.warn("🚀 Iniciando limpieza forzada de caché...");
+    
+    // Preservar la sesión de autenticación
+    const authSession = localStorage.getItem('micasaperu-auth-session');
+    const systemVersion = localStorage.getItem('micasaperu_system_version');
+    const hardResetVersion = localStorage.getItem('micasaperu_hard_reset_version');
+    
     localStorage.clear();
     sessionStorage.clear();
-    window.location.reload();
+    
+    // Restaurar sesión y versiones para no entrar en bucle
+    if (authSession) localStorage.setItem('micasaperu-auth-session', authSession);
+    if (systemVersion) localStorage.setItem('micasaperu_system_version', systemVersion);
+    if (hardResetVersion) localStorage.setItem('micasaperu_hard_reset_version', hardResetVersion);
+    
+    // Limpiar Caches API
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        for (const name of names) caches.delete(name);
+      });
+    }
+
+    // Desregistrar Service Workers
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const registration of registrations) registration.unregister();
+      });
+    }
+
+    // Recarga dura
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   useEffect(() => {
@@ -189,10 +219,19 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    if (isAppInitialized.current) return;
-    isAppInitialized.current = true;
-    
     const initApp = async () => {
+      // Verificación de Hard Reset forzado (para cambios de código que requieren limpieza)
+      const CURRENT_HARD_RESET = '20240508_01'; 
+      const lastHardReset = localStorage.getItem('micasaperu_hard_reset_version');
+      if (lastHardReset !== CURRENT_HARD_RESET) {
+        localStorage.setItem('micasaperu_hard_reset_version', CURRENT_HARD_RESET);
+        handleRescueReset();
+        return;
+      }
+
+      if (isAppInitialized.current) return;
+      isAppInitialized.current = true;
+
       const runSafe = async (name: string, fn: () => Promise<any>) => {
         try {
           await fn();
@@ -282,6 +321,7 @@ const App: React.FC = () => {
       const controller = new AbortController();
       const profileTimeout = setTimeout(() => controller.abort(), 8000);
 
+      // Append a timestamp to the query to bypass any intermediate caching
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -301,11 +341,27 @@ const App: React.FC = () => {
       }
 
       if (data) {
-        if (ADMIN_EMAILS.includes(data.email)) {
+        // Normalización de roles (Database -> App Type)
+        let normalizedRole = (data.role || '').toUpperCase();
+        
+        if (normalizedRole === 'ADMIN' || normalizedRole === 'ADMINISTRADOR' || ADMIN_EMAILS.includes(data.email.toLowerCase())) {
           data.role = 'ADMINISTRADOR';
-        } else if (data.email === 'jorgejoel-ifz@hotmail.com') {
+        } else if (normalizedRole === 'PARTICULAR' || normalizedRole.includes('DUEÑO') || normalizedRole === 'CLIENT') {
+          data.role = 'PARTICULAR DUEÑO DIRECTO';
+        } else if (normalizedRole === 'INMOBILIARIA' || normalizedRole.includes('CORREDOR')) {
+          data.role = 'INMOBILARIA CORREDOR';
+        } else if (normalizedRole === 'CONSTRUCTORA' || normalizedRole.includes('DESARROLLADORA')) {
+          data.role = 'CONSTRUCTORA DESARROLLADORA';
+        } else {
+          // Fallback seguro
           data.role = 'PARTICULAR DUEÑO DIRECTO';
         }
+
+        // Caso especial para el desarrollador
+        if (data.email === 'jorgejoel-ifz@hotmail.com' && data.role !== 'ADMINISTRADOR') {
+          // data.role = 'PARTICULAR DUEÑO DIRECTO'; // Mantener el de la DB si es admin
+        }
+
         setCurrentUser(data as User);
         return data as User;
       } else {
@@ -448,6 +504,17 @@ const App: React.FC = () => {
       }
       if (data) {
         data.forEach(item => {
+          if (item.key === 'system_version') {
+            const currentVersion = localStorage.getItem('micasaperu_system_version');
+            if (currentVersion && currentVersion !== item.value) {
+              console.info("🔄 Detectada nueva versión del sistema. Reiniciando cache...");
+              localStorage.setItem('micasaperu_system_version', item.value);
+              handleRescueReset();
+              return;
+            }
+            localStorage.setItem('micasaperu_system_version', item.value);
+          }
+
           try {
             const parsedValue = JSON.parse(item.value);
             if (item.key === 'office_info') setOfficeInfo(parsedValue);
@@ -1071,6 +1138,17 @@ const App: React.FC = () => {
                 const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
                 if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
                 else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
+              }}
+              onResetGlobalCache={async () => {
+                const newVersion = Date.now().toString();
+                const { error } = await supabase.from('settings').upsert({key: 'system_version', value: newVersion}, { onConflict: 'key' });
+                if (error) {
+                  showToast("Error al reiniciar cache global", "ERROR");
+                  console.error(error);
+                } else {
+                  localStorage.setItem('micasaperu_system_version', newVersion);
+                  showToast("Cache global reiniciado. Los usuarios verán los cambios al navegar o refrescar.", "SUCCESS");
+                }
               }}
               onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
               onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 

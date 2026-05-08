@@ -274,37 +274,33 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
   const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
     if (!isSupabaseConfigured) {
-      // Mock progress for local testing
       if (onProgress) {
         let p = 0;
         const interval = setInterval(() => {
-          p += 10;
+          p += 25;
           onProgress(p);
           if (p >= 100) clearInterval(interval);
-        }, 200);
+        }, 100);
       }
       return URL.createObjectURL(file);
     }
     try {
+      if (onProgress) onProgress(10);
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
       
-      const { data: uploadData, error: uploadError } = await (supabase.storage.from('properties') as any).upload(filePath, file, {
-        onUploadProgress: (evt: any) => {
-          if (onProgress) {
-            const percent = Math.round((evt.loaded / evt.total) * 100);
-            onProgress(percent);
-          }
-        }
-      });
+      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
+      if (onProgress) onProgress(90);
       const { data } = supabase.storage.from('properties').getPublicUrl(filePath);
+      if (onProgress) onProgress(100);
       return data.publicUrl;
     } catch (error: any) {
-      showToast("Error al subir archivo", "ERROR");
+      console.error("Error uploadFile:", error);
+      showToast("Error al subir archivo: " + (error.message || "Error desconocido"), "ERROR");
       return null;
     }
   };
@@ -747,9 +743,12 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       const file = e.target.files?.[0];
                       if (file && editingProperty?.id) {
                         setIsUploading(p => ({...p, featured: true}));
-                        const url = await uploadFile(file, editingProperty.id);
-                        if (url) updateField('featuredImage', url);
-                        setIsUploading(p => ({...p, featured: false}));
+                        try {
+                          const url = await uploadFile(file, editingProperty.id);
+                          if (url) updateField('featuredImage', url);
+                        } finally {
+                          setIsUploading(p => ({...p, featured: false}));
+                        }
                       }
                     }} />
                   </div>
@@ -827,26 +826,44 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                         }
 
                         setIsUploading(p => ({...p, gallery: true}));
-                        const urls: string[] = [];
 
-                        for (const file of filesToUpload) {
-                          const tempId = Math.random().toString(36).substring(7);
-                          setUploadingGallery(prev => ({ ...prev, [tempId]: 0 }));
-                          
-                          const url = await uploadFile(file as any, editingProperty.id, (p) => {
-                            setUploadingGallery(prev => ({ ...prev, [tempId]: p }));
-                          });
+                        try {
+                          // Upload in parallel
+                          await Promise.all(filesToUpload.map(async (file) => {
+                            const tempId = Math.random().toString(36).substring(7);
+                            setUploadingGallery(prev => ({ ...prev, [tempId]: 0 }));
+                            
+                            try {
+                              const url = await uploadFile(file as any, editingProperty.id!, (p) => {
+                                setUploadingGallery(prev => ({ ...prev, [tempId]: p }));
+                              });
 
-                          if (url) urls.push(url);
-                          setUploadingGallery(prev => {
-                            const next = { ...prev };
-                            delete next[tempId];
-                            return next;
-                          });
+                              if (url) {
+                                // Update incrementally using functional update to avoid race conditions
+                                setEditingProperty(prev => {
+                                  if (!prev) return null;
+                                  const currentGallery = prev.gallery || [];
+                                  if (currentGallery.includes(url)) return prev; // Avoid duplicates
+                                  return {
+                                    ...prev,
+                                    gallery: [...currentGallery, url]
+                                  };
+                                });
+                              }
+                            } finally {
+                              setUploadingGallery(prev => {
+                                const next = { ...prev };
+                                delete next[tempId];
+                                return next;
+                              });
+                            }
+                          }));
+                        } finally {
+                          setIsUploading(p => ({...p, gallery: false}));
+                          setUploadingGallery({}); 
+                          // Reset input value to allow re-selecting same files
+                          if (galleryInputRef.current) galleryInputRef.current.value = '';
                         }
-
-                        updateField('gallery', [...(editingProperty.gallery || []), ...urls]);
-                        setIsUploading(p => ({...p, gallery: false}));
                       }
                     }} />
                   </div>

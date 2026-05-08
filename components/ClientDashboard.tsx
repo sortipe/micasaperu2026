@@ -51,6 +51,7 @@ interface ClientDashboardProps {
   onDeleteLocation: (id: string) => void;
   onNavigate: (view: any) => void;
   onSyncCredits: (silent?: boolean) => Promise<void>;
+  onResetGlobalCache?: () => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
 }
 
@@ -61,7 +62,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
   onUpdateMpPublicKey, onUpdateMpAccessToken, onUpdateMpClientId, onUpdateMpClientSecret,
   onAddProperty, onEditProperty, onDeleteProperty, onLogout, onSaveLegalDoc, onSaveLocation, onDeleteLocation, 
   onSavePackage, onDeletePackage, onUpdatePaymentMethod, onDeletePaymentMethod, inquiries = [], onNavigate, onUpdateProfile, transactions = [],
-  onUpdateTransactionStatus, onSyncCredits, showToast
+  onUpdateTransactionStatus, onSyncCredits, onResetGlobalCache, showToast
 }) => {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'PROPERTIES' | 'COMPLAINTS' | 'POLICIES' | 'SETTINGS' | 'LOCATIONS' | 'PACKAGES' | 'PAYMENTS' | 'TRANSACTIONS' | 'PROFILE' | 'INQUIRIES' | 'MY_PAYMENTS'>('OVERVIEW');
   const [adminFilter, setAdminFilter] = useState<'ALL' | 'MINE'>('ALL');
@@ -690,6 +691,28 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                <p className="mt-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
                   * Las credenciales se guardan automáticamente al perder el foco del campo (onBlur). Asegúrate de que coincidan con tu cuenta de Mercado Pago Perú.
                </p>
+            </div>
+
+            <div className="pt-8 border-t border-red-100">
+               <h2 className="text-2xl font-black text-red-600 uppercase tracking-tight mb-4">Herramientas de Mantenimiento</h2>
+               <div className="bg-red-50 p-8 rounded-[2rem] border border-red-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="max-w-xl">
+                     <p className="text-sm font-black text-red-900 uppercase mb-2">Reiniciar Cache del Sitio</p>
+                     <p className="text-xs text-red-700 font-bold leading-relaxed">
+                        Si has realizado cambios en la base de datos o en los perfiles de usuario y los usuarios no los ven, usa este botón. 
+                        Esto forzará a todos los navegadores a limpiar su memoria local y recargar la información más reciente al siguiente refresh.
+                     </p>
+                  </div>
+                  <button 
+                     onClick={() => setConfirmAction({
+                       message: "¿Estás seguro de que deseas reiniciar el cache para TODOS los usuarios? Esto forzará una recarga del sistema la próxima vez que entren.",
+                       onConfirm: () => onResetGlobalCache?.()
+                     })}
+                     className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-red-100"
+                  >
+                     Reiniciar Cache Global
+                  </button>
+               </div>
             </div>
           </div>
         );

@@ -12,4 +12,15 @@ export function unregister() {
       console.error('Error unregistering service workers:', error);
     });
   }
+
+  // Also clear the Caches API
+  if ('caches' in window) {
+    caches.keys().then((names) => {
+      for (const name of names) {
+        caches.delete(name);
+      }
+    }).catch((err) => {
+      console.error('Error clearing caches:', err);
+    });
+  }
 }
