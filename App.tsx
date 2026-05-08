@@ -615,7 +615,7 @@ const App: React.FC = () => {
           district, department, address, bedrooms, bathrooms, builtArea, 
           terrainArea, planType, isFeatured, createdAt, publishedAt, agentId,
           maintenanceFee, agentWhatsapp, yearBuilt,
-          profiles:agentId (id, name, avatar_url, whatsapp, email)
+          profiles:agentId (id, name, avatar, whatsapp, email)
         `)
         .order('publishedAt', { ascending: false })
         .abortSignal(AbortSignal.timeout(10000)); // 10s timeout
@@ -634,7 +634,7 @@ const App: React.FC = () => {
         const mapped = data.map((p: any) => ({
           ...p,
           agentName: p.profiles?.name || 'Asesor',
-          agentAvatar: p.profiles?.avatar_url || '',
+          agentAvatar: p.profiles?.avatar || '',
           agentWhatsapp: p.profiles?.whatsapp || '51900000000',
           contactEmail: p.profiles?.email || ''
         }));
