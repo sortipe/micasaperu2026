@@ -328,7 +328,8 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
   const handleAddNewPackage = () => {
     const newPkg: Package = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36)
+,
       name: 'Nuevo Plan',
       price: 0,
       propertyLimit: 1,

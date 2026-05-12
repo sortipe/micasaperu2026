@@ -109,7 +109,11 @@ const App: React.FC = () => {
       if (existing) {
         return prev.map(item => item.package.id === pkg.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { id: crypto.randomUUID(), package: pkg, quantity: 1 }];
+      return [...prev, { 
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
+        package: pkg, 
+        quantity: 1 
+      }];
     });
     showToast(`${pkg.name} agregado al carrito`, 'SUCCESS');
   };
@@ -242,7 +246,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const initApp = async () => {
       // Verificación de Hard Reset forzado (para cambios de código que requieren limpieza)
-      const CURRENT_HARD_RESET = '20240508_01'; 
+      const CURRENT_HARD_RESET = '20260512_05'; 
       const lastHardReset = localStorage.getItem('micasaperu_hard_reset_version');
       if (lastHardReset !== CURRENT_HARD_RESET) {
         localStorage.setItem('micasaperu_hard_reset_version', CURRENT_HARD_RESET);
@@ -273,9 +277,9 @@ const App: React.FC = () => {
       ];
 
       // 2. Safety Timeout (Optimistic UI)
-      // Si ya tenemos propiedades en cache, bajamos el timeout a 2 segundos
+      // Si ya tenemos propiedades en cache, esperamos hasta 4.5s por datos frescos
       const hasCachedProperties = (properties || []).length > 0;
-      const timeoutPromise = new Promise(resolve => setTimeout(resolve, hasCachedProperties ? 1800 : 8000));
+      const timeoutPromise = new Promise(resolve => setTimeout(resolve, hasCachedProperties ? 4500 : 12000));
 
       // 3. Wait for Properties OR Timeout
       // Rely on onAuthStateChange for session restoration
@@ -608,17 +612,24 @@ const App: React.FC = () => {
       
       // Select only needed fields for the main list to improve performance
       // Joining profiles:agentId but only specific fields
+      
+      // Use manual abort controller for better compatibility than AbortSignal.timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      
       const { data, error } = await supabase
         .from('properties')
         .select(`
-          id, title, priceUSD, pricePEN, status, type, featuredImage, 
+          id, title, description, priceUSD, pricePEN, status, type, featuredImage, 
           district, department, address, bedrooms, bathrooms, builtArea, 
           terrainArea, planType, isFeatured, createdAt, publishedAt, agentId,
-          maintenanceFee, agentWhatsapp, yearBuilt,
+          maintenanceFee, agentWhatsapp, yearBuilt, lat, lng, gallery,
           profiles:agentId (id, name, avatar, whatsapp, email)
         `)
         .order('publishedAt', { ascending: false })
-        .abortSignal(AbortSignal.timeout(10000)); // 10s timeout
+        .abortSignal(controller.signal);
+        
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error(`Error fetching properties (Attempt ${retryCount + 1}):`, error);
@@ -1585,7 +1596,7 @@ const App: React.FC = () => {
                   // Create one transaction per unit purchased to keep it simple for admin
                   for (let i = 0; i < item.quantity; i++) {
                     const { error } = await supabase.from('transactions').insert([{
-                      id: crypto.randomUUID(),
+                      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
                       userId: currentUser.id,
                       userName: currentUser.name,
                       packageId: item.package.id,

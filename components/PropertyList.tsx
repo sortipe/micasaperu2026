@@ -144,12 +144,12 @@ const PropertyList: React.FC<PropertyListProps> = ({
                   {/* Address */}
                   <div className="mb-2">
                     <h3 className="text-[14px] font-bold text-slate-900 leading-tight">{property.address}</h3>
-                    <p className="text-[13px] text-slate-500">{property.district}, {property.department}, {property.department}</p>
+                    <p className="text-[13px] text-slate-500">{property.district}, {property.department}</p>
                   </div>
 
                   {/* Desktop Description */}
                   <p className="hidden md:block text-[12px] text-slate-500 leading-relaxed mb-0">
-                    {property.description.length > 198 ? `${property.description.substring(0, 198)}...` : property.description}
+                    {(property.description || '').length > 198 ? `${property.description?.substring(0, 198)}...` : (property.description || 'Sin descripción disponible')}
                   </p>
                 </div>
 
