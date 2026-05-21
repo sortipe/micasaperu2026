@@ -39,6 +39,18 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
       return;
     }
 
+    // Límite de tiempo de seguridad de 8 segundos. Si la compresión tarda más, 
+    // liberamos la promesa resolviendo con el archivo original para que no se quede congelado
+    const timeoutId = setTimeout(() => {
+      console.warn("Límite de tiempo en compresión excedido. Subiendo archivo original.");
+      resolve(file);
+    }, 8000);
+
+    const cleanResolve = (result: File) => {
+      clearTimeout(timeoutId);
+      resolve(result);
+    };
+
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -69,7 +81,7 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
             
             const ctx = canvas.getContext('2d');
             if (!ctx) {
-              resolve(file);
+              cleanResolve(file);
               return;
             }
 
@@ -78,36 +90,51 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
 
             // Exportar a blob JPEG con calidad comprimida
             canvas.toBlob((blob) => {
-              if (!blob) {
-                resolve(file);
-                return;
+              try {
+                if (!blob) {
+                  cleanResolve(file);
+                  return;
+                }
+
+                // Crear un nuevo File a partir del Blob manteniendo el nombre original
+                // Usamos extensión .jpg para asegurar que el tipo MIME sea JPEG comprimido
+                const originalName = file.name;
+                const dotIndex = originalName.lastIndexOf('.');
+                const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
+                const newName = `${baseName}.jpg`;
+
+                let compressedFile: File;
+                try {
+                  compressedFile = new File([blob], newName, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                  });
+                } catch (fileCtrErr) {
+                  // Fallback para navegadores/híbridos que no admiten constructor File
+                  // Le inyectamos los atributos requeridos al Blob para usarlo como File
+                  const augmentedBlob = blob as any;
+                  augmentedBlob.name = newName;
+                  augmentedBlob.lastModified = Date.now();
+                  compressedFile = augmentedBlob as File;
+                }
+                
+                cleanResolve(compressedFile);
+              } catch (callbackErr) {
+                console.error("Error en callback de toBlob de compresión:", callbackErr);
+                cleanResolve(file);
               }
-
-              // Crear un nuevo File a partir del Blob manteniendo el nombre original
-              // Usamos extensión .jpg para asegurar que el tipo MIME sea JPEG comprimido
-              const originalName = file.name;
-              const dotIndex = originalName.lastIndexOf('.');
-              const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
-              const newName = `${baseName}.jpg`;
-
-              const compressedFile = new File([blob], newName, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              
-              resolve(compressedFile);
             }, 'image/jpeg', quality);
           } catch (err) {
             console.error("Error al procesar Canvas de imagen:", err);
-            resolve(file);
+            cleanResolve(file);
           }
         };
-        img.onerror = () => resolve(file);
+        img.onerror = () => cleanResolve(file);
       };
-      reader.onerror = () => resolve(file);
+      reader.onerror = () => cleanResolve(file);
     } catch (err) {
       console.error("Error general al leer archivo de imagen:", err);
-      resolve(file);
+      cleanResolve(file);
     }
   });
 };
