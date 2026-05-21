@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, Property, Package, Transaction, LegalDoc, Inquiry, Notification, SocialLink, OfficeInfo, LocationItem, Complaint, PaymentMethod, LegalDocType } from '../types';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, compressImage } from '../lib/supabase';
 import { GoogleGenAI, Type } from "@google/genai";
 import { ToastType } from './Toast';
 
@@ -184,9 +184,20 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     }
 
     try {
-      const fileName = `${type.toLowerCase()}-${Date.now()}.${file.name.split('.').pop()}`;
+      // Comprimir la imagen antes de subirla
+      let fileToUpload = file;
+      if (file.type && file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await compressImage(file);
+        } catch (compressErr) {
+          console.error("Error al comprimir imagen, subiendo original:", compressErr);
+        }
+      }
+
+      const fileExt = fileToUpload.name.split('.').pop();
+      const fileName = `${type.toLowerCase()}-${Date.now()}.${fileExt}`;
       const filePath = `brand/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, fileToUpload, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('properties').getPublicUrl(filePath);
       
@@ -1000,7 +1011,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
           <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-fade-in space-y-12">
              <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">Recaudo</h2>
-                <button onClick={() => onUpdatePaymentMethod({id: crypto.randomUUID(), name: 'Nueva Cuenta', type: 'TRANSFER', isActive: true})} className="bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">+ Nueva Cuenta</button>
+                <button onClick={() => onUpdatePaymentMethod({id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36), name: 'Nueva Cuenta', type: 'TRANSFER', isActive: true})} className="bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">+ Nueva Cuenta</button>
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {paymentMethods.map(method => (
@@ -1131,7 +1142,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
           <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-fade-in space-y-12">
              <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight mb-4">Legales</h2>
              {['TERMS_USE', 'PRIVACY', 'TERMS_CONTRACT', 'PROPERTY_POLICIES'].map((type) => {
-                const doc = legalDocs.find(d => d.type === type) || { type: type as any, title: type, content: '', id: crypto.randomUUID() };
+                const doc = legalDocs.find(d => d.type === type) || { type: type as any, title: type, content: '', id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36) };
                 return (
                   <div key={type} className="p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100 space-y-6">
                      <div className="flex justify-between items-center">

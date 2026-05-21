@@ -8,7 +8,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Property, User, PropertyCategory, Package, PaymentMethod } from '../types';
 import { DEPARTMENTS, COMMON_FEATURES, PROPERTY_CATEGORIES } from '../constants';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, compressImage } from '../lib/supabase';
 import { ToastType } from './Toast';
 import { Check, GripVertical, X } from 'lucide-react';
 import PaymentFlow from './PaymentFlow';
@@ -287,11 +287,22 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
     }
     try {
       if (onProgress) onProgress(10);
-      const fileExt = file.name.split('.').pop();
+
+      // Comprimir la imagen antes de subirla
+      let fileToUpload = file;
+      if (file.type && file.type.startsWith('image/')) {
+        try {
+          fileToUpload = await compressImage(file);
+        } catch (compressErr) {
+          console.error("Error al comprimir imagen, subiendo original:", compressErr);
+        }
+      }
+
+      const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, fileToUpload);
 
       if (uploadError) throw uploadError;
 

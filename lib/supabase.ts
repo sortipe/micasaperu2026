@@ -21,6 +21,97 @@ const FORCE_DEMO_MODE = false;
 // We consider it configured if we have non-placeholder values and NOT in force demo mode
 export const isSupabaseConfigured = !FORCE_DEMO_MODE && !!envUrl && envUrl !== 'YOUR_SUPABASE_URL_HERE' && !!envKey;
 
+/**
+ * Comprime una imagen en el lado del cliente utilizando HTML5 Canvas.
+ * Reduce las dimensiones máximas a maxWidth/maxHeight conservando la relación de aspecto,
+ * y aplica compresión JPEG de calidad especificada.
+ * Si ocurre un error o el archivo no es una imagen, devuelve el archivo original de forma segura.
+ */
+export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.75): Promise<File> => {
+  return new Promise((resolve) => {
+    // Si no es una imagen o es un GIF/SVG, resolver con el archivo original directamente
+    if (!file.type || !file.type.startsWith('image/')) {
+      resolve(file);
+      return;
+    }
+    if (file.type === 'image/gif' || file.type.includes('svg')) {
+      resolve(file);
+      return;
+    }
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Mantener la relación de aspecto y limitar tamaño máximo
+            if (width > height) {
+              if (width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              resolve(file);
+              return;
+            }
+
+            // Dibujar la imagen escalada en el canvas
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Exportar a blob JPEG con calidad comprimida
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+
+              // Crear un nuevo File a partir del Blob manteniendo el nombre original
+              // Usamos extensión .jpg para asegurar que el tipo MIME sea JPEG comprimido
+              const originalName = file.name;
+              const dotIndex = originalName.lastIndexOf('.');
+              const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
+              const newName = `${baseName}.jpg`;
+
+              const compressedFile = new File([blob], newName, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              
+              resolve(compressedFile);
+            }, 'image/jpeg', quality);
+          } catch (err) {
+            console.error("Error al procesar Canvas de imagen:", err);
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    } catch (err) {
+      console.error("Error general al leer archivo de imagen:", err);
+      resolve(file);
+    }
+  });
+};
+
 const supabaseUrl = envUrl || 'https://uxdnhmkoiqqeiaoxeedw.supabase.co';
 const supabaseAnonKey = envKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE';
 

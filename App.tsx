@@ -26,6 +26,45 @@ import { initMercadoPago } from '@mercadopago/sdk-react';
 
 const ADMIN_EMAILS = ['jorgejoelifzyape@gmail.com', 'A.pereira@aquivivir.pe'];
 
+// Error Boundary for better reliability
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+  public state: {hasError: boolean, error: any};
+  public props: {children: React.ReactNode};
+
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Critical Render Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 bg-white flex flex-col items-center justify-center p-10 text-center z-[9999]">
+          <div className="w-20 h-20 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mb-6">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          </div>
+          <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">¡Ups! Algo salió mal</h1>
+          <p className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-8 leading-relaxed max-w-md">
+            La aplicación ha experimentado un error inesperado. Por favor, intenta reiniciar la aplicación.
+          </p>
+          <button 
+            onClick={() => { localStorage.clear(); window.location.reload(); }}
+            className="px-8 py-4 bg-red-600 text-white font-black rounded-xl shadow-lg hover:bg-red-700 transition-all text-[11px] uppercase tracking-[0.2em]"
+          >
+            LIMPIAR CACHÉ Y REINICIAR
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   const isAppInitialized = useRef(false);
   const [properties, setProperties] = useState<Property[]>(() => {
@@ -644,6 +683,8 @@ const App: React.FC = () => {
       if (data) {
         const mapped = data.map((p: any) => ({
           ...p,
+          gallery: Array.isArray(p.gallery) ? p.gallery : (typeof p.gallery === 'string' ? JSON.parse(p.gallery) : []),
+          documents: Array.isArray(p.documents) ? p.documents : (typeof p.documents === 'string' ? JSON.parse(p.documents) : []),
           agentName: p.profiles?.name || 'Asesor',
           agentAvatar: p.profiles?.avatar || '',
           agentWhatsapp: p.profiles?.whatsapp || '51900000000',
@@ -991,661 +1032,668 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar user={currentUser} onNavigate={(v) => { setView(v); if(v === 'SEARCH') setSpatialFilterIds(null); if(v === 'HOME') handleClearFilters(); }} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
-      {!isSupabaseConfigured && (
-        <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-3 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2">
-          <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-          <span><strong>Modo de demostración:</strong> Supabase no está configurado. Los datos mostrados son de prueba. Configura <code className="bg-amber-200 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> y <code className="bg-amber-200 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>.</span>
-        </div>
-      )}
-      <main className="flex-grow flex flex-col">
-        {view === 'HOME' && (
-          <>
-            <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} onSearch={handlePerformSearch} />
-            <DevelopmentOptions properties={properties} onPropertySelect={handleOpenProperty} currency={filters.currency} />
-            <div className="container mx-auto px-4 py-16">
-              {properties.filter(p => p.planType === 'SUPER_FEATURED').length > 0 && (
-                <div className="mb-16">
-                  <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-2xl font-black uppercase border-l-8 border-red-600 pl-6">Super Destacados</h2>
-                  </div>
-                  <PropertyList layout="slider" properties={properties.filter(p => p.planType === 'SUPER_FEATURED').slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
-                </div>
-              )}
-
-              {properties.filter(p => p.planType === 'FEATURED' || (p.isFeatured && p.planType !== 'SUPER_FEATURED')).length > 0 && (
-                <div className="mb-16">
-                  <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-2xl font-black uppercase border-l-8 border-blue-600 pl-6">Destacados</h2>
-                    {properties.filter(p => p.planType === 'SUPER_FEATURED').length === 0 && (
-                      <button onClick={() => handlePerformSearch('MAP')} className="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all flex items-center gap-2">
-                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                         Buscar por Mapa
-                      </button>
-                    )}
-                  </div>
-                  <PropertyList layout="slider" properties={properties.filter(p => p.planType === 'FEATURED' || (p.isFeatured && p.planType !== 'SUPER_FEATURED')).slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
-                </div>
-              )}
-
-              {/* Mostrar inmuebles recientes si no hay destacados */}
-              {properties.length > 0 && properties.filter(p => p.planType === 'SUPER_FEATURED' || p.planType === 'FEATURED' || p.isFeatured).length === 0 && (
-                <div className="mb-16">
-                  <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-2xl font-black uppercase border-l-8 border-slate-900 pl-6">Nuevos Inmuebles</h2>
-                    <button onClick={() => setView('SEARCH')} className="text-red-600 font-black uppercase text-[10px] tracking-widest hover:underline">Ver Todos</button>
-                  </div>
-                  <PropertyList layout="slider" properties={properties.slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
-                </div>
-              )}
-
-
-
-              {properties.length === 0 && (
-                <div className="flex flex-col items-center">
-                  {isFetchingProperties ? (
-                     <div className="flex flex-col items-center py-20 animate-fade-in w-full">
-                        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                        <p className="text-slate-900 font-black uppercase text-xs tracking-[0.2em] text-center px-4 mb-2">Conectando con Supabase...</p>
-                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest text-center px-4 mb-8">Esto puede tardar unos segundos dependiendo de tu conexión</p>
-                        
-                        <button 
-                          onClick={() => {
-                            localStorage.clear();
-                            window.location.reload();
-                          }}
-                          className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
-                        >
-                          Reiniciar Conexión Forzada
-                        </button>
-                     </div>
-                  ) : (
-                    <>
-                      <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
-                      {fetchError && (
-                        <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm max-w-lg text-center shadow-sm">
-                          <div className="flex items-center justify-center gap-2 mb-3 text-red-600">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                            <span className="font-black uppercase tracking-wider text-xs">Error de Conexión</span>
-                          </div>
-                          <p className="font-bold mb-2">No se pudo cargar la información de Supabase.</p>
-                          <div className="bg-white/50 p-3 rounded-lg border border-red-100 font-mono text-[10px] break-all mb-4 text-left">
-                            {fetchError}
-                          </div>
-                          <button 
-                            onClick={() => fetchProperties()}
-                            className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 transition-all shadow-md active:scale-95"
-                          >
-                            Reintentar carga ahora
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-        {view === 'SEARCH' && (
-          <div className="h-[calc(100vh-80px)] flex flex-col overflow-hidden">
-            <div className="p-4 bg-white border-b shadow-sm z-[1100]">
-               <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} compact={true} activeLayout={searchLayout} onSearch={handlePerformSearch} />
-            </div>
-            
-            {/* Results Summary Bar */}
-            <div className="bg-white border-b px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm md:text-base font-bold text-slate-900">
-                  {filteredProperties.length.toLocaleString()} Propiedades e inmuebles {
-                    filters.status === 'FOR_RENT' ? 'en alquiler' : 
-                    filters.status === 'FOR_SALE' ? 'en venta' : 
-                    filters.status === 'TEMPORAL' ? 'temporales' :
-                    filters.status === 'PROJECT' ? 'en proyectos' :
-                    filters.status === 'TRASPASO' ? 'en traspaso' : ''
-                  } - Perú
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-6">
-                <button 
-                  onClick={() => setSearchLayout(searchLayout === 'LIST' ? 'MAP' : 'LIST')}
-                  className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900 hover:text-red-600 transition-colors"
-                >
-                  <span>{searchLayout === 'LIST' ? 'Ver mapa' : 'Ver lista'}</span>
-                  {searchLayout === 'LIST' ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                  )}
-                </button>
-                
-                <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
-                
-                <div className="relative flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900 cursor-pointer hover:text-red-600 transition-colors">
-                  <span>Ordenar</span>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-              </div>
-            </div>
-
-                    <div className={`flex-grow overflow-y-auto custom-scrollbar ${searchLayout === 'LIST' ? 'block' : 'hidden'}`}>
-                      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-6 w-full">
-                        {fetchError ? (
-                          <div className="p-12 bg-red-50 border border-red-200 rounded-[2.5rem] text-center">
-                            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Error de Conexión</h3>
-                            <p className="text-slate-500 mb-8 font-medium max-w-md mx-auto">{fetchError}</p>
-                            <button onClick={() => fetchProperties()} className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-red-100 hover:shadow-blue-100">Reintentar Carga</button>
-                          </div>
-                        ) : (
-                          <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
-                        )}
-                      </div>
-                    </div>
-            
-            <div className={`flex-grow relative ${searchLayout === 'MAP' ? 'block' : 'hidden'}`}>
-              <MapView 
-                isVisible={searchLayout === 'MAP'}
-                properties={filteredProperties} 
-                fullProperties={properties} 
-                onSelectProperty={handleOpenProperty} 
-                currency={filters.currency} 
-                onSwitchToList={() => setSearchLayout('LIST')} 
-                onSpatialFilter={setSpatialFilterIds} 
-                visitedIds={visitedIds} 
-                focusedLocation={focusedLocation} 
-                onStateChange={() => {}} 
-              />
-            </div>
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar user={currentUser} onNavigate={(v) => { setView(v); if(v === 'SEARCH') setSpatialFilterIds(null); if(v === 'HOME') handleClearFilters(); }} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
+        {!isSupabaseConfigured && (
+          <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-3 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2">
+            <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span><strong>Modo de demostración:</strong> Supabase no está configurado. Los datos mostrados son de prueba. Configura <code className="bg-amber-200 px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> y <code className="bg-amber-200 px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code>.</span>
           </div>
         )}
-        {view === 'DASHBOARD' && (
-          currentUser ? (
-            <ClientDashboard 
-              user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
-              appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
-              mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken} mpClientId={mpClientId} mpClientSecret={mpClientSecret}
-              onUpdateLogo={async url => { 
-                const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
-                else { setAppLogo(url); showToast("Logo actualizado", "SUCCESS"); }
-              }} 
-              onUpdateBanner={async url => { 
-                const { error } = await supabase.from('settings').upsert({key: 'home_banner', value: url}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar banner", "ERROR"); console.error(error); }
-                else { setHomeBanner(url); showToast("Banner actualizado", "SUCCESS"); }
-              }} 
-              onUpdateBannerMobile={async url => { 
-                const { error } = await supabase.from('settings').upsert({key: 'home_banner_mobile', value: url}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar banner móvil", "ERROR"); console.error(error); }
-                else { setHomeBannerMobile(url); showToast("Banner móvil actualizado", "SUCCESS"); }
-              }} 
-              onUpdateFavicon={async url => { 
-                const { error } = await supabase.from('settings').upsert({key: 'favicon', value: url}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar favicon", "ERROR"); console.error(error); }
-                else { setFavicon(url); showToast("Favicon actualizado", "SUCCESS"); }
-              }} 
-              onUpdateOfficeInfo={async info => { 
-                const { error } = await supabase.from('settings').upsert({key: 'office_info', value: JSON.stringify(info)}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar oficina", "ERROR"); console.error(error); }
-                else { setOfficeInfo(info); showToast("Información de oficina guardada", "SUCCESS"); }
-              }} 
-              onUpdateSocialLinks={async links => { 
-                const { error } = await supabase.from('settings').upsert({key: 'social_links', value: JSON.stringify(links)}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar redes", "ERROR"); console.error(error); }
-                else { setSocialLinks(links); showToast("Redes sociales actualizadas", "SUCCESS"); }
-              }}
-              onUpdateMpPublicKey={async key => {
-                const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
-                else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
-              }}
-              onUpdateMpAccessToken={async token => {
-                const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
-                else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
-              }}
-              onUpdateMpClientId={async id => {
-                const { error } = await supabase.from('settings').upsert({key: 'mp_client_id', value: id}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar MP Client ID", "ERROR"); console.error(error); }
-                else { setMpClientId(id); showToast("MP Client ID actualizado", "SUCCESS"); }
-              }}
-              onUpdateMpClientSecret={async secret => {
-                const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
-                if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
-                else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
-              }}
-              onResetGlobalCache={async () => {
-                const newVersion = Date.now().toString();
-                const { error } = await supabase.from('settings').upsert({key: 'system_version', value: newVersion}, { onConflict: 'key' });
-                if (error) {
-                  showToast("Error al reiniciar cache global", "ERROR");
-                  console.error(error);
-                } else {
-                  localStorage.setItem('micasaperu_system_version', newVersion);
-                  showToast("Cache global reiniciado. Los usuarios verán los cambios al navegar o refrescar.", "SUCCESS");
-                }
-              }}
-              onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
-              onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 
-              onDeleteProperty={async id => { 
-                try {
-                  const { error } = await supabase.from('properties').delete().eq('id', id); 
-                  if (error) throw error;
-                  await fetchProperties(); 
-                  showToast("Inmueble eliminado", "SUCCESS"); 
-                } catch (err) {
-                  showToast("Error al eliminar el inmueble", "ERROR");
-                  console.error(err);
-                }
-              }}
-              onLogout={handleLogout} 
-              onUpdateTransactionStatus={async (id, s) => { 
-                try {
-                  const { data: transaction, error: txError } = await supabase.from('transactions').update({status: s}).eq('id', id).select().single();
-                  if (txError) throw txError;
-  
-                  if (s === 'COMPLETED' && transaction) {
-                    await handleSyncCredits(true, transaction.userId);
-                  }
-  
-                  fetchTransactions(); 
-                  showToast(`Transacción ${s === 'COMPLETED' ? 'aprobada' : s === 'CANCELLED' ? 'rechazada' : 'actualizada'}`, "SUCCESS"); 
-                } catch (err) {
-                  console.error("Error updating transaction status:", err);
-                  showToast("Error al actualizar el estado", "ERROR");
-                }
-              }} 
-              onSaveLegalDoc={async d => { await supabase.from('legal_documents').upsert(d); fetchLegalDocs(); showToast("Documento legal guardado", "SUCCESS"); }} 
-              onSavePackage={async p => { 
-                try {
-                  // Filter out empty features before saving
-                  const packageToSave = {
-                    ...p,
-                    features: p.features ? p.features.filter(f => f.trim() !== '') : []
-                  };
-                  const { error } = await supabase.from('packages').upsert(packageToSave); 
+        <main className="flex-grow flex flex-col">
+          {view === 'HOME' && (
+            <>
+              <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} onSearch={handlePerformSearch} />
+              <DevelopmentOptions properties={properties} onPropertySelect={handleOpenProperty} currency={filters.currency} />
+              <div className="container mx-auto px-4 py-16">
+                {properties.filter(p => p.planType === 'SUPER_FEATURED').length > 0 && (
+                  <div className="mb-16">
+                    <div className="flex items-center justify-between mb-10">
+                      <h2 className="text-2xl font-black uppercase border-l-8 border-red-600 pl-6">Super Destacados</h2>
+                    </div>
+                    <PropertyList layout="slider" properties={properties.filter(p => p.planType === 'SUPER_FEATURED').slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                  </div>
+                )}
+
+                {properties.filter(p => p.planType === 'FEATURED' || (p.isFeatured && p.planType !== 'SUPER_FEATURED')).length > 0 && (
+                  <div className="mb-16">
+                    <div className="flex items-center justify-between mb-10">
+                      <h2 className="text-2xl font-black uppercase border-l-8 border-blue-600 pl-6">Destacados</h2>
+                      {properties.filter(p => p.planType === 'SUPER_FEATURED').length === 0 && (
+                        <button onClick={() => handlePerformSearch('MAP')} className="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all flex items-center gap-2">
+                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                           Buscar por Mapa
+                        </button>
+                      )}
+                    </div>
+                    <PropertyList layout="slider" properties={properties.filter(p => p.planType === 'FEATURED' || (p.isFeatured && p.planType !== 'SUPER_FEATURED')).slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                  </div>
+                )}
+
+                {/* Mostrar inmuebles recientes si no hay destacados */}
+                {properties.length > 0 && properties.filter(p => p.planType === 'SUPER_FEATURED' || p.planType === 'FEATURED' || p.isFeatured).length === 0 && (
+                  <div className="mb-16">
+                    <div className="flex items-center justify-between mb-10">
+                      <h2 className="text-2xl font-black uppercase border-l-8 border-slate-900 pl-6">Nuevos Inmuebles</h2>
+                      <button onClick={() => setView('SEARCH')} className="text-red-600 font-black uppercase text-[10px] tracking-widest hover:underline">Ver Todos</button>
+                    </div>
+                    <PropertyList layout="slider" properties={properties.slice(0, 6)} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                  </div>
+                )}
+
+                {properties.length === 0 && (
+                  <div className="flex flex-col items-center">
+                    {isFetchingProperties ? (
+                       <div className="flex flex-col items-center py-20 animate-fade-in w-full">
+                          <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                          <p className="text-slate-900 font-black uppercase text-xs tracking-[0.2em] text-center px-4 mb-2">Conectando con Supabase...</p>
+                          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest text-center px-4 mb-8">Esto puede tardar unos segundos dependiendo de tu conexión</p>
+                          
+                          <button 
+                            onClick={() => {
+                              localStorage.clear();
+                              window.location.reload();
+                            }}
+                            className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
+                          >
+                            Reiniciar Conexión Forzada
+                          </button>
+                       </div>
+                    ) : (
+                      <>
+                        <PropertyList properties={[]} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
+                        {fetchError && (
+                          <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm max-w-lg text-center shadow-sm">
+                            <div className="flex items-center justify-center gap-2 mb-3 text-red-600">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                              <span className="font-black uppercase tracking-wider text-xs">Error de Conexión</span>
+                            </div>
+                            <p className="font-bold mb-2">No se pudo cargar la información de Supabase.</p>
+                            <div className="bg-white/50 p-3 rounded-lg border border-red-100 font-mono text-[10px] break-all mb-4 text-left">
+                              {fetchError}
+                            </div>
+                            <button 
+                              onClick={() => fetchProperties()}
+                              className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-700 transition-all shadow-md active:scale-95"
+                            >
+                              Reintentar carga ahora
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {view === 'SEARCH' && (
+            <div className="h-[calc(100vh-80px)] flex flex-col overflow-hidden">
+              <div className="p-4 bg-white border-b shadow-sm z-[1100]">
+                 <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} compact={true} activeLayout={searchLayout} onSearch={handlePerformSearch} />
+              </div>
+              
+              {/* Results Summary Bar */}
+              <div className="bg-white border-b px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm md:text-base font-bold text-slate-900">
+                    {filteredProperties.length.toLocaleString()} Propiedades e inmuebles {
+                      filters.status === 'FOR_RENT' ? 'en alquiler' : 
+                      filters.status === 'FOR_SALE' ? 'en venta' : 
+                      filters.status === 'TEMPORAL' ? 'temporales' :
+                      filters.status === 'PROJECT' ? 'en proyectos' :
+                      filters.status === 'TRASPASO' ? 'en traspaso' : ''
+                    } - Perú
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-6">
+                  <button 
+                    onClick={() => setSearchLayout(searchLayout === 'LIST' ? 'MAP' : 'LIST')}
+                    className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900 hover:text-red-600 transition-colors"
+                  >
+                    <span>{searchLayout === 'LIST' ? 'Ver mapa' : 'Ver lista'}</span>
+                    {searchLayout === 'LIST' ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                    )}
+                  </button>
+                  
+                  <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
+                  
+                  <div className="relative flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900 cursor-pointer hover:text-red-600 transition-colors">
+                    <span>Ordenar</span>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`flex-grow overflow-y-auto custom-scrollbar ${searchLayout === 'LIST' ? 'block' : 'hidden'}`}>
+                <div className="max-w-7xl mx-auto px-4 md:px-6 pb-6 w-full">
+                  {fetchError ? (
+                    <div className="p-12 bg-red-50 border border-red-200 rounded-[2.5rem] text-center">
+                      <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Error de Conexión</h3>
+                      <p className="text-slate-500 mb-8 font-medium max-w-md mx-auto">{fetchError}</p>
+                      <button onClick={() => fetchProperties()} className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-red-100 hover:shadow-blue-100">Reintentar Carga</button>
+                    </div>
+                  ) : (
+                    <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                  )}
+                </div>
+              </div>
+              
+              <div className={`flex-grow relative ${searchLayout === 'MAP' ? 'block' : 'hidden'}`}>
+                <MapView 
+                  isVisible={searchLayout === 'MAP'}
+                  properties={filteredProperties} 
+                  fullProperties={properties} 
+                  onSelectProperty={handleOpenProperty} 
+                  currency={filters.currency} 
+                  onSwitchToList={() => setSearchLayout('LIST')} 
+                  onSpatialFilter={setSpatialFilterIds} 
+                  visitedIds={visitedIds} 
+                  focusedLocation={focusedLocation} 
+                  onStateChange={() => {}} 
+                />
+              </div>
+            </div>
+          )}
+
+          {view === 'DASHBOARD' && (
+            currentUser ? (
+              <ClientDashboard 
+                user={currentUser} properties={properties} packages={packages} transactions={transactions} complaints={complaints} legalDocs={legalDocs} inquiries={inquiries} notifications={notifications} locations={locations} paymentMethods={paymentMethods}
+                appLogo={appLogo} homeBanner={homeBanner} homeBannerMobile={homeBannerMobile} favicon={favicon} socialLinks={socialLinks} officeInfo={officeInfo}
+                mpPublicKey={mpPublicKey} mpAccessToken={mpAccessToken} mpClientId={mpClientId} mpClientSecret={mpClientSecret}
+                onUpdateLogo={async url => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'app_logo', value: url}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar logo", "ERROR"); console.error(error); }
+                  else { setAppLogo(url); showToast("Logo actualizado", "SUCCESS"); }
+                }} 
+                onUpdateBanner={async url => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'home_banner', value: url}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar banner", "ERROR"); console.error(error); }
+                  else { setHomeBanner(url); showToast("Banner actualizado", "SUCCESS"); }
+                }} 
+                onUpdateBannerMobile={async url => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'home_banner_mobile', value: url}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar banner móvil", "ERROR"); console.error(error); }
+                  else { setHomeBannerMobile(url); showToast("Banner móvil actualizado", "SUCCESS"); }
+                }} 
+                onUpdateFavicon={async url => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'favicon', value: url}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar favicon", "ERROR"); console.error(error); }
+                  else { setFavicon(url); showToast("Favicon actualizado", "SUCCESS"); }
+                }} 
+                onUpdateOfficeInfo={async info => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'office_info', value: JSON.stringify(info)}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar oficina", "ERROR"); console.error(error); }
+                  else { setOfficeInfo(info); showToast("Información de oficina guardada", "SUCCESS"); }
+                }} 
+                onUpdateSocialLinks={async links => { 
+                  const { error } = await supabase.from('settings').upsert({key: 'social_links', value: JSON.stringify(links)}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar redes", "ERROR"); console.error(error); }
+                  else { setSocialLinks(links); showToast("Redes sociales actualizadas", "SUCCESS"); }
+                }}
+                onUpdateMpPublicKey={async key => {
+                  const { error } = await supabase.from('settings').upsert({key: 'mp_public_key', value: key}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar MP Public Key", "ERROR"); console.error(error); }
+                  else { setMpPublicKey(key); showToast("MP Public Key actualizada", "SUCCESS"); }
+                }}
+                onUpdateMpAccessToken={async token => {
+                  const { error } = await supabase.from('settings').upsert({key: 'mp_access_token', value: token}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar MP Access Token", "ERROR"); console.error(error); }
+                  else { setMpAccessToken(token); showToast("MP Access Token actualizado", "SUCCESS"); }
+                }}
+                onUpdateMpClientId={async id => {
+                  const { error } = await supabase.from('settings').upsert({key: 'mp_client_id', value: id}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar MP Client ID", "ERROR"); console.error(error); }
+                  else { setMpClientId(id); showToast("MP Client ID actualizado", "SUCCESS"); }
+                }}
+                onUpdateMpClientSecret={async secret => {
+                  const { error } = await supabase.from('settings').upsert({key: 'mp_client_secret', value: secret}, { onConflict: 'key' });
+                  if (error) { showToast("Error al guardar MP Client Secret", "ERROR"); console.error(error); }
+                  else { setMpClientSecret(secret); showToast("MP Client Secret actualizado", "SUCCESS"); }
+                }}
+                onResetGlobalCache={async () => {
+                  const newVersion = Date.now().toString();
+                  const { error } = await supabase.from('settings').upsert({key: 'system_version', value: newVersion}, { onConflict: 'key' });
                   if (error) {
-                    console.error("Error al guardar plan en Supabase:", error);
-                    if (error.code === 'PGRST204' || error.message?.includes('column')) {
-                      // Intento de guardado sin columnas que podrían faltar en la DB
-                      const { superFeaturedLimit, features, allowedRoles, ...fallbackP } = packageToSave as any;
-                      const { error: error2 } = await supabase.from('packages').upsert(fallbackP);
-                      if (error2) throw error2;
-                      fetchPackages();
-                      showToast("Plan guardado (sin beneficios/roles/super-destacados por falta de columnas en DB)", "WARNING");
-                    } else {
-                      throw error;
-                    }
+                    showToast("Error al reiniciar cache global", "ERROR");
+                    console.error(error);
                   } else {
-                    fetchPackages(); 
-                    showToast("Plan guardado", "SUCCESS"); 
+                    localStorage.setItem('micasaperu_system_version', newVersion);
+                    showToast("Cache global reiniciado. Los usuarios verán los cambios al navegar o refrescar.", "SUCCESS");
                   }
-                } catch (err: any) {
-                  if (err.code === '42P01') {
-                    showToast("Falta crear la tabla 'packages' in Supabase", "ERROR");
-                  } else {
-                    showToast("Error al guardar plan", "ERROR");
+                }}
+                onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
+                onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 
+                onDeleteProperty={async id => { 
+                  try {
+                    const { error } = await supabase.from('properties').delete().eq('id', id); 
+                    if (error) throw error;
+                    await fetchProperties(); 
+                    showToast("Inmueble eliminado", "SUCCESS"); 
+                  } catch (err) {
+                    showToast("Error al eliminar el inmueble", "ERROR");
                     console.error(err);
                   }
-                }
-              }} 
-              onDeletePackage={async id => { 
+                }}
+                onLogout={handleLogout} 
+                onUpdateTransactionStatus={async (id, s) => { 
+                  try {
+                    const { data: transaction, error: txError } = await supabase.from('transactions').update({status: s}).eq('id', id).select().single();
+                    if (txError) throw txError;
+
+                    if (s === 'COMPLETED' && transaction) {
+                      await handleSyncCredits(true, transaction.userId);
+                    }
+
+                    fetchTransactions(); 
+                    showToast(`Transacción ${s === 'COMPLETED' ? 'aprobada' : s === 'CANCELLED' ? 'rechazada' : 'actualizada'}`, "SUCCESS"); 
+                  } catch (err) {
+                    console.error("Error updating transaction status:", err);
+                    showToast("Error al actualizar el estado", "ERROR");
+                  }
+                }} 
+                onSaveLegalDoc={async d => { await supabase.from('legal_documents').upsert(d); fetchLegalDocs(); showToast("Documento legal guardado", "SUCCESS"); }} 
+                onSavePackage={async p => { 
+                  try {
+                    // Filter out empty features before saving
+                    const packageToSave = {
+                      ...p,
+                      features: p.features ? p.features.filter(f => f.trim() !== '') : []
+                    };
+                    const { error } = await supabase.from('packages').upsert(packageToSave); 
+                    if (error) {
+                      console.error("Error al guardar plan en Supabase:", error);
+                      if (error.code === 'PGRST204' || error.message?.includes('column')) {
+                        // Intento de guardado sin columnas que podrían faltar en la DB
+                        const { superFeaturedLimit, features, allowedRoles, ...fallbackP } = packageToSave as any;
+                        const { error: error2 } = await supabase.from('packages').upsert(fallbackP);
+                        if (error2) throw error2;
+                        fetchPackages();
+                        showToast("Plan guardado (sin beneficios/roles/super-destacados por falta de columnas en DB)", "WARNING");
+                      } else {
+                        throw error;
+                      }
+                    } else {
+                      fetchPackages(); 
+                      showToast("Plan guardado", "SUCCESS"); 
+                    }
+                  } catch (err: any) {
+                    if (err.code === '42P01') {
+                      showToast("Falta crear la tabla 'packages' in Supabase", "ERROR");
+                    } else {
+                      showToast("Error al guardar plan", "ERROR");
+                      console.error(err);
+                    }
+                  }
+                }} 
+                onDeletePackage={async id => { 
+                  try {
+                    const { error } = await supabase.from('packages').delete().eq('id', id); 
+                    if (error) {
+                      if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
+                        setPackages(prev => prev.filter(p => p.id !== id));
+                        showToast("Eliminado mock (falta tabla)", "INFO");
+                        return;
+                      }
+                      throw error;
+                    }
+                    setPackages(prev => prev.filter(p => p.id !== id));
+                    showToast("Plan eliminado", "SUCCESS"); 
+                  } catch (err: any) {
+                    showToast(err.message || "Error al eliminar plan", "ERROR");
+                    console.error(err);
+                  }
+                }}
+                onUpdatePaymentMethod={async m => { 
+                   // Actualización optimista del estado local
+                   setPaymentMethods(prev => {
+                     const exists = prev.find(item => item.id === m.id);
+                     if (exists) {
+                       return prev.map(item => item.id === m.id ? m : item);
+                     }
+                     return [...prev, m];
+                   });
+
+                   try {
+                     const { error } = await supabase.from('payment_methods').upsert(m); 
+                     if (error) {
+                       if (error.code === 'PGRST204' || error.code === '42P01') {
+                         showToast("Falta crear tabla 'payment_methods' en Supabase", "ERROR");
+                         return;
+                       }
+                       throw error;
+                     }
+                     showToast("Método de pago guardado", "SUCCESS"); 
+                     fetchPaymentMethods(); // Sincronizar con el servidor para obtener IDs reales si aplica
+                   } catch (err: any) {
+                     showToast(err.message || "Error al actualizar método de pago", "ERROR");
+                     console.error(err);
+                     // Opcional: Revertir el estado local en caso de error crítico
+                     fetchPaymentMethods();
+                   }
+                 }} 
+                 onDeletePaymentMethod={async id => { 
+                 // Actualización optimista: eliminar de la lista local inmediatamente
+                 setPaymentMethods(prev => prev.filter(m => m.id !== id));
+
+                 try {
+                   const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
+                   if (error) {
+                     if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('schema cache')) {
+                        showToast("Eliminado de la vista (Falta tabla en Supabase)", "INFO");
+                        return;
+                     }
+                     throw error;
+                   }
+                   showToast("Método de pago eliminado", "SUCCESS"); 
+                 } catch (err: any) {
+                   showToast(err.message || "Error al eliminar el método de pago", "ERROR");
+                   console.error(err);
+                   fetchPaymentMethods(); // Re-sincronizar en caso de error
+                 }
+               }} 
+              onSaveLocation={async l => { 
                 try {
-                  const { error } = await supabase.from('packages').delete().eq('id', id); 
+                  const { error } = await supabase.from('locations').upsert(l); 
                   if (error) {
-                    if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
-                      setPackages(prev => prev.filter(p => p.id !== id));
-                      showToast("Eliminado mock (falta tabla)", "INFO");
+                    if (error.code === 'PGRST204' || error.code === '42P01') {
+                      showToast("Falta crear tabla 'locations'", "ERROR");
                       return;
                     }
                     throw error;
                   }
-                  setPackages(prev => prev.filter(p => p.id !== id));
-                  showToast("Plan eliminado", "SUCCESS"); 
+                  fetchLocations(); 
+                  showToast("Ubicación guardada", "SUCCESS"); 
                 } catch (err: any) {
-                  showToast(err.message || "Error al eliminar plan", "ERROR");
+                  showToast(err.message || "Error al guardar ubicación", "ERROR");
+                  console.error(err);
+                }
+              }} 
+              onDeleteLocation={async id => { 
+                try {
+                  const { error } = await supabase.from('locations').delete().eq('id', id); 
+                  if (error) {
+                    if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
+                      setLocations(prev => prev.filter(loc => loc.id !== id));
+                      showToast("Eliminada mock (Falta tabla)", "INFO");
+                      return;
+                    }
+                    throw error;
+                  }
+                  setLocations(prev => prev.filter(loc => loc.id !== id));
+                  showToast("Ubicación eliminada", "SUCCESS"); 
+                } catch (err: any) {
+                  showToast(err.message || "Error al eliminar ubicación", "ERROR");
                   console.error(err);
                 }
               }}
-              onUpdatePaymentMethod={async m => { 
-                 // Actualización optimista del estado local
-                 setPaymentMethods(prev => {
-                   const exists = prev.find(item => item.id === m.id);
-                   if (exists) {
-                     return prev.map(item => item.id === m.id ? m : item);
-                   }
-                   return [...prev, m];
-                 });
-  
-                 try {
-                   const { error } = await supabase.from('payment_methods').upsert(m); 
-                   if (error) {
-                     if (error.code === 'PGRST204' || error.code === '42P01') {
-                       showToast("Falta crear tabla 'payment_methods' en Supabase", "ERROR");
-                       return;
-                     }
-                     throw error;
-                   }
-                   showToast("Método de pago guardado", "SUCCESS"); 
-                   fetchPaymentMethods(); // Sincronizar con el servidor para obtener IDs reales si aplica
-                 } catch (err: any) {
-                   showToast(err.message || "Error al actualizar método de pago", "ERROR");
-                   console.error(err);
-                   // Opcional: Revertir el estado local en caso de error crítico
-                   fetchPaymentMethods();
-                 }
-               }} 
-               onDeletePaymentMethod={async id => { 
-               // Actualización optimista: eliminar de la lista local inmediatamente
-               setPaymentMethods(prev => prev.filter(m => m.id !== id));
-
-               try {
-                 const { error } = await supabase.from('payment_methods').delete().eq('id', id); 
-                 if (error) {
-                   if (error.code === '22P02' || error.code === '42P01' || error.code === 'PGRST204' || error.message?.includes('schema cache')) {
-                      showToast("Eliminado de la vista (Falta tabla en Supabase)", "INFO");
-                      return;
-                   }
-                   throw error;
-                 }
-                 showToast("Método de pago eliminado", "SUCCESS"); 
-               } catch (err: any) {
-                 showToast(err.message || "Error al eliminar el método de pago", "ERROR");
-                 console.error(err);
-                 fetchPaymentMethods(); // Re-sincronizar en caso de error
-               }
-             }} 
-            onSaveLocation={async l => { 
-              try {
-                const { error } = await supabase.from('locations').upsert(l); 
-                if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01') {
-                    showToast("Falta crear tabla 'locations'", "ERROR");
-                    return;
-                  }
-                  throw error;
-                }
-                fetchLocations(); 
-                showToast("Ubicación guardada", "SUCCESS"); 
-              } catch (err: any) {
-                showToast(err.message || "Error al guardar ubicación", "ERROR");
-                console.error(err);
-              }
-            }} 
-            onDeleteLocation={async id => { 
-              try {
-                const { error } = await supabase.from('locations').delete().eq('id', id); 
-                if (error) {
-                  if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('schema cache')) {
-                    setLocations(prev => prev.filter(loc => loc.id !== id));
-                    showToast("Eliminada mock (Falta tabla)", "INFO");
-                    return;
-                  }
-                  throw error;
-                }
-                setLocations(prev => prev.filter(loc => loc.id !== id));
-                showToast("Ubicación eliminada", "SUCCESS"); 
-              } catch (err: any) {
-                showToast(err.message || "Error al eliminar ubicación", "ERROR");
-                console.error(err);
-              }
-            }}
-            onUpdateProfile={handleUpdateProfile} onNavigate={setView}
-            onSyncCredits={handleSyncCredits}
-            showToast={showToast}
-          />
-          ) : (
-            <div className="flex-grow flex flex-col items-center justify-center p-20">
-              <div className="w-12 h-12 border-4 border-[#091F4F] border-t-red-600 rounded-full animate-spin mb-6"></div>
-              <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tighter">Cargando tu perfil...</h3>
-              <p className="text-gray-400 text-sm font-medium mt-2">Estamos preparando tu panel personalizado.</p>
-            </div>
-          )
-        )}
-        {view === 'ADMIN' && (
-          <PublicationFlow 
-            user={currentUser!} 
-            properties={properties} 
-            editingId={selectedPropertyId} 
-            packages={packages}
-            paymentMethods={paymentMethods}
-            mpAccessToken={mpAccessToken}
-            mpPublicKey={mpPublicKey}
-            onAdd={async p => { 
-              const { 
-                agentName, agentAvatar, agentWhatsapp, profiles, 
-                constructionArea, documents, yearBuilt,
-                ...cleanP 
-              } = p as any;
-              
-              const dbData = {
-                ...cleanP
-              };
-              
-              let finalPlanType = cleanP.planType || 'BASIC';
-              let finalPublishedAt = new Date().toISOString();
-              
-              // Buscar la duración del plan en los paquetes disponibles
-              const pkg = packages.find(pkg => {
-                if (finalPlanType === 'SUPER_FEATURED') return pkg.superFeaturedLimit > 0;
-                if (finalPlanType === 'FEATURED') return pkg.featuredLimit > 0;
-                return pkg.propertyLimit > 0;
-              });
-              
-              const duration = pkg?.durationDays || 30;
-              let finalExpiresAt = new Date(Date.now() + duration * 86400000).toISOString();
-
-              if (currentUser && currentUser.role !== 'ADMINISTRADOR') {
-                // Validar si el usuario tiene un plan que permita esta operación (Alquiler/Venta)
-                const userTransactions = transactions.filter(t => t.userId === currentUser.id && t.status === 'COMPLETED');
-                const userPackages = packages.filter(pkg => userTransactions.some(t => t.packageId === pkg.id));
-                
-                const isOperationAllowed = userPackages.some(pkg => {
-                  const allowed = pkg.allowedOperation || 'BOTH';
-                  if (allowed === 'BOTH') return true;
-                  if (cleanP.status === 'FOR_RENT' && allowed === 'RENT') return true;
-                  if (cleanP.status === 'FOR_SALE' && allowed === 'SALE') return true;
-                  // Si el plan es para otros estados (TRASPASO, etc), permitir si es BOTH
-                  return false;
-                });
-
-                if (!isOperationAllowed && userPackages.length > 0) {
-                  showToast("Tu plan actual no permite este tipo de operación", "ERROR");
-                  return;
-                }
-
-                // Decrement credits
-                const updatedProfile = { ...currentUser };
-                if (finalPlanType === 'SUPER_FEATURED') {
-                  if ((updatedProfile.superFeaturedRemaining || 0) > 0) updatedProfile.superFeaturedRemaining!--;
-                } else if (finalPlanType === 'FEATURED') {
-                  if ((updatedProfile.featuredRemaining || 0) > 0) updatedProfile.featuredRemaining!--;
-                } else {
-                  if ((updatedProfile.propertiesRemaining || 0) > 0) updatedProfile.propertiesRemaining!--;
-                }
-
-                const { error: profileError } = await supabase.from('profiles').update({
-                  propertiesRemaining: updatedProfile.propertiesRemaining,
-                  featuredRemaining: updatedProfile.featuredRemaining,
-                  superFeaturedRemaining: updatedProfile.superFeaturedRemaining
-                }).eq('id', currentUser.id);
-                
-                if (profileError) {
-                  console.error("Error updating credits on publish:", profileError);
-                } else {
-                  setCurrentUser(updatedProfile);
-                }
-              }
-
-              const { error } = await supabase.from('properties').insert({
-                  ...dbData,
-                  planType: finalPlanType,
-                  publishedAt: finalPublishedAt,
-                  expiresAt: finalExpiresAt,
-                  agentId: currentUser?.id
-              }); 
-              
-              if (error) {
-                console.error("Supabase insert error details:", error);
-                showToast(`Error al subir inmueble: ${error.message}`, "ERROR");
-                throw error; 
-              }
-
-              await fetchProperties(); 
-              showToast("Inmueble publicado con éxito", "SUCCESS");
-              setView('DASHBOARD'); 
-            }} 
-            onUpdate={async p => { 
-              const { 
-                agentName, agentAvatar, agentWhatsapp, profiles, 
-                constructionArea, documents, yearBuilt,
-                ...cleanP 
-              } = p as any;
-
-              const dbData = {
-                ...cleanP
-              };
-
-              const { error } = await supabase.from('properties').update(dbData).eq('id', p.id); 
-              if (error) {
-                console.error("Supabase update error details:", error);
-                showToast(`Error al actualizar inmueble: ${error.message}`, "ERROR");
-                throw error; 
-              }
-              await fetchProperties(); 
-              showToast("Inmueble actualizado con éxito", "SUCCESS");
-              setView('DASHBOARD'); 
-            }} 
-            onCancel={() => { setSelectedPropertyId(null); setView('DASHBOARD'); }} 
-            showToast={showToast}
-          />
-        )}
-        {view === 'DETAILS' && selectedPropertyId && (
-          properties.some(p => p.id === selectedPropertyId) ? (
-            <PropertyDetails property={properties.find(p => p.id === selectedPropertyId)!} onBack={() => { setView('SEARCH'); window.history.pushState({}, '', window.location.pathname); }} onSendMessage={handleSendMessage} showToast={showToast} />
-          ) : (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
-              <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              onUpdateProfile={handleUpdateProfile} onNavigate={setView}
+              onSyncCredits={handleSyncCredits}
+              showToast={showToast}
+            />
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center p-20">
+                <div className="w-12 h-12 border-4 border-[#091F4F] border-t-red-600 rounded-full animate-spin mb-6"></div>
+                <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tighter">Cargando tu perfil...</h3>
+                <p className="text-gray-400 text-sm font-medium mt-2">Estamos preparando tu panel personalizado.</p>
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Propiedad no encontrada</h2>
-              <p className="text-slate-500 mb-8 font-medium">El inmueble que buscas no existe o ha sido eliminado.</p>
-              <button onClick={() => { setView('SEARCH'); window.history.pushState({}, '', '/'); }} className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all">Volver al inicio</button>
-            </div>
-          )
-        )}
-        {view === 'PRICING' && (
-          <PricingPage 
-            onSelectPackage={p => { 
-              setSelectedPackage(p); 
-              setIsCartCheckout(false); 
-              if (currentUser) setView('PAYMENT'); 
-              else setView('AUTH'); 
-            }} 
-            onAddToCart={handleAddToCart} 
-            customPackages={packages.filter(p => p.isActive)} 
-            userRole={currentUser?.role}
-          />
-        )}
-        {view === 'CART' && (
-          <CartPage 
-            cart={cart} 
-            onRemove={handleRemoveFromCart} 
-            onUpdateQuantity={handleUpdateCartQuantity} 
-            onCheckout={() => { setIsCartCheckout(true); if (currentUser) setView('PAYMENT'); else setView('AUTH'); }} 
-            onContinueShopping={() => setView('PRICING')} 
-          />
-        )}
-        {view === 'PAYMENT' && (selectedPackage || (isCartCheckout && cart.length > 0)) && currentUser && (
-          <PaymentFlow
-            pkg={isCartCheckout ? undefined : selectedPackage!}
-            cartItems={isCartCheckout ? cart : undefined}
-            allPackages={packages}
-            user={currentUser}
-            paymentMethods={paymentMethods}
-            mpAccessToken={mpAccessToken}
-            mpPublicKey={mpPublicKey}
-            onSuccess={() => {
-              setSelectedPackage(null);
-              setCart([]);
-              setIsCartCheckout(false);
-              setView('DASHBOARD');
-            }}
-            onCancel={() => {
-              setSelectedPackage(null);
-              setIsCartCheckout(false);
-              setView(isCartCheckout ? 'CART' : 'PRICING');
-            }}
-            onUpdateProfile={async (data) => {
-              if (!currentUser) return;
-              const { error } = await supabase.from('profiles').update(data).eq('id', currentUser.id);
-              if (error) {
-                console.error("Error updating profile:", error);
-                throw error;
-              }
-              setCurrentUser({ ...currentUser, ...data });
-            }}
-            onRecordTransaction={async (methodName, operationNumber, securityCode) => {
-              if (isCartCheckout) {
-                for (const item of cart) {
-                  // Create one transaction per unit purchased to keep it simple for admin
-                  for (let i = 0; i < item.quantity; i++) {
-                    const { error } = await supabase.from('transactions').insert([{
-                      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
-                      userId: currentUser.id,
-                      userName: currentUser.name,
-                      packageId: item.package.id,
-                      packageName: item.package.name,
-                      amount: item.package.price,
-                      date: new Date().toISOString(),
-                      status: 'PENDING',
-                      paymentMethodName: methodName,
-                      operationNumber,
-                      securityCode
-                    }]);
-                    if (error) throw error;
+            )
+          )}
+
+          {view === 'ADMIN' && (
+            <PublicationFlow 
+              user={currentUser!} 
+              properties={properties} 
+              editingId={selectedPropertyId} 
+              packages={packages}
+              paymentMethods={paymentMethods}
+              mpAccessToken={mpAccessToken}
+              mpPublicKey={mpPublicKey}
+              onAdd={async p => { 
+                const { 
+                  agentName, agentAvatar, agentWhatsapp, profiles, 
+                  constructionArea,
+                  ...cleanP 
+                } = p as any;
+                
+                const dbData = {
+                  ...cleanP
+                };
+                
+                let finalPlanType = cleanP.planType || 'BASIC';
+                let finalPublishedAt = new Date().toISOString();
+                
+                // Buscar la duración del plan en los paquetes disponibles
+                const pkg = packages.find(pkg => {
+                  if (finalPlanType === 'SUPER_FEATURED') return pkg.superFeaturedLimit > 0;
+                  if (finalPlanType === 'FEATURED') return pkg.featuredLimit > 0;
+                  return pkg.propertyLimit > 0;
+                });
+                
+                const duration = pkg?.durationDays || 30;
+                let finalExpiresAt = new Date(Date.now() + duration * 86400000).toISOString();
+
+                if (currentUser && currentUser.role !== 'ADMINISTRADOR') {
+                  // Validar si el usuario tiene un plan que permita esta operación (Alquiler/Venta)
+                  const userTransactions = transactions.filter(t => t.userId === currentUser.id && t.status === 'COMPLETED');
+                  const userPackages = packages.filter(pkg => userTransactions.some(t => t.packageId === pkg.id));
+                  
+                  const isOperationAllowed = userPackages.some(pkg => {
+                    const allowed = pkg.allowedOperation || 'BOTH';
+                    if (allowed === 'BOTH') return true;
+                    if (cleanP.status === 'FOR_RENT' && allowed === 'RENT') return true;
+                    if (cleanP.status === 'FOR_SALE' && allowed === 'SALE') return true;
+                    // Si el plan es para otros estados (TRASPASO, etc), permitir si es BOTH
+                    return false;
+                  });
+
+                  if (!isOperationAllowed && userPackages.length > 0) {
+                    showToast("Tu plan actual no permite este tipo de operación", "ERROR");
+                    return;
+                  }
+
+                  // Decrement credits
+                  const updatedProfile = { ...currentUser };
+                                    if (finalPlanType === 'SUPER_FEATURED') {
+                    if ((updatedProfile.superFeaturedRemaining || 0) > 0) updatedProfile.superFeaturedRemaining!--;
+                  } else if (finalPlanType === 'FEATURED') {
+                    if ((updatedProfile.featuredRemaining || 0) > 0) updatedProfile.featuredRemaining!--;
+                  } else {
+                    if ((updatedProfile.propertiesRemaining || 0) > 0) updatedProfile.propertiesRemaining!--;
+                  }
+
+                  const { error: profileError } = await supabase.from('profiles').update({
+                    propertiesRemaining: updatedProfile.propertiesRemaining,
+                    featuredRemaining: updatedProfile.featuredRemaining,
+                    superFeaturedRemaining: updatedProfile.superFeaturedRemaining
+                  }).eq('id', currentUser.id);
+                  
+                  if (profileError) {
+                    console.error("Error updating credits on publish:", profileError);
+                  } else {
+                    setCurrentUser(updatedProfile);
                   }
                 }
-              } else {
-                const { error } = await supabase.from('transactions').insert([{
-                  id: crypto.randomUUID(),
-                  userId: currentUser.id,
-                  userName: currentUser.name,
-                  packageId: selectedPackage!.id,
-                  packageName: selectedPackage!.name,
-                  amount: selectedPackage!.price,
-                  date: new Date().toISOString(),
-                  status: 'PENDING',
-                  paymentMethodName: methodName,
-                  operationNumber,
-                  securityCode
-                }]);
-                if (error) throw error;
-              }
-            }}
-            showToast={showToast}
-          />
-        )}
-        {view === 'AUTH' && <AuthPage onLogin={handleLogin} onBack={() => { setView('HOME'); handleClearFilters(); }} officeInfo={officeInfo} />}
-        {view === 'COMPLAINTS_BOOK' && <ComplaintsBook onSave={async c => { 
-          if (!isSupabaseConfigured) {
-            showToast("Supabase no está configurado. No se puede enviar el reclamo en modo demostración.", "ERROR");
-            throw new Error("Supabase no configurado");
-          }
-          await supabase.from('complaints').insert(c); 
-        }} onClose={() => { setView('HOME'); handleClearFilters(); }} showToast={showToast} />}
-      </main>
-      {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={(v) => { setView(v); if(v === 'HOME') handleClearFilters(); }} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
-      {activeLegalModal && <LegalModal doc={legalDocs.find(d => d.type === activeLegalModal) || null} onClose={() => setActiveLegalModal(null)} />}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <CookieConsent onLearnMore={() => setActiveLegalModal('PRIVACY')} />
-      <SupportButton whatsappNumber={officeInfo.supportWhatsapp} />
-    </div>
+
+                const { error } = await supabase.from('properties').insert({
+                    ...dbData,
+                    planType: finalPlanType,
+                    publishedAt: finalPublishedAt,
+                    expiresAt: finalExpiresAt,
+                    agentId: currentUser?.id
+                }); 
+                
+                if (error) {
+                  console.error("Supabase insert error details:", error);
+                  showToast("Error al subir inmueble", "ERROR");
+                  throw error; 
+                }
+
+                await fetchProperties(); 
+                showToast("Inmueble publicado con Ã©xito", "SUCCESS");
+                setView('DASHBOARD'); 
+              }} 
+              onUpdate={async p => { 
+                const { 
+                  agentName, agentAvatar, agentWhatsapp, profiles, 
+                  constructionArea,
+                  ...cleanP 
+                } = p as any;
+
+                const dbData = {
+                  ...cleanP
+                };
+
+                const { error } = await supabase.from('properties').update(dbData).eq('id', p.id); 
+                if (error) {
+                  console.error("Supabase update error details:", error);
+                  showToast("Error al actualizar inmueble", "ERROR");
+                  throw error; 
+                }
+                await fetchProperties(); 
+                showToast("Inmueble actualizado con Ã©xito", "SUCCESS");
+                setView('DASHBOARD'); 
+              }} 
+              onCancel={() => { setSelectedPropertyId(null); setView('DASHBOARD'); }} 
+              showToast={showToast}
+            />
+          )}
+
+          {view === 'DETAILS' && selectedPropertyId && (
+            properties.some(p => p.id === selectedPropertyId) ? (
+              <PropertyDetails property={properties.find(p => p.id === selectedPropertyId)!} onBack={() => { setView('SEARCH'); window.history.pushState({}, '', window.location.pathname); }} onSendMessage={handleSendMessage} showToast={showToast} />
+            ) : (
+              <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
+                <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
+                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Propiedad no encontrada</h2>
+                <p className="text-slate-500 mb-8 font-medium">El inmueble que buscas no existe o ha sido eliminado.</p>
+                <button onClick={() => { setView('SEARCH'); window.history.pushState({}, '', '/'); }} className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-red-600 transition-all">Volver al inicio</button>
+              </div>
+            )
+          )}
+
+          {view === 'PRICING' && (
+            <PricingPage 
+              onSelectPackage={p => { 
+                setSelectedPackage(p); 
+                setIsCartCheckout(false); 
+                if (currentUser) setView('PAYMENT'); 
+                else setView('AUTH'); 
+              }} 
+              onAddToCart={handleAddToCart} 
+              customPackages={packages.filter(p => p.isActive)} 
+              userRole={currentUser?.role}
+            />
+          )}
+
+          {view === 'CART' && (
+            <CartPage 
+              cart={cart} 
+              onRemove={handleRemoveFromCart} 
+              onUpdateQuantity={handleUpdateCartQuantity} 
+              onCheckout={() => { setIsCartCheckout(true); if (currentUser) setView('PAYMENT'); else setView('AUTH'); }} 
+              onContinueShopping={() => setView('PRICING')} 
+            />
+          )}
+
+          {view === 'PAYMENT' && (selectedPackage || (isCartCheckout && cart.length > 0)) && currentUser && (
+            <PaymentFlow
+              pkg={isCartCheckout ? undefined : selectedPackage!}
+              cartItems={isCartCheckout ? cart : undefined}
+              allPackages={packages}
+              user={currentUser}
+              paymentMethods={paymentMethods}
+              mpAccessToken={mpAccessToken}
+              mpPublicKey={mpPublicKey}
+              onSuccess={() => {
+                setSelectedPackage(null);
+                setCart([]);
+                setIsCartCheckout(false);
+                setView('DASHBOARD');
+              }}
+              onCancel={() => {
+                setSelectedPackage(null);
+                setIsCartCheckout(false);
+                setView(isCartCheckout ? 'CART' : 'PRICING');
+              }}
+              onUpdateProfile={async (data) => {
+                if (!currentUser) return;
+                const { error } = await supabase.from('profiles').update(data).eq('id', currentUser.id);
+                if (error) {
+                  console.error("Error updating profile:", error);
+                  throw error;
+                }
+                setCurrentUser({ ...currentUser, ...data });
+              }}
+              onRecordTransaction={async (methodName, operationNumber, securityCode) => {
+                if (isCartCheckout) {
+                  for (const item of cart) {
+                    // Create one transaction per unit purchased to keep it simple for admin
+                    for (let i = 0; i < item.quantity; i++) {
+                      const { error } = await supabase.from('transactions').insert([{
+                        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
+                        userId: currentUser.id,
+                        userName: currentUser.name,
+                        packageId: item.package.id,
+                        packageName: item.package.name,
+                        amount: item.package.price,
+                        date: new Date().toISOString(),
+                        status: 'PENDING',
+                        paymentMethodName: methodName,
+                        operationNumber,
+                        securityCode
+                      }]);
+                      if (error) throw error;
+                    }
+                  }
+                } else {
+                  const { error } = await supabase.from('transactions').insert([{
+                    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36),
+                    userId: currentUser.id,
+                    userName: currentUser.name,
+                    packageId: selectedPackage!.id,
+                    packageName: selectedPackage!.name,
+                    amount: selectedPackage!.price,
+                    date: new Date().toISOString(),
+                    status: 'PENDING',
+                    paymentMethodName: methodName,
+                    operationNumber,
+                    securityCode
+                  }]);
+                  if (error) throw error;
+                }
+              }}
+              showToast={showToast}
+            />
+          )}
+          {view === 'AUTH' && <AuthPage onLogin={handleLogin} onBack={() => { setView('HOME'); handleClearFilters(); }} officeInfo={officeInfo} />}
+          {view === 'COMPLAINTS_BOOK' && <ComplaintsBook onSave={async c => { 
+            if (!isSupabaseConfigured) {
+              showToast("Supabase no está configurado. No se puede enviar el reclamo en modo demostración.", "ERROR");
+              throw new Error("Supabase no configurado");
+            }
+            await supabase.from('complaints').insert(c); 
+          }} onClose={() => { setView('HOME'); handleClearFilters(); }} showToast={showToast} />}
+        </main>
+        {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={(v) => { setView(v); if(v === 'HOME') handleClearFilters(); }} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
+        {activeLegalModal && <LegalModal doc={legalDocs.find(d => d.type === activeLegalModal) || null} onClose={() => setActiveLegalModal(null)} />}
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+        <CookieConsent onLearnMore={() => setActiveLegalModal('PRIVACY')} />
+        <SupportButton whatsappNumber={officeInfo.supportWhatsapp} />
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -944,24 +944,23 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </div>
         </div>
       )}
-      <div className="relative pt-0 pb-8 md:pt-0 md:pb-4 min-h-[350px] md:min-h-[420px] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
-        <div className={`absolute inset-0 transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-          <picture className="w-full h-full">
+      <div className="w-full relative pt-0 pb-8 md:pt-0 md:pb-4 min-h-[350px] md:min-h-[420px] landscape:min-h-[250px] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+        <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <picture className="w-full h-full flex justify-center">
             {bannerUrlMobile && <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />}
             <img 
               src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=80&w=2070"} 
               onLoad={() => setIsImageLoaded(true)} 
-              className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out" 
+              className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out block mx-auto" 
               alt="Banner" 
             />
           </picture>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-6xl mt-24 md:mt-32">
-
+        <div className="w-full relative z-10 text-center mt-12 md:mt-16 landscape:mt-8 px-4 flex flex-col items-center justify-center">
 
           <div className="w-full max-w-5xl mx-auto px-2">
-            <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-fit">
+            <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-fit mx-auto">
                 {tabs.map((tab, idx) => (
                   <button
                     key={tab.id}
