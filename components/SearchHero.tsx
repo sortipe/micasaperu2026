@@ -944,7 +944,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </div>
         </div>
       )}
-      <div className="w-full relative pt-0 pb-8 md:pt-0 md:pb-4 min-h-[350px] md:min-h-[420px] landscape:min-h-[250px] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+      <div className="w-full relative min-h-[620px] md:min-h-[760px] landscape:min-h-[480px] flex flex-col items-center justify-end pt-24 pb-4 md:pt-32 md:pb-5 landscape:pt-16 landscape:pb-2 bg-slate-900 overflow-hidden">
         <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
           <picture className="w-full h-full flex justify-center">
             {bannerUrlMobile && <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />}
@@ -957,24 +957,24 @@ const SearchHero: React.FC<SearchHeroProps> = ({
           </picture>
         </div>
 
-        <div className="w-full relative z-10 text-center mt-12 md:mt-16 landscape:mt-8 px-4 flex flex-col items-center justify-center">
+        <div className="w-full relative z-10 text-center px-4 flex flex-col items-center justify-center">
 
-          <div className="w-full max-w-5xl mx-auto px-2">
-            <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-fit mx-auto">
+          <div className="w-full max-w-4xl mx-auto px-2">
+            <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-full">
                 {tabs.map((tab, idx) => (
                   <button
                     key={tab.id}
                     onClick={() => { onFilterChange({ ...filters, status: tab.id }); }}
-                    className={`px-4 md:px-8 py-3 md:py-4 text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all ${
+                    className={`flex-1 py-3 md:py-4 text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all text-center justify-center items-center ${
                       filters.status === tab.id ? 'bg-white text-red-600' : 'text-white hover:bg-white/10'
-                    } ${idx >= 3 ? 'hidden md:block' : 'block'}`}
+                    } ${idx >= 3 ? 'hidden md:flex' : 'flex'}`}
                   >
                     {tab.label}
                   </button>
                 ))}
             </div>
 
-            <div className="bg-white rounded-b-[1.5rem] rounded-tr-[1.5rem] p-2 md:p-3 shadow-2xl relative overflow-visible border border-white">
+            <div className="bg-white rounded-b-[1.5rem] p-2 md:p-3 shadow-2xl relative overflow-visible border border-white">
               <div className="flex flex-col md:flex-row items-center w-full gap-2">
                 <div className="shrink-0 w-full md:w-auto px-2 h-10 md:h-14 flex items-center">
                   <div className="relative w-full md:w-auto">

@@ -107,10 +107,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
         }
       }
 
-      const fileExt = fileToUpload.name.split('.').pop();
+      const fileExt = fileToUpload.name ? fileToUpload.name.split('.').pop() : 'jpg';
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('properties').upload(filePath, fileToUpload);
+      const { error: uploadError } = await supabase.storage
+        .from('properties')
+        .upload(filePath, fileToUpload, {
+          contentType: fileToUpload.type || 'image/jpeg',
+          upsert: true
+        });
       if (uploadError) throw uploadError;
       const { data } = supabase.storage.from('properties').getPublicUrl(filePath);
       return data.publicUrl;

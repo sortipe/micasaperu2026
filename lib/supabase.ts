@@ -53,10 +53,11 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
 
     try {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      
       reader.onload = (event) => {
         const img = new Image();
-        img.src = event.target?.result as string;
+        
+        // Registrar eventos ANTES de asignar img.src para evitar perderlos en cargas instantáneas o desde caché
         img.onload = () => {
           try {
             const canvas = document.createElement('canvas');
@@ -98,7 +99,7 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
 
                 // Crear un nuevo File a partir del Blob manteniendo el nombre original
                 // Usamos extensión .jpg para asegurar que el tipo MIME sea JPEG comprimido
-                const originalName = file.name;
+                const originalName = file.name || 'image.jpg';
                 const dotIndex = originalName.lastIndexOf('.');
                 const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
                 const newName = `${baseName}.jpg`;
@@ -110,11 +111,25 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
                     lastModified: Date.now(),
                   });
                 } catch (fileCtrErr) {
-                  // Fallback para navegadores/híbridos que no admiten constructor File
-                  // Le inyectamos los atributos requeridos al Blob para usarlo como File
+                  // Fallback robusto usando Object.defineProperty para motores de JS/WebViews donde no se permite instanciar File
                   const augmentedBlob = blob as any;
-                  augmentedBlob.name = newName;
-                  augmentedBlob.lastModified = Date.now();
+                  try {
+                    Object.defineProperty(augmentedBlob, 'name', {
+                      value: newName,
+                      writable: true,
+                      configurable: true,
+                      enumerable: true
+                    });
+                    Object.defineProperty(augmentedBlob, 'lastModified', {
+                      value: Date.now(),
+                      writable: true,
+                      configurable: true,
+                      enumerable: true
+                    });
+                  } catch (definePropErr) {
+                    augmentedBlob.name = newName;
+                    augmentedBlob.lastModified = Date.now();
+                  }
                   compressedFile = augmentedBlob as File;
                 }
                 
@@ -129,9 +144,21 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
             cleanResolve(file);
           }
         };
-        img.onerror = () => cleanResolve(file);
+
+        img.onerror = () => {
+          console.error("Error al cargar elemento de imagen.");
+          cleanResolve(file);
+        };
+        
+        img.src = event.target?.result as string;
       };
-      reader.onerror = () => cleanResolve(file);
+
+      reader.onerror = () => {
+        console.error("Error al leer archivo mediante FileReader.");
+        cleanResolve(file);
+      };
+
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error("Error general al leer archivo de imagen:", err);
       cleanResolve(file);
@@ -155,6 +182,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    // Custom no-op lock to completely bypass navigator.locks (resolves Web Locks deadlocks on Android/iOS WebViews)
+    lock: async (_name, _acquireTimeout, fn) => {
+      return await fn();
+    },
     storage: {
       getItem: (key) => {
         try {
