@@ -230,8 +230,8 @@ const App: React.FC = () => {
 
   const handleOpenProperty = (id: string) => {
     setVisitedIds(p => new Set(p).add(id));
-    const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('propertyId', id);
+    const url = new URL(window.location.origin);
+    url.pathname = `/properties/${id}`;
     window.open(url.toString(), '_blank');
   };
 
@@ -353,12 +353,26 @@ const App: React.FC = () => {
       // Ensure all other tasks complete in background
       Promise.all(otherBackgroundTasks).catch(err => console.error("Background fetch error:", err));
       
-      // Check URL for propertyId to open details directly
+      // Robust client-side routing based on search params and clean pathname on initial load
       const urlParams = new URLSearchParams(window.location.search);
-      const propertyIdFromUrl = urlParams.get('propertyId');
-      if (propertyIdFromUrl) {
-        setSelectedPropertyId(propertyIdFromUrl);
-        setView('DETAILS');
+      let propertyIdFromUrl = urlParams.get('propertyId');
+      
+      const path = window.location.pathname;
+      if (path === '/pricing') {
+        setView('PRICING');
+      } else if (path === '/complaints') {
+        setView('COMPLAINTS_BOOK');
+      } else {
+        // Parse property ID from clean URL path /properties/id or /propiedades/id or /propiedad/id
+        const pathParts = path.split('/');
+        if ((pathParts[1] === 'properties' || pathParts[1] === 'propiedades' || pathParts[1] === 'propiedad') && pathParts[2]) {
+          propertyIdFromUrl = pathParts[2];
+        }
+        
+        if (propertyIdFromUrl) {
+          setSelectedPropertyId(propertyIdFromUrl);
+          setView('DETAILS');
+        }
       }
     };
     initApp();
@@ -1012,6 +1026,34 @@ const App: React.FC = () => {
     setView('SEARCH');
   };
 
+  const handleNavigation = (v: typeof view) => {
+    setView(v);
+    if (v === 'HOME') {
+      handleClearFilters();
+    }
+    if (v === 'SEARCH') {
+      setSpatialFilterIds(null);
+    }
+    
+    // Update address bar path for clean routing (if in web environment)
+    if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+      let path = '/';
+      if (v === 'PRICING') {
+        path = '/pricing';
+      } else if (v === 'COMPLAINTS_BOOK') {
+        path = '/complaints';
+      } else if (v === 'DETAILS' && selectedPropertyId) {
+        path = `/properties/${selectedPropertyId}`;
+      } else if (v === 'SEARCH') {
+        path = '/search';
+      } else if (v === 'AUTH') {
+        path = '/login';
+      }
+      
+      window.history.pushState({}, '', path);
+    }
+  };
+
   const handleClearFilters = () => {
     const defaultFilters = { query: '', selectedLocations: [], type: '', status: '', minPrice: 0, maxPrice: Infinity, currency: 'USD' as const, sortBy: 'RELEVANT', includeMaintenance: false, bedrooms: 0, maxBedrooms: Infinity, bathrooms: 0, parking: 0, minArea: 0, maxArea: Infinity, areaType: 'total' as const, advertiserType: 'all' as const, age: 'any' as const, publicationDate: 'any' as const, selectedFeatures: [] };
     setFilters(defaultFilters);
@@ -1026,7 +1068,7 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-gray-50">
         <SEOManager view={view} property={view === 'DETAILS' ? properties.find(p => p.id === selectedPropertyId) : null} />
-        <Navbar user={currentUser} onNavigate={(v) => { setView(v); if(v === 'SEARCH') setSpatialFilterIds(null); if(v === 'HOME') handleClearFilters(); }} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
+        <Navbar user={currentUser} onNavigate={handleNavigation} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
         {!isSupabaseConfigured && (
           <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-3 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2">
             <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -1663,17 +1705,17 @@ const App: React.FC = () => {
               showToast={showToast}
             />
           )}
-          {view === 'AUTH' && <AuthPage onLogin={handleLogin} onBack={() => { setView('HOME'); handleClearFilters(); }} officeInfo={officeInfo} />}
+          {view === 'AUTH' && <AuthPage onLogin={handleLogin} onBack={() => handleNavigation('HOME')} officeInfo={officeInfo} />}
           {view === 'COMPLAINTS_BOOK' && <ComplaintsBook onSave={async c => { 
             if (!isSupabaseConfigured) {
               showToast("Supabase no está configurado. No se puede enviar el reclamo en modo demostración.", "ERROR");
               throw new Error("Supabase no configurado");
             }
             await supabase.from('complaints').insert(c); 
-          }} onClose={() => { setView('HOME'); handleClearFilters(); }} showToast={showToast} />}
+          }} onClose={() => handleNavigation('HOME')} showToast={showToast} />}
           </Suspense>
         </main>
-        {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={(v) => { setView(v); if(v === 'HOME') handleClearFilters(); }} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
+        {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={handleNavigation} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
         {activeLegalModal && <LegalModal doc={legalDocs.find(d => d.type === activeLegalModal) || null} onClose={() => setActiveLegalModal(null)} />}
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <CookieConsent onLearnMore={() => setActiveLegalModal('PRIVACY')} />

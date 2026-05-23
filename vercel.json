@@ -68,5 +68,31 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/properties/:id",
+      "destination": "/api/seo?propertyId=:id"
+    },
+    {
+      "source": "/propiedades/:id",
+      "destination": "/api/seo?propertyId=:id"
+    },
+    {
+      "source": "/propiedad/:id",
+      "destination": "/api/seo?propertyId=:id"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/complaints",
+      "destination": "/api/seo"
+    },
+    {
+      "source": "/((?!assets/|favicon\\.ico|manifest\\.json|.*\\..*$).*)",
+      "destination": "/api/seo"
+    }
   ]
 }
