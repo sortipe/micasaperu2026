@@ -47,7 +47,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
                 <div className="h-10 md:h-12 flex items-center animate-fade-in">
                   <img 
                     src={logo} 
-                    alt="App Logo" 
+alt="Mi Casa Perú - Logo" 
                     className="h-full w-auto object-contain max-w-[180px]" 
                   />
                 </div>
@@ -96,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
                     </p>
                   </div>
                   <div className="relative group cursor-pointer" onClick={() => onNavigate('DASHBOARD')}>
-                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt="User" />
+                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt={`${user.name} - Avatar`} />
                   </div>
                 </div>
               ) : (

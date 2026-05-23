@@ -956,7 +956,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
               src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress"} 
               onLoad={() => setIsImageLoaded(true)} 
               className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out block mx-auto" 
-              alt="Banner" 
+              alt="Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú" 
               loading="eager"
               fetchPriority="high"
             />

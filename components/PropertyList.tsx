@@ -104,14 +104,14 @@ const PropertyList: React.FC<PropertyListProps> = ({
 
         if (layout === 'list') {
           return (
-            <div 
+            <article 
               key={property.id} 
               className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 cursor-pointer flex flex-col md:flex-row h-auto md:h-[260px]"
               onClick={(e) => handlePropertyClick(property.id, e)}
             >
               {/* Image Section */}
               <div className="relative w-full md:w-[320px] shrink-0 overflow-hidden aspect-[4/3] md:aspect-auto h-full">
-                <img src={property.featuredImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                <img src={property.featuredImage} alt={`${property.title} - ${property.district}, ${property.department}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
                 
                 {/* Tag on image */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -155,10 +155,9 @@ const PropertyList: React.FC<PropertyListProps> = ({
                   <svg className={`w-5 h-5 ${isFavorite ? 'text-red-600 fill-current' : ''}`} stroke="currentColor" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                 </button>
 
-                {/* Mobile Header: Title + Logo */}
+                {/* Mobile Header: Title */}
                 <div className="md:hidden flex justify-between items-start mb-1">
-                  <p className="text-[13px] font-medium text-slate-500">{property.title}</p>
-                  <div className="w-16 h-8 bg-white border border-gray-100 rounded flex items-center justify-center text-[8px] font-bold text-blue-600">LOGO</div>
+                  <h3 className="text-[13px] font-medium text-slate-500">{property.title}</h3>
                 </div>
 
                 <div className="flex-grow">
@@ -288,14 +287,14 @@ const PropertyList: React.FC<PropertyListProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </article>
           );
         }
 
         const isSlider = layout === 'slider';
 
         return (
-          <div 
+          <article 
             key={property.id} 
             className={`${isSlider ? 'min-w-[240px] w-[240px] shrink-0' : 'w-full'} bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow flex flex-col`}
             onClick={(e) => handlePropertyClick(property.id, e)}
@@ -339,7 +338,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                 <p className="text-[9px] text-transparent font-medium mb-1.5 select-none">&nbsp;</p>
               )}
               <p className="text-[11px] font-bold text-slate-900 truncate">{property.address}</p>
-              <p className="text-[9px] text-gray-500 mb-3 truncate">{property.district}, {property.department}, {property.department}</p>
+              <p className="text-[9px] text-gray-500 mb-3 truncate">{property.district}, {property.department}</p>
               
               <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-[9px] text-gray-600 border-t pt-2.5">
                 <div className="flex items-center gap-1 whitespace-nowrap">
@@ -356,7 +355,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                 </div>
               </div>
             </div>
-          </div>
+          </article>
         );
       })}
     </div>

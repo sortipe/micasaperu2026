@@ -1,4 +1,22 @@
 User-agent: *
 Allow: /
+Allow: /properties/
+Allow: /propiedades/
+Allow: /propiedad/
+Allow: /pricing
+Allow: /complaints
+Allow: /search
+Disallow: /login
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+Disallow: /cart
+Disallow: /*.json$
+Disallow: /auth
+Disallow: /profile
+Disallow: /publish
+Disallow: /payment
+
+Crawl-delay: 1
 
 Sitemap: https://micasaperu.com/sitemap.xml

@@ -1059,7 +1059,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <SEOManager view={view} property={view === 'DETAILS' ? properties.find(p => p.id === selectedPropertyId) : null} />
+        <SEOManager view={view} property={view === 'DETAILS' ? properties.find(p => p.id === selectedPropertyId) : null} searchQuery={filters.query} />
         <Navbar user={currentUser} onNavigate={handleNavigation} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
         {!isSupabaseConfigured && (
           <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-3 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2">

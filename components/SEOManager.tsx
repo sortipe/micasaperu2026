@@ -4,11 +4,11 @@ import { Property } from '../types';
 interface SEOManagerProps {
   view: 'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART';
   property?: Property | null;
+  searchQuery?: string;
 }
 
-const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
+const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) => {
   useEffect(() => {
-    // Helper function to update meta tags
     const updateMetaTag = (attributeName: string, attributeValue: string, content: string) => {
       let element = document.querySelector(`meta[${attributeName}="${attributeValue}"]`);
       if (!element) {
@@ -19,13 +19,11 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
       element.setAttribute('content', content);
     };
 
-    // Helper to clear existing dynamic schema script tags
     const clearSchemaScripts = () => {
       const existingScripts = document.querySelectorAll('script[data-seo-schema="true"]');
       existingScripts.forEach(script => script.remove());
     };
 
-    // Helper to inject Schema.org JSON-LD
     const injectSchema = (data: object) => {
       clearSchemaScripts();
       const script = document.createElement('script');
@@ -39,7 +37,7 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
     let description = 'El portal inmobiliario líder en Perú. Encuentra departamentos, casas, terrenos y oficinas en venta y alquiler directos de dueños, corredores e inmobiliarias.';
     let keywords = 'inmuebles en peru, comprar departamento lima, alquilar casa peru, terrenos en venta peru, micasaperu, departamentos de estreno';
     let ogUrl = window.location.origin;
-    let ogImage = `${window.location.origin}/logo.png`; // Fallback to logo or site image
+    let ogImage = `${window.location.origin}/og-image.jpg`;
 
     if (view === 'DETAILS' && property) {
       const formattedPricePEN = property.pricePEN ? `S/ ${property.pricePEN.toLocaleString('es-PE')}` : '';
@@ -52,12 +50,11 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
       title = `${property.title} | ${property.district}, ${property.department} - Mi Casa Perú`;
       description = `Visualiza esta increíble propiedad en ${property.district}: ${property.type} en ${operationType} por ${priceString}. ${property.bedrooms} hab, ${property.bathrooms} baños, ${property.constructionArea} m². ¡Contáctanos!`;
       keywords = `${property.type} en ${property.district}, ${property.type} ${operationType} ${property.department}, inmobiliaria ${property.district}, ${property.title}`;
-      ogUrl = `${window.location.origin}/?view=details&id=${property.id}`;
+      ogUrl = `${window.location.origin}/properties/${property.id}`;
       if (property.featuredImage) {
         ogImage = property.featuredImage;
       }
 
-      // Dynamic Real Estate Listing Schema
       const schemaType = property.type === 'Departamento' ? 'Apartment' : 
                           property.type === 'Casa' ? 'SingleFamilyResidence' : 'House';
       
@@ -75,19 +72,11 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
           'addressCountry': 'PE'
         },
         ...(property.lat && property.lng ? {
-          'geo': {
-            '@type': 'GeoCoordinates',
-            'latitude': property.lat,
-            'longitude': property.lng
-          }
+          'geo': { '@type': 'GeoCoordinates', 'latitude': property.lat, 'longitude': property.lng }
         } : {}),
         'numberOfRooms': property.bedrooms || 0,
         'numberOfBathroomsTotal': property.bathrooms || 0,
-        'floorSize': {
-          '@type': 'QuantitativeValue',
-          'value': property.constructionArea || property.terrainArea || 0,
-          'unitCode': 'MTK'
-        },
+        'floorSize': { '@type': 'QuantitativeValue', 'value': property.constructionArea || property.terrainArea || 0, 'unitCode': 'MTK' },
         'offers': {
           '@type': 'Offer',
           'priceCurrency': property.priceUSD ? 'USD' : 'PEN',
@@ -97,8 +86,30 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
         }
       };
 
-      injectSchema(realEstateSchema);
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://micasaperu.com' },
+          { '@type': 'ListItem', position: 2, name: `${property.type} en ${operationType}`, item: `https://micasaperu.com/?type=${encodeURIComponent(property.type)}&status=${property.status}` },
+          { '@type': 'ListItem', position: 3, name: property.title, item: ogUrl }
+        ]
+      };
 
+      injectSchema([realEstateSchema, breadcrumb]);
+
+      updateMetaTag('property', 'article:published_time', property.createdAt || '');
+      if (property.publishedAt) {
+        updateMetaTag('property', 'article:modified_time', property.publishedAt);
+      }
+      updateMetaTag('property', 'article:section', property.department || '');
+      updateMetaTag('property', 'article:tag', `${property.type}, ${property.district}, ${property.department}`);
+
+    } else if (view === 'SEARCH' && searchQuery) {
+      const decoded = decodeURIComponent(searchQuery.replace(/\+/g, ' '));
+      title = `${decoded} — Propiedades en Venta y Alquiler | Mi Casa Perú`;
+      description = `Encuentra las mejores propiedades en ${decoded}. Casas, departamentos y terrenos en venta y alquiler en ${decoded}, Perú.`;
+      ogUrl = `${window.location.origin}/?search=${searchQuery}`;
     } else if (view === 'PRICING') {
       title = 'Planes y Publicidad Inmobiliaria | Mi Casa Perú';
       description = 'Publica tus propiedades en Mi Casa Perú. Contamos con planes ideales para propietarios dueños directos, corredores e inmobiliarias. ¡Vende o alquila rápido!';
@@ -117,7 +128,6 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
       description = 'Administra tus publicaciones, planes activos e información de contacto en Mi Casa Perú.';
       clearSchemaScripts();
     } else {
-      // General Website Schema for home page
       const websiteSchema = {
         '@context': 'https://schema.org',
         '@type': 'RealEstateAgent',
@@ -135,35 +145,44 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property }) => {
           '@type': 'ContactPoint',
           'contactType': 'customer support',
           'email': 'hola@micasaperu.com'
-        }
+        },
+        'sameAs': [
+          'https://facebook.com/micasaperu',
+          'https://instagram.com/micasaperu',
+          'https://linkedin.com/company/micasaperu'
+        ]
       };
-      
-      injectSchema(websiteSchema);
+
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://micasaperu.com' }
+        ]
+      };
+
+      injectSchema([websiteSchema, breadcrumb]);
     }
 
-    // Set page title
     document.title = title;
 
-    // Update standard meta tags
     updateMetaTag('name', 'description', description);
     updateMetaTag('name', 'keywords', keywords);
 
-    // Update Open Graph (og:) tags
     updateMetaTag('property', 'og:title', title);
     updateMetaTag('property', 'og:description', description);
     updateMetaTag('property', 'og:image', ogImage);
     updateMetaTag('property', 'og:url', ogUrl);
-    updateMetaTag('property', 'og:type', view === 'DETAILS' ? 'website' : 'website');
+    updateMetaTag('property', 'og:type', 'website');
 
-    // Update Twitter card metadata
     updateMetaTag('name', 'twitter:card', 'summary_large_image');
     updateMetaTag('name', 'twitter:title', title);
     updateMetaTag('name', 'twitter:description', description);
     updateMetaTag('name', 'twitter:image', ogImage);
 
-  }, [view, property]);
+  }, [view, property, searchQuery]);
 
-  return null; // This is a behavior-only controller component
+  return null;
 };
 
 export default SEOManager;
