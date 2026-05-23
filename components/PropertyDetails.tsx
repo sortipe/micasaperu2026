@@ -114,6 +114,8 @@ const PhotoViewer = ({ images, initialIndex, onClose }: { images: string[], init
 const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, showToast }: { property: Property, agentName: string, agentAvatar?: string, onClose: () => void, onSend: (data: Partial<Inquiry>) => Promise<void>, showToast: (message: string, type: ToastType) => void }) => {
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [acceptedPromotions, setAcceptedPromotions] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     dni: '',
@@ -129,6 +131,9 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedPrivacy) {
+      return showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para enviar la solicitud.", "WARNING");
+    }
     if (formData.dni && formData.dni.length < 8) return showToast("El DNI debe tener 8 dígitos.", "WARNING");
     if (formData.phone.length < 9) return showToast("El celular debe tener 9 dígitos.", "WARNING");
     
@@ -260,6 +265,31 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
                 value={formData.message}
                 onChange={e => setFormData({...formData, message: e.target.value})}
               />
+            </div>
+
+            <div className="space-y-3 my-3">
+              <label className="flex items-start gap-2.5 text-[10px] text-slate-600 cursor-pointer select-none leading-relaxed">
+                <input 
+                  type="checkbox" 
+                  className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer"
+                  checked={acceptedPrivacy}
+                  onChange={e => setAcceptedPrivacy(e.target.checked)}
+                />
+                <span>
+                  Autorizo el tratamiento de mis datos de acuerdo a las <strong className="text-red-600 font-bold hover:underline">Políticas de Privacidad</strong> y la <strong className="font-bold text-slate-900">Ley N° 29733 (Protección de Datos Personales en Perú)</strong>.
+                </span>
+              </label>
+              <label className="flex items-start gap-2.5 text-[10px] text-slate-600 cursor-pointer select-none leading-relaxed">
+                <input 
+                  type="checkbox" 
+                  className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer"
+                  checked={acceptedPromotions}
+                  onChange={e => setAcceptedPromotions(e.target.checked)}
+                />
+                <span>
+                  Autorizo el uso de mi información para fines de promociones y ofertas comerciales.
+                </span>
+              </label>
             </div>
 
             <button 

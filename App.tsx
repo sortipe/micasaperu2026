@@ -1,27 +1,39 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Property, User, Role, Package, Transaction, PaymentMethod, LocationItem, Complaint, LegalDoc, LegalDocType, Notification, Inquiry, SocialLink, OfficeInfo, CartItem } from './types';
 import { INITIAL_PROPERTIES, PACKAGES as INITIAL_PACKAGES, PERU_LOCATIONS } from './constants';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import PropertyList from './components/PropertyList';
-import PublicationFlow from './components/PublicationFlow';
-import PropertyDetails from './components/PropertyDetails';
 import SearchHero from './components/SearchHero';
-import MapView from './components/MapView';
-import PricingPage from './components/PricingPage';
-import ClientDashboard from './components/ClientDashboard';
-import AuthPage from './components/AuthPage';
-import PaymentFlow from './components/PaymentFlow';
-import ComplaintsBook from './components/ComplaintsBook';
 import LegalModal from './components/LegalModal';
 import Toast, { ToastType } from './components/Toast';
 import CookieConsent from './components/CookieConsent';
 import DevelopmentOptions from './components/DevelopmentOptions';
 import SupportButton from './components/SupportButton';
-import CartPage from './components/CartPage';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { initMercadoPago } from '@mercadopago/sdk-react';
+import SEOManager from './components/SEOManager';
+
+// Lazy loading heavy components for high performance Core Web Vitals
+const PublicationFlow = React.lazy(() => import('./components/PublicationFlow'));
+const PropertyDetails = React.lazy(() => import('./components/PropertyDetails'));
+const MapView = React.lazy(() => import('./components/MapView'));
+const PricingPage = React.lazy(() => import('./components/PricingPage'));
+const ClientDashboard = React.lazy(() => import('./components/ClientDashboard'));
+const AuthPage = React.lazy(() => import('./components/AuthPage'));
+const PaymentFlow = React.lazy(() => import('./components/PaymentFlow'));
+const ComplaintsBook = React.lazy(() => import('./components/ComplaintsBook'));
+const CartPage = React.lazy(() => import('./components/CartPage'));
+
+const LoadingFallback: React.FC = () => (
+  <div className="flex-grow flex flex-col items-center justify-center p-20 min-h-[50vh] animate-pulse">
+    <div className="w-16 h-16 border-4 border-slate-100 rounded-full relative mb-6">
+      <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+    <p className="text-[#091F4F] font-black uppercase text-xs tracking-[0.2em] animate-bounce">Cargando sección...</p>
+  </div>
+);
 
 
 const ADMIN_EMAILS = ['jorgejoelifzyape@gmail.com', 'A.pereira@aquivivir.pe'];
@@ -1034,6 +1046,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col bg-gray-50">
+        <SEOManager view={view} property={view === 'DETAILS' ? properties.find(p => p.id === selectedPropertyId) : null} />
         <Navbar user={currentUser} onNavigate={(v) => { setView(v); if(v === 'SEARCH') setSpatialFilterIds(null); if(v === 'HOME') handleClearFilters(); }} currentView={view} logo={appLogo} cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)} isSupabaseConnected={isSupabaseConfigured} />
         {!isSupabaseConfigured && (
           <div className="bg-amber-100 border-b border-amber-200 text-amber-800 px-4 py-3 text-sm text-center flex flex-col sm:flex-row items-center justify-center gap-2">
@@ -1042,6 +1055,7 @@ const App: React.FC = () => {
           </div>
         )}
         <main className="flex-grow flex flex-col">
+          <Suspense fallback={<LoadingFallback />}>
           {view === 'HOME' && (
             <>
               <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} onSearch={handlePerformSearch} />
@@ -1085,20 +1099,12 @@ const App: React.FC = () => {
                 {properties.length === 0 && (
                   <div className="flex flex-col items-center">
                     {isFetchingProperties ? (
-                       <div className="flex flex-col items-center py-20 animate-fade-in w-full">
-                          <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-6"></div>
-                          <p className="text-slate-900 font-black uppercase text-xs tracking-[0.2em] text-center px-4 mb-2">Conectando con Supabase...</p>
-                          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest text-center px-4 mb-8">Esto puede tardar unos segundos dependiendo de tu conexión</p>
-                          
-                          <button 
-                            onClick={() => {
-                              localStorage.clear();
-                              window.location.reload();
-                            }}
-                            className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200"
-                          >
-                            Reiniciar Conexión Forzada
-                          </button>
+                       <div className="w-full animate-fade-in py-6">
+                         <div className="flex flex-col gap-3 mb-8">
+                           <h2 className="text-xl font-black uppercase tracking-tight border-l-4 border-red-600 pl-3">Cargando anuncios recomendados...</h2>
+                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">Estamos trayendo los mejores inmuebles directo de Supabase</p>
+                         </div>
+                         <PropertyList properties={[]} layout="grid" isLoading={true} onPropertySelect={() => {}} currency={filters.currency} onClearFilters={handleClearFilters} />
                        </div>
                     ) : (
                       <>
@@ -1686,6 +1692,7 @@ const App: React.FC = () => {
             }
             await supabase.from('complaints').insert(c); 
           }} onClose={() => { setView('HOME'); handleClearFilters(); }} showToast={showToast} />}
+          </Suspense>
         </main>
         {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={(v) => { setView(v); if(v === 'HOME') handleClearFilters(); }} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
         {activeLegalModal && <LegalModal doc={legalDocs.find(d => d.type === activeLegalModal) || null} onClose={() => setActiveLegalModal(null)} />}

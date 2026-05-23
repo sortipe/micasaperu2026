@@ -11,16 +11,76 @@ interface PropertyListProps {
   visitedIds?: Set<string>;
   favorites?: Set<string>;
   onToggleFavorite?: (id: string) => void;
+  isLoading?: boolean;
 }
+
+const PropertySkeletonCard: React.FC<{ isSlider?: boolean }> = ({ isSlider = false }) => (
+  <div className={`${isSlider ? 'min-w-[240px] w-[240px] shrink-0' : 'w-full'} bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col animate-pulse shadow-sm`}>
+    <div className={`bg-slate-100 ${isSlider ? 'h-40' : 'h-48'} w-full relative`}>
+      <div className="absolute top-2 left-2 w-20 h-4 bg-slate-200 rounded"></div>
+    </div>
+    <div className={`${isSlider ? 'p-3' : 'p-4'} flex flex-col flex-grow space-y-2.5`}>
+      <div className="w-1/3 h-3 bg-slate-150 rounded"></div>
+      <div className="w-2/3 h-5 bg-slate-200 rounded"></div>
+      <div className="w-1/2 h-3 bg-slate-150 rounded"></div>
+      <div className="w-full h-4 bg-slate-200 rounded"></div>
+      <div className="w-3/4 h-3 bg-slate-150 rounded"></div>
+      <div className="border-t pt-2.5 flex justify-between gap-2 mt-2">
+        <div className="w-1/4 h-3 bg-slate-150 rounded"></div>
+        <div className="w-1/4 h-3 bg-slate-150 rounded"></div>
+        <div className="w-1/4 h-3 bg-slate-150 rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
+const PropertySkeletonList: React.FC = () => (
+  <div className="w-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 flex flex-col md:flex-row h-auto md:h-[260px] animate-pulse">
+    <div className="w-full md:w-[320px] shrink-0 h-full bg-slate-100 relative aspect-[4/3] md:aspect-auto">
+      <div className="absolute top-3 left-3 w-24 h-5 bg-slate-200 rounded"></div>
+    </div>
+    <div className="p-4 md:p-5 flex-grow flex flex-col space-y-4 justify-between h-full">
+      <div className="space-y-2 flex-grow">
+        <div className="w-1/4 h-3 bg-slate-150 rounded"></div>
+        <div className="w-1/2 h-7 bg-slate-200 rounded"></div>
+        <div className="w-1/3 h-4 bg-slate-150 rounded mt-2"></div>
+        <div className="w-3/4 h-4 bg-slate-200 rounded mt-1"></div>
+        <div className="w-full h-3 bg-slate-150 rounded mt-2"></div>
+      </div>
+      <div className="flex justify-between items-center border-t pt-3">
+        <div className="flex gap-4 w-full">
+          <div className="w-10 h-10 bg-slate-150 rounded-lg"></div>
+          <div className="w-24 h-10 bg-slate-200 rounded-xl"></div>
+          <div className="w-24 h-10 bg-slate-200 rounded-xl"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const PropertyList: React.FC<PropertyListProps> = ({ 
   properties, onPropertySelect, currency, onClearFilters, visitedIds = new Set(),
-  favorites = new Set(), onToggleFavorite, layout = 'grid'
+  favorites = new Set(), onToggleFavorite, layout = 'grid', isLoading = false
 }) => {
   const handlePropertyClick = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     onPropertySelect(id);
   };
+
+  if (isLoading) {
+    const skeletonsCount = layout === 'slider' ? 4 : layout === 'grid' ? 6 : 3;
+    return (
+      <div className={
+        layout === 'slider' ? "flex gap-4 overflow-x-auto pb-4 custom-scrollbar" :
+        layout === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : 
+        "flex flex-col gap-6"
+      }>
+        {Array.from({ length: skeletonsCount }).map((_, idx) => (
+          layout === 'list' ? <PropertySkeletonList key={idx} /> : <PropertySkeletonCard key={idx} isSlider={layout === 'slider'} />
+        ))}
+      </div>
+    );
+  }
 
   if (properties.length === 0) {
     return (

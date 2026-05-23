@@ -1,0 +1,17 @@
+{
+  "short_name": "Mi Casa Perú",
+  "name": "Mi Casa Perú - Inmobiliaria y Bienes Raíces",
+  "description": "Busca, compra, vende y alquila inmuebles en el Perú directo de dueños, corredores y constructoras.",
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#091F4F",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
