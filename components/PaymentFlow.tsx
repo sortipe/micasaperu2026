@@ -167,7 +167,13 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
     }
   };
 
-  // initMercadoPago moved to App.tsx to ensure it's ready before rendering
+  // Initialize Mercado Pago Brick dynamically on mount
+  useEffect(() => {
+    if (mpPublicKey) {
+      console.log("Initializing Mercado Pago inside PaymentFlow with Public Key:", mpPublicKey.substring(0, 15) + "...");
+      initMercadoPago(mpPublicKey, { locale: 'es-PE' });
+    }
+  }, [mpPublicKey]);
 
   useEffect(() => {
     if (step === 'DETAILS' && selectedMethod?.type === 'MERCADOPAGO' && !preferenceId && !isProcessing) {

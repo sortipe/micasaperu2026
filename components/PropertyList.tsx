@@ -111,7 +111,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
             >
               {/* Image Section */}
               <div className="relative w-full md:w-[320px] shrink-0 overflow-hidden aspect-[4/3] md:aspect-auto h-full">
-                <img src={property.featuredImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={property.featuredImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
                 
                 {/* Tag on image */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -243,6 +243,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                           src={property.agentAvatar || `https://ui-avatars.com/api/?name=${property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
                           className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" 
                           alt={property.agentName}
+                          loading="lazy"
                         />
                         <div className="flex items-center gap-1.5">
                           {property.planType === 'SUPER_FEATURED' && (
@@ -300,7 +301,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
             onClick={(e) => handlePropertyClick(property.id, e)}
           >
             <div className={`relative ${isSlider ? 'h-40' : 'h-48'}`}>
-              <img src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" />
+              <img src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" loading="lazy" />
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(property.id); }}
                 className="absolute top-2 right-2 w-7 h-7 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-colors"

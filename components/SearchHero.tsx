@@ -947,12 +947,18 @@ const SearchHero: React.FC<SearchHeroProps> = ({
       <div className="w-full relative min-h-[620px] md:min-h-[760px] landscape:min-h-[480px] flex flex-col items-center justify-end pt-24 pb-4 md:pt-32 md:pb-5 landscape:pt-16 landscape:pb-2 bg-slate-900 overflow-hidden">
         <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
           <picture className="w-full h-full flex justify-center">
-            {bannerUrlMobile && <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />}
+            {bannerUrlMobile ? (
+              <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />
+            ) : (
+              <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress" />
+            )}
             <img 
-              src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=80&w=2070"} 
+              src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress"} 
               onLoad={() => setIsImageLoaded(true)} 
               className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out block mx-auto" 
               alt="Banner" 
+              loading="eager"
+              fetchPriority="high"
             />
           </picture>
         </div>

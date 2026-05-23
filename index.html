@@ -27,7 +27,8 @@
     <!-- Preconnect to speed up premium Outfit & Inter font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" rel="stylesheet"></noscript>
     
     <!-- Default Schema.org Structured Data (Organizations/Agent details) for static crawler indexing -->
     <script type="application/ld+json">
@@ -46,10 +47,7 @@
         "addressRegion": "Lima",
         "addressCountry": "PE"
       }
-    }
     </script>
-
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
     <!-- Pre-hydrated semantic DOM skeleton inside #root. 

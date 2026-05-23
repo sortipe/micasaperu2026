@@ -12,7 +12,6 @@ import CookieConsent from './components/CookieConsent';
 import DevelopmentOptions from './components/DevelopmentOptions';
 import SupportButton from './components/SupportButton';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { initMercadoPago } from '@mercadopago/sdk-react';
 import SEOManager from './components/SEOManager';
 
 // Lazy loading heavy components for high performance Core Web Vitals
@@ -234,13 +233,6 @@ const App: React.FC = () => {
     url.pathname = `/properties/${id}`;
     window.open(url.toString(), '_blank');
   };
-
-  useEffect(() => {
-    if (mpPublicKey) {
-      console.log("Initializing Mercado Pago with Public Key:", mpPublicKey.substring(0, 15) + "...");
-      initMercadoPago(mpPublicKey, { locale: 'es-PE' });
-    }
-  }, [mpPublicKey]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
