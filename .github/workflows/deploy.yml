@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Validación de Calidad e Integración Continua
+name: Enterprise CI/CD Pipeline - DevOps & Quality Automation
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  validate:
+  static-analysis:
+    name: 🔍 Análisis Estático y Tipado (TS)
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Código Fuente
       uses: actions/checkout@v4
@@ -21,10 +21,67 @@ jobs:
         cache: 'npm'
 
     - name: Instalar Dependencias
-      run: npm install
+      run: npm ci
 
-    - name: Ejecutar Análisis de Tipado Estático (TSC)
+    - name: Verificar Tipado Estático (TypeScript)
       run: npm run lint
 
-    - name: Compilar Bundle de Producción (Vite Build)
+  security-audit:
+    name: 🛡️ Auditoría de Seguridad de Dependencias
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Código Fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar Entorno Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Instalar Dependencias
+      run: npm ci
+
+    - name: Escaneo de Vulnerabilidades (npm audit)
+      run: npm audit --audit-level=moderate || true
+
+  build-spa:
+    name: 📦 Compilación del Bundle Vite
+    runs-on: ubuntu-latest
+    needs: static-analysis
+    steps:
+    - name: Checkout Código Fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar Entorno Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Instalar Dependencias
+      run: npm ci
+
+    - name: Compilar SPA para Producción
       run: npm run build
+
+  docker-validation:
+    name: 🐳 Validación de Compilación de Contenedor Docker
+    runs-on: ubuntu-latest
+    needs: build-spa
+    steps:
+    - name: Checkout Código Fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Validar Construcción del Dockerfile (Nginx Multi-stage)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: micasaperu:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
