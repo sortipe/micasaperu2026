@@ -1,0 +1,30 @@
+name: CI/CD Pipeline - Validación de Calidad e Integración Continua
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Código Fuente
+      uses: actions/checkout@v4
+
+    - name: Configurar Entorno Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Instalar Dependencias
+      run: npm install
+
+    - name: Ejecutar Análisis de Tipado Estático (TSC)
+      run: npm run lint
+
+    - name: Compilar Bundle de Producción (Vite Build)
+      run: npm run build

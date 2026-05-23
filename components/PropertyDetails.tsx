@@ -327,6 +327,8 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [sidebarAcceptedPrivacy, setSidebarAcceptedPrivacy] = useState(false);
+  const [sidebarAcceptedPromotions, setSidebarAcceptedPromotions] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   
@@ -621,7 +623,14 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
             <div className="sticky top-28">
               <div className="bg-white p-6 rounded-[1rem] shadow-md border border-gray-200 mb-6">
                 <h3 className="text-base font-bold text-slate-900 mb-4">Contacta al anunciante</h3>
-                <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); setShowContactForm(true); }}>
+                <form className="space-y-3" onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  if (!sidebarAcceptedPrivacy) {
+                    showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para contactar al anunciante.", "WARNING");
+                    return;
+                  }
+                  setShowContactForm(true); 
+                }}>
                   <input 
                     type="email" 
                     placeholder="Email" 
@@ -651,13 +660,23 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                     defaultValue={`¡Hola! Quiero que se comuniquen conmigo por este inmueble en alquiler que vi en Micasaperu.`}
                   />
                   <div className="space-y-2 pt-2">
-                    <label className="flex items-start gap-2 text-[10px] text-gray-600">
-                      <input type="checkbox" className="mt-0.5" defaultChecked />
-                      <span>Acepto los Términos y Condiciones de Uso, y las políticas de privacidad.</span>
+                    <label className="flex items-start gap-2.5 text-[10px] text-gray-600 cursor-pointer select-none leading-relaxed">
+                      <input 
+                        type="checkbox" 
+                        className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer" 
+                        checked={sidebarAcceptedPrivacy}
+                        onChange={e => setSidebarAcceptedPrivacy(e.target.checked)}
+                      />
+                      <span>Acepto las Políticas de Privacidad y el tratamiento de mis datos de acuerdo a la Ley N° 29733 (Ley de Protección de Datos Personales en el Perú).</span>
                     </label>
-                    <label className="flex items-start gap-2 text-[10px] text-gray-600">
-                      <input type="checkbox" className="mt-0.5" defaultChecked />
-                      <span>Autorizo el uso de mi información para fines adicionales</span>
+                    <label className="flex items-start gap-2.5 text-[10px] text-gray-600 cursor-pointer select-none leading-relaxed">
+                      <input 
+                        type="checkbox" 
+                        className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer" 
+                        checked={sidebarAcceptedPromotions}
+                        onChange={e => setSidebarAcceptedPromotions(e.target.checked)}
+                      />
+                      <span>Autorizo el uso de mi información para fines de promociones y ofertas comerciales.</span>
                     </label>
                   </div>
                   <div className="pt-2 space-y-2">

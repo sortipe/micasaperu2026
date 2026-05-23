@@ -18,9 +18,13 @@ const ComplaintsBook: React.FC<ComplaintsBookProps> = ({ onSave, onClose, showTo
     date: new Date().toISOString()
   });
   const [isSending, setIsSending] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedPrivacy) {
+      return showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para registrar el reclamo.", "WARNING");
+    }
     setIsSending(true);
     try {
       await onSave(formData);
@@ -167,6 +171,20 @@ const ComplaintsBook: React.FC<ComplaintsBookProps> = ({ onSave, onClose, showTo
               <p>* Las comunicaciones respecto al reclamo se realizarán a través del(los) correo(s) electrónico(s) brindado(s).</p>
               <p>* La formulación del reclamo no impide acudir a otras vías de solución de controversias ni es requisito previo para interponer una denuncia ante Indecopi.</p>
               <p>* Los proveedores están obligados a atender los reclamos presentados en un plazo no mayor de quince (15) días hábiles improrrogables.</p>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl space-y-3 border border-slate-100">
+              <label className="flex items-start gap-2.5 text-[10.5px] text-slate-600 cursor-pointer select-none leading-relaxed">
+                <input 
+                  type="checkbox" 
+                  className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer"
+                  checked={acceptedPrivacy}
+                  onChange={e => setAcceptedPrivacy(e.target.checked)}
+                />
+                <span>
+                  Autorizo el tratamiento de mis datos personales de acuerdo a las <strong className="text-red-600 font-bold hover:underline">Políticas de Privacidad</strong> de este portal y lo dispuesto por la <strong className="font-bold text-slate-900">Ley N° 29733 (Ley de Protección de Datos Personales en el Perú)</strong>.
+                </span>
+              </label>
             </div>
             <button 
               disabled={isSending}

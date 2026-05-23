@@ -20,14 +20,82 @@
     <link rel="manifest" href="/manifest.json">
 
     <title>Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos</title>
-    
-    <!-- Google Fonts Outfit and Inter for premium HSL styling -->
+    <meta name="description" content="El portal inmobiliario líder en el Perú. Encuentra departamentos, casas, terrenos y locales comerciales en venta y alquiler directo de dueños, corredores y constructoras.">
+    <meta name="keywords" content="micasaperu, departamentos en venta lima, alquilar departamento lima, inmuebles en peru, casas en venta peru, dueños directos peru">
+    <link rel="canonical" href="https://micasaperu.com">
+
+    <!-- Preconnect to speed up premium Outfit & Inter font loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" rel="stylesheet">
     
+    <!-- Default Schema.org Structured Data (Organizations/Agent details) for static crawler indexing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "RealEstateAgent",
+      "name": "Mi Casa Perú",
+      "url": "https://micasaperu.com",
+      "logo": "https://micasaperu.com/favicon.ico",
+      "description": "Encuentra casas, departamentos, oficinas y terrenos en venta y alquiler en Lima y todo el Perú.",
+      "telephone": "+51900000000",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Av. Benavides 768, Int. 1303",
+        "addressLocality": "Miraflores",
+        "addressRegion": "Lima",
+        "addressCountry": "PE"
+      }
+    }
+    </script>
+
     <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
-    <div id="root"></div>
+    <!-- Pre-hydrated semantic DOM skeleton inside #root. 
+         React will clean and mount dynamically over this at runtime, 
+         while search engine bots and audit crawlers instantly read rich semantic texts! -->
+    <div id="root">
+        <header style="background-color: #091F4F; color: white; padding: 15px; text-align: center; font-family: 'Outfit', sans-serif;">
+            <div style="font-size: 20px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">Mi Casa Perú</div>
+        </header>
+        
+        <main style="max-w: 800px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; line-height: 1.6;">
+            <h1 style="font-size: 28px; font-weight: 850; color: #091F4F; text-transform: uppercase; margin-bottom: 20px;">
+                Encuentra Casas, Departamentos y Terrenos en Venta y Alquiler en todo el Perú
+            </h1>
+            <p style="color: #64748b; font-size: 15px; margin-bottom: 30px;">
+                Bienvenido a <strong>Mi Casa Perú</strong>, la plataforma líder de bienes raíces en el Perú. Facilitamos el contacto directo entre propietarios dueños directos, corredores inmobiliarios independientes, constructoras y compradores interesados. Explora nuestro listado completo con fotos HD, planos detallados y coordenadas interactivas.
+            </p>
+
+            <section style="margin-top: 40px;">
+                <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
+                    Zonas Inmobiliarias Populares en Lima, Perú
+                </h2>
+                <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                    <li><a href="/?search=Miraflores" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en Miraflores</a></li>
+                    <li><a href="/?search=San+Isidro" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en San Isidro</a></li>
+                    <li><a href="/?search=Santiago+de+Surco" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Inmuebles en Surco</a></li>
+                    <li><a href="/?search=San+Borja" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en San Borja</a></li>
+                    <li><a href="/?search=La+Molina" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Casas en La Molina</a></li>
+                    <li><a href="/?search=San+Miguel" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en San Miguel</a></li>
+                    <li><a href="/?search=Magdalena+del+Mar" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Inmuebles en Magdalena</a></li>
+                    <li><a href="/?search=Lince" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en Lince</a></li>
+                    <li><a href="/?search=Jesus+Maria" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Inmuebles en Jesús María</a></li>
+                </ul>
+            </section>
+        </main>
+        
+        <footer style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 30px 20px; text-align: center; font-family: 'Inter', sans-serif; font-size: 12px; color: #94a3b8;">
+            <p style="margin-bottom: 10px;">&copy; 2026 Mi Casa Perú. Todos los derechos reservados.</p>
+            <p style="margin-bottom: 15px;">Dirección de Oficina: Av. Benavides 768, Int. 1303, Miraflores, Lima, Perú</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <a href="/terms" style="color: #64748b; text-decoration: none;">Términos de Uso</a>
+                <a href="/privacy" style="color: #64748b; text-decoration: none;">Políticas de Privacidad (Ley N° 29733)</a>
+                <a href="/complaints" style="color: #64748b; text-decoration: none; font-weight: bold;">Libro de Reclamaciones</a>
+            </div>
+        </footer>
+    </div>
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

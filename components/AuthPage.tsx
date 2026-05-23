@@ -22,6 +22,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +30,11 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
     
     if (!email || !password || (!isLogin && !fullName)) {
       setError('Por favor, completa todos los campos.');
+      return;
+    }
+
+    if (!isLogin && !acceptedPrivacy) {
+      setError('Debes aceptar las Políticas de Privacidad (Ley N° 29733) para completar el registro.');
       return;
     }
 
@@ -263,6 +269,22 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
               </button>
             </div>
           </div>
+
+          {!isLogin && (
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start gap-2.5 text-[11px] text-slate-500 cursor-pointer select-none leading-relaxed">
+                <input 
+                  type="checkbox" 
+                  className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer"
+                  checked={acceptedPrivacy}
+                  onChange={e => setAcceptedPrivacy(e.target.checked)}
+                />
+                <span>
+                  Acepto las <strong className="text-red-600 font-bold hover:underline">Políticas de Privacidad</strong> y autorizo el tratamiento de mis datos personales de acuerdo a la <strong className="font-bold text-slate-900">Ley N° 29733 en el Perú</strong>.
+                </span>
+              </label>
+            </div>
+          )}
 
           <button 
             type="submit"
