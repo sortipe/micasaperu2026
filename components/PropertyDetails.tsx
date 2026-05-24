@@ -319,9 +319,11 @@ interface PropertyDetailsProps {
   onBack: () => void;
   onSendMessage: (data: Partial<Inquiry>) => Promise<void>;
   showToast: (message: string, type: ToastType) => void;
+  relatedProperties?: Property[];
+  onPropertySelect?: (id: string) => void;
 }
 
-const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBack, onSendMessage, showToast }) => {
+const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBack, onSendMessage, showToast, relatedProperties = [], onPropertySelect }) => {
   const [activeImage, setActiveImage] = useState(property.featuredImage);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
@@ -400,10 +402,17 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
     <div className="bg-white min-h-screen animate-fade-in pb-20">
       <div className="bg-white border-b sticky top-16 z-30">
         <div className="container mx-auto px-4 py-2.5 flex items-center justify-between">
-          <button onClick={onBack} className="text-red-600 font-black uppercase text-[9px] tracking-widest hover:translate-x-[-4px] transition-all flex items-center bg-red-50 px-3 py-1.5 rounded-lg">
-            <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Volver
-          </button>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
+            <button onClick={onBack} className="text-red-600 font-black uppercase text-[9px] tracking-widest hover:translate-x-[-4px] transition-all flex items-center bg-red-50 px-3 py-1.5 rounded-lg mr-3">
+              <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Volver
+            </button>
+            <a href="/" className="hover:text-red-600 transition-colors text-gray-500">Inicio</a>
+            <span className="text-gray-300">/</span>
+            <a href={`/?type=${encodeURIComponent(property.type)}&status=${property.status}`} className="hover:text-red-600 transition-colors text-gray-500">{property.type} en {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : 'Proyecto'}</a>
+            <span className="text-gray-300">/</span>
+            <span className="text-gray-800 truncate max-w-[200px]">{property.title}</span>
+          </nav>
         </div>
       </div>
 
@@ -725,6 +734,34 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
           </div>
         </div>
       </div>
+
+      {relatedProperties.length > 0 && (
+        <div className="container mx-auto px-4 py-10 border-t border-gray-100">
+          <h2 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight border-l-4 border-red-600 pl-3">
+            Propiedades Relacionadas en {property.district}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {relatedProperties.slice(0, 4).map(rp => (
+              <article
+                key={rp.id}
+                onClick={() => onPropertySelect?.(rp.id)}
+                className="bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              >
+                <div className="h-36 overflow-hidden">
+                  <img src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
+                </div>
+                <div className="p-3">
+                  <p className="text-[9px] text-gray-500 mb-1">{rp.type} · {rp.bedrooms} dorm</p>
+                  <p className="text-sm font-bold text-slate-900 truncate">
+                    {rp.priceUSD ? `$ ${rp.priceUSD.toLocaleString()}` : `S/ ${rp.pricePEN.toLocaleString()}`}
+                  </p>
+                  <p className="text-[10px] text-gray-500 truncate">{rp.district}, {rp.department}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showContactForm && (
         <ContactFormModal 

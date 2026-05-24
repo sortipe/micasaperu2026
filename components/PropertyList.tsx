@@ -111,7 +111,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
             >
               {/* Image Section */}
               <div className="relative w-full md:w-[320px] shrink-0 overflow-hidden aspect-[4/3] md:aspect-auto h-full">
-                <img src={property.featuredImage} alt={`${property.title} - ${property.district}, ${property.department}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                <img src={property.featuredImage} alt={`${property.title} - ${property.district}, ${property.department}`} width="320" height="260" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading={properties.indexOf(property) === 0 ? 'eager' : 'lazy'} fetchpriority={properties.indexOf(property) === 0 ? 'high' : 'auto'} />
                 
                 {/* Tag on image */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -300,7 +300,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
             onClick={(e) => handlePropertyClick(property.id, e)}
           >
             <div className={`relative ${isSlider ? 'h-40' : 'h-48'}`}>
-              <img src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" loading="lazy" />
+              <img src={property.featuredImage} alt={property.title} width="400" height="300" className="w-full h-full object-cover" loading="lazy" />
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(property.id); }}
                 className="absolute top-2 right-2 w-7 h-7 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-colors"

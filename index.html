@@ -70,21 +70,97 @@
     </script>
 </head>
 <body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
+    <!-- FAQPage schema for rich results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Cómo publicar una propiedad en Mi Casa Perú?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Regístrate gratis, selecciona el plan que mejor se adapte a tus necesidades y completa los datos de tu inmueble con fotos, planos y coordenadas."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuánto cuesta publicar un aviso inmobiliario?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Los planes van desde S/100 mensuales por una propiedad hasta paquetes corporativos. Ofrecemos planes destacados y súper destacados para máxima exposición."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué distritos de Lima tienen más propiedades en venta?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Miraflores, San Isidro, Santiago de Surco, La Molina, San Borja y Barranco concentran la mayor oferta de departamentos y casas en venta en Lima."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo contactar al dueño directo de una propiedad?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Cada propiedad tiene un formulario de contacto y un enlace directo a WhatsApp del anunciante. Puedes enviar un mensaje sin intermediarios."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Mi Casa Perú es solo para Lima?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No, tenemos propiedades en todo el Perú: Arequipa, Trujillo, Cusco, Piura, Tarapoto, Lambayeque, Ica y más regiones."
+          }
+        }
+      ]
+    }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
     <!-- Pre-hydrated semantic DOM skeleton inside #root. 
          React will clean and mount dynamically over this at runtime, 
          while search engine bots and audit crawlers instantly read rich semantic texts! -->
     <div id="root">
         <header style="background-color: #091F4F; color: white; padding: 15px; text-align: center; font-family: 'Outfit', sans-serif;">
             <div style="font-size: 20px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;">Mi Casa Perú</div>
+            <nav style="margin-top: 10px; display: flex; justify-content: center; gap: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;">
+                <a href="/" style="color: white; text-decoration: none;">Inicio</a>
+                <a href="/pricing" style="color: #f87171; text-decoration: none;">Planes</a>
+                <a href="/search" style="color: white; text-decoration: none;">Buscador</a>
+            </nav>
         </header>
         
-        <main style="max-w: 800px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; line-height: 1.6;">
+        <main style="max-width: 900px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; line-height: 1.6;">
             <h1 style="font-size: 28px; font-weight: 850; color: #091F4F; text-transform: uppercase; margin-bottom: 20px;">
                 Encuentra Casas, Departamentos y Terrenos en Venta y Alquiler en todo el Perú
             </h1>
             <p style="color: #64748b; font-size: 15px; margin-bottom: 30px;">
                 Bienvenido a <strong>Mi Casa Perú</strong>, la plataforma líder de bienes raíces en el Perú. Facilitamos el contacto directo entre propietarios dueños directos, corredores inmobiliarios independientes, constructoras y compradores interesados. Explora nuestro listado completo con fotos HD, planos detallados y coordenadas interactivas.
             </p>
+
+            <!-- Stats / Social Proof -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 40px; text-align: center;">
+                <div style="background: #f8fafc; border-radius: 12px; padding: 20px 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; font-weight: 900; color: #ef4444;">500+</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Propiedades publicadas</div>
+                </div>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 20px 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; font-weight: 900; color: #ef4444;">50+</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Asesores inmobiliarios</div>
+                </div>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 20px 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; font-weight: 900; color: #ef4444;">12</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Distritos en Lima</div>
+                </div>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 20px 10px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; font-weight: 900; color: #ef4444;">7</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Regiones del Perú</div>
+                </div>
+            </div>
 
             <section style="margin-top: 40px;">
                 <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
@@ -109,6 +185,10 @@
                     <li><a href="/?search=Callao" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en Callao</a></li>
                     <li><a href="/?search=Arequipa" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Inmuebles en Arequipa</a></li>
                     <li><a href="/?search=Trujillo" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Casas en Trujillo</a></li>
+                    <li><a href="/?search=Cusco" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Inmuebles en Cusco</a></li>
+                    <li><a href="/?search=Piura" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Departamentos en Piura</a></li>
+                    <li><a href="/?search=Tarapoto" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Casas en Tarapoto</a></li>
+                    <li><a href="/?search=Ica" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Terrenos en Ica</a></li>
                 </ul>
             </section>
 
@@ -127,12 +207,45 @@
                     <li><a href="/?status=PROJECT" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Proyectos Inmobiliarios Lima</a></li>
                 </ul>
             </section>
+
+            <!-- FAQ Section -->
+            <section style="margin-top: 40px; margin-bottom: 40px;">
+                <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
+                    Preguntas Frecuentes sobre Inmuebles en Perú
+                </h2>
+                <div itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h3 itemprop="name" style="font-size: 14px; font-weight: 800; color: #091F4F; margin-bottom: 8px;">¿Cómo publicar una propiedad en Mi Casa Perú?</h3>
+                    <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p itemprop="text" style="font-size: 13px; color: #64748b;">Regístrate gratis, selecciona el plan que mejor se adapte a tus necesidades y completa los datos de tu inmueble con fotos, planos y coordenadas.</p>
+                    </div>
+                </div>
+                <div itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h3 itemprop="name" style="font-size: 14px; font-weight: 800; color: #091F4F; margin-bottom: 8px;">¿Cuánto cuesta publicar un aviso inmobiliario?</h3>
+                    <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p itemprop="text" style="font-size: 13px; color: #64748b;">Los planes van desde S/100 mensuales por una propiedad hasta paquetes corporativos. Ofrecemos planes destacados y súper destacados para máxima exposición.</p>
+                    </div>
+                </div>
+                <div itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h3 itemprop="name" style="font-size: 14px; font-weight: 800; color: #091F4F; margin-bottom: 8px;">¿Qué distritos de Lima tienen más propiedades en venta?</h3>
+                    <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p itemprop="text" style="font-size: 13px; color: #64748b;">Miraflores, San Isidro, Santiago de Surco, La Molina, San Borja y Barranco concentran la mayor oferta de departamentos y casas en venta en Lima.</p>
+                    </div>
+                </div>
+                <div itemscope="" itemprop="mainEntity" itemtype="https://schema.org/Question" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h3 itemprop="name" style="font-size: 14px; font-weight: 800; color: #091F4F; margin-bottom: 8px;">¿Cómo contacto al dueño directo de una propiedad?</h3>
+                    <div itemscope="" itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <p itemprop="text" style="font-size: 13px; color: #64748b;">Cada propiedad tiene un formulario de contacto y un enlace directo a WhatsApp del anunciante. Puedes enviar un mensaje sin intermediarios.</p>
+                    </div>
+                </div>
+            </section>
         </main>
         
         <footer style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 30px 20px; text-align: center; font-family: 'Inter', sans-serif; font-size: 12px; color: #94a3b8;">
             <p style="margin-bottom: 10px;">&copy; 2026 Mi Casa Perú. Todos los derechos reservados.</p>
-            <p style="margin-bottom: 15px;">Dirección de Oficina: Av. Benavides 768, Int. 1303, Miraflores, Lima, Perú</p>
-            <div style="display: flex; justify-content: center; gap: 15px;">
+            <p style="margin-bottom: 10px;">Dirección: Av. Benavides 768, Int. 1303, Miraflores, Lima, Perú | Tel: +51900000000 | Email: hola@micasaperu.com</p>
+            <p style="margin-bottom: 15px; font-size: 11px; color: #cbd5e1;">Portal inmobiliario líder en Perú: departamentos en venta Lima, alquiler de casas, terrenos, oficinas y locales comerciales. Dueños directos, corredores e inmobiliarias.</p>
+            <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <a href="/pricing" style="color: #64748b; text-decoration: none;">Planes de Publicidad</a>
                 <a href="/terms" style="color: #64748b; text-decoration: none;">Términos de Uso</a>
                 <a href="/privacy" style="color: #64748b; text-decoration: none;">Políticas de Privacidad (Ley N° 29733)</a>
                 <a href="/complaints" style="color: #64748b; text-decoration: none; font-weight: bold;">Libro de Reclamaciones</a>

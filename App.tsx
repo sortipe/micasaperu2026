@@ -1590,7 +1590,14 @@ const App: React.FC = () => {
 
           {view === 'DETAILS' && selectedPropertyId && (
             properties.some(p => p.id === selectedPropertyId) ? (
-              <PropertyDetails property={properties.find(p => p.id === selectedPropertyId)!} onBack={() => { setView('SEARCH'); window.history.pushState({}, '', window.location.pathname); }} onSendMessage={handleSendMessage} showToast={showToast} />
+              <PropertyDetails
+                property={properties.find(p => p.id === selectedPropertyId)!}
+                onBack={() => { setView('SEARCH'); window.history.pushState({}, '', window.location.pathname); }}
+                onSendMessage={handleSendMessage}
+                showToast={showToast}
+                relatedProperties={properties.filter(p => p.id !== selectedPropertyId && (p.district === properties.find(x => x.id === selectedPropertyId)?.district || p.type === properties.find(x => x.id === selectedPropertyId)?.type)).slice(0, 6)}
+                onPropertySelect={(id) => { setSelectedPropertyId(id); window.scrollTo(0, 0); }}
+              />
             ) : (
               <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
                 <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
