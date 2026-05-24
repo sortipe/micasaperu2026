@@ -1,0 +1,13 @@
+# Default owner for all files
+* @sortipe
+
+# CI/CD configurations
+.github/ @sortipe
+
+# Docker configuration
+Dockerfile @sortipe
+docker-compose.yml @sortipe
+nginx.conf @sortipe
+
+# Infrastructure
+vercel.json @sortipe
