@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://uxdnhmkoiqqeiaoxeedw.supabase.co";
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE";
@@ -119,7 +119,7 @@ function replaceMeta(html, title, description, canonical, ogImage, lastmod, keyw
   return html;
 }
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   let indexPath = path.join(process.cwd(), 'dist', 'index.html');
   if (!fs.existsSync(indexPath)) {
     indexPath = path.join(process.cwd(), 'index.html');
