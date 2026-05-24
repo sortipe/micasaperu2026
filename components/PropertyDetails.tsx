@@ -6,6 +6,7 @@ import { Property, User, Inquiry } from '../types';
 import { ToastType } from './Toast';
 
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const PhotoViewer = ({ images, initialIndex, onClose }: { images: string[], initialIndex: number, onClose: () => void }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
