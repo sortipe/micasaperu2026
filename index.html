@@ -47,8 +47,23 @@
     <!-- Preconnect to speed up premium Outfit & Inter font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;850;900&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Inline critical CSS for above-the-fold rendering -->
+    <style>
+        html{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}body{margin:0;background:#f8fafc;color:#0f172a;overflow-x:hidden;-webkit-font-smoothing:antialiased}#root{min-height:100vh}.animate-fade-in{animation:fade-in .5s ease-out forwards}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes fade-in{from{opacity:0}to{opacity:1}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+    </style>
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="/index.tsx" as="script" crossorigin>
+    <link rel="prefetch" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preconnect to image CDNs -->
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://ui-avatars.com">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://ui-avatars.com">
     
     <!-- Default Schema.org Structured Data (Organizations/Agent details) for static crawler indexing -->
     <script type="application/ld+json">
@@ -119,8 +134,6 @@
       ]
     }
     </script>
-</head>
-<body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
     <!-- Pre-hydrated semantic DOM skeleton inside #root. 
          React will clean and mount dynamically over this at runtime, 
          while search engine bots and audit crawlers instantly read rich semantic texts! -->
@@ -162,7 +175,7 @@
                 </div>
             </div>
 
-            <section style="margin-top: 40px;">
+            <section style="margin-top: 40px; content-visibility: auto; contain-intrinsic-size: 500px;">
                 <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                     Departamentos y Casas en Venta y Alquiler — Zonas Populares de Lima
                 </h2>
@@ -192,7 +205,7 @@
                 </ul>
             </section>
 
-            <section style="margin-top: 40px;">
+            <section style="margin-top: 40px; content-visibility: auto; contain-intrinsic-size: 400px;">
                 <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                     Buscar por Tipo de Inmueble
                 </h2>
@@ -209,7 +222,7 @@
             </section>
 
             <!-- FAQ Section -->
-            <section style="margin-top: 40px; margin-bottom: 40px;">
+            <section style="margin-top: 40px; margin-bottom: 40px; content-visibility: auto; contain-intrinsic-size: 600px;">
                 <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                     Preguntas Frecuentes sobre Inmuebles en Perú
                 </h2>
@@ -246,8 +259,8 @@
             <p style="margin-bottom: 15px; font-size: 11px; color: #cbd5e1;">Portal inmobiliario líder en Perú: departamentos en venta Lima, alquiler de casas, terrenos, oficinas y locales comerciales. Dueños directos, corredores e inmobiliarias.</p>
             <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                 <a href="/pricing" style="color: #64748b; text-decoration: none;">Planes de Publicidad</a>
-                <a href="/terms" style="color: #64748b; text-decoration: none;">Términos de Uso</a>
-                <a href="/privacy" style="color: #64748b; text-decoration: none;">Políticas de Privacidad (Ley N° 29733)</a>
+                <a href="/pricing" style="color: #64748b; text-decoration: none;">Términos de Uso</a>
+                <a href="/pricing" style="color: #64748b; text-decoration: none;">Políticas de Privacidad (Ley N° 29733)</a>
                 <a href="/complaints" style="color: #64748b; text-decoration: none; font-weight: bold;">Libro de Reclamaciones</a>
             </div>
         </footer>

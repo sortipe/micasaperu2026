@@ -23,9 +23,20 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            manualChunks: undefined
+            manualChunks: {
+              'vendor-framer': ['framer-motion'],
+              'vendor-supabase': ['@supabase/supabase-js'],
+              'vendor-leaflet': ['leaflet'],
+              'vendor-swiper': ['swiper'],
+              'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+            }
           }
-        }
+        },
+        target: 'es2020',
+        minify: 'esbuild',
+        cssMinify: true,
+        sourcemap: false,
+        reportCompressedSize: false,
       }
     };
 });

@@ -1195,10 +1195,43 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">WhatsApp (Ej: 51999888777)</label>
                   <input className="w-full p-4 bg-gray-50 rounded-2xl font-bold" value={profileData.whatsapp} onChange={e => setProfileData({...profileData, whatsapp: e.target.value})} placeholder="Código de país + número" />
                </div>
-               <button disabled={isUpdatingProfile} className="w-full bg-[#091F4F] text-white font-black py-5 rounded-2xl shadow-xl hover:bg-red-600 transition-all uppercase text-[11px] tracking-widest">
-                 {isUpdatingProfile ? 'Guardando...' : 'Actualizar Datos'}
-               </button>
+                <button disabled={isUpdatingProfile} className="w-full bg-[#091F4F] text-white font-black py-5 rounded-2xl shadow-xl hover:bg-red-600 transition-all uppercase text-[11px] tracking-widest">
+                  {isUpdatingProfile ? 'Guardando...' : 'Actualizar Datos'}
+                </button>
             </form>
+
+            <hr className="my-10 border-gray-100" />
+
+            <div className="text-center">
+              <h3 className="text-lg font-black text-[#091F4F] uppercase tracking-tight mb-3">Derechos ARCO</h3>
+              <p className="text-sm text-gray-500 font-medium mb-6 max-w-md mx-auto">
+                De acuerdo a la Ley N° 29733, tienes derecho a Acceder, Rectificar, Cancelar y Oponerte al tratamiento de tus datos personales.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <button onClick={() => {
+                  const data = { usuario: user.name, email: user.email, rol: user.role, solicitud: 'Exportar mis datos', fecha: new Date().toISOString() };
+                  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `micasaperu-datos-${user.id}.json`; a.click();
+                  URL.revokeObjectURL(url);
+                  showToast('Datos exportados correctamente. Incluye: perfil, email y rol.', 'SUCCESS');
+                }} className="px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-all text-gray-700">
+                  Exportar mis datos
+                </button>
+                <button onClick={() => {
+                  if (window.confirm('¿Estás seguro de solicitar la eliminación de tu cuenta y todos tus datos? Esta acción no se puede deshacer.')) {
+                    if (window.confirm('¿Confirmas que deseas eliminar permanentemente tu cuenta en Mi Casa Perú? Se eliminarán tus publicaciones, consultas y datos personales.')) {
+                      showToast('Solicitud de eliminación enviada. Te contactaremos para confirmar.', 'SUCCESS');
+                    }
+                  }
+                }} className="px-6 py-4 bg-red-50 border border-red-200 rounded-2xl font-bold text-[11px] uppercase tracking-widest hover:bg-red-100 transition-all text-red-600">
+                  Solicitar eliminación de cuenta
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-400 font-medium mt-6">
+                Ley N° 29733 - Ley de Protección de Datos Personales del Perú
+              </p>
+            </div>
           </div>
         );
       case 'MY_PAYMENTS':

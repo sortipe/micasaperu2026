@@ -497,7 +497,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                     ) : (
                       <div className="flex flex-col items-center text-center">
                          <div className="w-44 h-44 bg-white p-3 rounded-[2rem] border-4 border-gray-50 shadow-inner mb-6 flex items-center justify-center overflow-hidden">
-                           <img src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="QR" />
+                           <img src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="Código QR para pago con Yape" />
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
                            {selectedMethod.instructions || 'Escanea el código y adjunta una captura de pantalla del comprobante'}

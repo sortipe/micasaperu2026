@@ -102,6 +102,8 @@ function replaceMeta(html, title, description, canonical, ogImage, lastmod, keyw
     <meta property="og:title" content="${escapeHtml(title)}">
     <meta property="og:description" content="${escapeHtml(description)}">
     <meta property="og:image" content="${escapeHtml(ogImage)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url" content="${escapeHtml(canonical)}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Mi Casa Perú">

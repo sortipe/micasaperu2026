@@ -123,10 +123,14 @@ const App: React.FC = () => {
       { platform: 'FACEBOOK', url: '' }, { platform: 'INSTAGRAM', url: '' }, { platform: 'LINKEDIN', url: '' }, { platform: 'TIKTOK', url: '' }, { platform: 'WHATSAPP', url: '' }
     ];
   });
-  const [mpPublicKey, setMpPublicKey] = useState<string>(localStorage.getItem('micasaperu_cache_mp_public_key') || 'APP_USR-c72f0355-efb1-4510-b26b-0ae474fb71b3');
-  const [mpAccessToken, setMpAccessToken] = useState<string>(localStorage.getItem('micasaperu_cache_mp_access_token') || 'APP_USR-196044625653701-040114-066c31d3a85d0124177981fb2c7966a8-3296424329');
-  const [mpClientId, setMpClientId] = useState<string>(localStorage.getItem('micasaperu_cache_mp_client_id') || '1960446256553701');
-  const [mpClientSecret, setMpClientSecret] = useState<string>(localStorage.getItem('micasaperu_cache_mp_client_secret') || 'vB3NvBI7MC4mZaqZoO5228Fu0SgjOChG');
+  const [mpPublicKey, setMpPublicKey] = useState<string>(localStorage.getItem('micasaperu_cache_mp_public_key') || '');
+  const [mpAccessToken, setMpAccessToken] = useState<string>('');
+  const [mpClientId, setMpClientId] = useState<string>('');
+  const [mpClientSecret, setMpClientSecret] = useState<string>('');
+  // Clean up any previously stored sensitive credentials from localStorage
+  localStorage.removeItem('micasaperu_cache_mp_access_token');
+  localStorage.removeItem('micasaperu_cache_mp_client_id');
+  localStorage.removeItem('micasaperu_cache_mp_client_secret');
   
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(() => {
     const cached = localStorage.getItem('micasaperu_cache_payment_methods');
@@ -616,15 +620,15 @@ const App: React.FC = () => {
             }
             if (item.key === 'mp_access_token') {
               setMpAccessToken(item.value);
-              localStorage.setItem('micasaperu_cache_mp_access_token', item.value);
+              // NOT stored in localStorage - security: kept only in memory
             }
             if (item.key === 'mp_client_id') {
               setMpClientId(item.value);
-              localStorage.setItem('micasaperu_cache_mp_client_id', item.value);
+              // NOT stored in localStorage - security: kept only in memory
             }
             if (item.key === 'mp_client_secret') {
               setMpClientSecret(item.value);
-              localStorage.setItem('micasaperu_cache_mp_client_secret', item.value);
+              // NOT stored in localStorage - security: kept only in memory
             }
           } catch (e) {
             // If parsing fails, it might just be a plain string
@@ -633,9 +637,9 @@ const App: React.FC = () => {
             if (item.key === 'home_banner_mobile') { setHomeBannerMobile(item.value); localStorage.setItem('micasaperu_cache_home_banner_mobile', item.value); }
             if (item.key === 'favicon') { setFavicon(item.value); localStorage.setItem('micasaperu_cache_favicon', item.value); }
             if (item.key === 'mp_public_key') { setMpPublicKey(item.value); localStorage.setItem('micasaperu_cache_mp_public_key', item.value); }
-            if (item.key === 'mp_access_token') { setMpAccessToken(item.value); localStorage.setItem('micasaperu_cache_mp_access_token', item.value); }
-            if (item.key === 'mp_client_id') { setMpClientId(item.value); localStorage.setItem('micasaperu_cache_mp_client_id', item.value); }
-            if (item.key === 'mp_client_secret') { setMpClientSecret(item.value); localStorage.setItem('micasaperu_cache_mp_client_secret', item.value); }
+            if (item.key === 'mp_access_token') { setMpAccessToken(item.value); }
+            if (item.key === 'mp_client_id') { setMpClientId(item.value); }
+            if (item.key === 'mp_client_secret') { setMpClientSecret(item.value); }
           }
         });
       }

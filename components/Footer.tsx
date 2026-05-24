@@ -36,7 +36,7 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
           <div className="space-y-6">
             <div className="cursor-pointer flex items-center" onClick={() => onNavigate('HOME')}>
               {logo ? (
-                <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />
+                <img src={logo} alt="Mi Casa Perú - Logo" className="h-10 w-auto object-contain" loading="lazy" />
               ) : (
                 <span className="font-black text-2xl tracking-tighter">MICASAPERU</span>
               )}

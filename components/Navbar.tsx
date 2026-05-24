@@ -96,7 +96,7 @@ alt="Mi Casa Perú - Logo"
                     </p>
                   </div>
                   <div className="relative group cursor-pointer" onClick={() => onNavigate('DASHBOARD')}>
-                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt={`${user.name} - Avatar`} />
+                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt={`${user.name} - Avatar`} loading="lazy" />
                   </div>
                 </div>
               ) : (
@@ -131,9 +131,9 @@ alt="Mi Casa Perú - Logo"
           <div className="absolute top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl p-8 flex flex-col animate-slide-up">
             <div className="flex justify-between items-center mb-8">
                {logo ? (
-                 <img src={logo} alt="App Logo" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" />
+                  <img src={logo} alt="App Logo" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" loading="lazy" />
                ) : (
-                 <div className="w-10 h-10" />
+                  <div className="w-10 h-10" />
                )}
                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-gray-100 rounded-xl">
                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -144,7 +144,7 @@ alt="Mi Casa Perú - Logo"
             <div className="mb-8 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
               {user ? (
                 <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleLinkClick('DASHBOARD')}>
-                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt="User" />
+                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt={`${user.name} - Avatar de usuario`} loading="lazy" />
                   <div>
                     <p className="text-sm font-black text-[#091F4F] leading-none mb-1">{user.name}</p>
                     <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">Ver mi panel</p>

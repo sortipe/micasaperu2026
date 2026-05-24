@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { CapacitorHttp } from '@capacitor/core';
 import { Property, LocationItem } from '../types';
 import { PERU_LOCATIONS } from '../constants';
@@ -289,7 +290,7 @@ const MapView: React.FC<MapViewProps> = ({
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[3000] w-full max-w-sm px-4">
           <div className="bg-white rounded-[2rem] shadow-2xl border border-gray-100 flex p-3 animate-slide-up">
             <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0">
-              <img src={focusedProperty.featuredImage} className="w-full h-full object-cover" alt="Thumb" />
+              <img src={focusedProperty.featuredImage} className="w-full h-full object-cover" alt={`${focusedProperty.title} - ${focusedProperty.district}`} />
             </div>
             <div className="pl-4 flex flex-col justify-center flex-grow">
                <span className="text-red-600 font-black text-xl tracking-tighter leading-none mb-1">

@@ -240,4 +240,34 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "allowAdsUsage" BOOLEAN DEFAULT false;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "lat" NUMERIC;
   ALTER TABLE public.properties ADD COLUMN IF NOT EXISTS "lng" NUMERIC;
+
+  -- 3. TABLA PARA REGISTRO DE CONSENTIMIENTO (Ley 29733 - Art. 5)
+  CREATE TABLE IF NOT EXISTS public.consent_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    consent_version TEXT NOT NULL,
+    preferences JSONB NOT NULL,
+    user_agent TEXT,
+    ip_hash TEXT,
+    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );
+  ALTER TABLE public.consent_logs ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Insert consent logs anon" ON public.consent_logs FOR INSERT TO anon WITH CHECK (true);
+  CREATE POLICY "Select own consent logs" ON public.consent_logs FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+  -- 4. TABLA PARA SOLICITUDES ARCO (Ley 29733 - Art. 8, 9)
+  CREATE TABLE IF NOT EXISTS public.data_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_name TEXT,
+    user_email TEXT,
+    request_type TEXT NOT NULL CHECK (request_type IN ('ACCESS', 'RECTIFICATION', 'CANCELLATION', 'OPPOSITION', 'DATA_EXPORT', 'ACCOUNT_DELETION')),
+    description TEXT,
+    status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'REJECTED')),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+  );
+  ALTER TABLE public.data_requests ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "Insert own data requests" ON public.data_requests FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+  CREATE POLICY "Select own data requests" ON public.data_requests FOR SELECT TO authenticated USING (auth.uid() = user_id);
 */

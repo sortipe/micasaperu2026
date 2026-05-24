@@ -77,6 +77,7 @@ const PhotoViewer = ({ images, initialIndex, onClose }: { images: string[], init
               src={images[currentIndex]}
               className="max-w-full max-h-[70vh] object-contain shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] rounded-2xl border border-white/10"
               alt={`Imagen ${currentIndex + 1}`}
+              loading="lazy"
             />
           </motion.div>
         </AnimatePresence>
@@ -196,7 +197,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner overflow-hidden border-2 border-white">
               {agentAvatar ? (
-                <img src={agentAvatar} alt={agentName} className="w-full h-full object-cover" />
+                <img src={agentAvatar} alt={agentName} className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               )}
@@ -402,16 +403,31 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
     <div className="bg-white min-h-screen animate-fade-in pb-20">
       <div className="bg-white border-b sticky top-16 z-30">
         <div className="container mx-auto px-4 py-2.5 flex items-center justify-between">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[11px] font-bold text-gray-400">
-            <button onClick={onBack} className="text-red-600 font-black uppercase text-[9px] tracking-widest hover:translate-x-[-4px] transition-all flex items-center bg-red-50 px-3 py-1.5 rounded-lg mr-3">
-              <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-              Volver
-            </button>
-            <a href="/" className="hover:text-red-600 transition-colors text-gray-500">Inicio</a>
-            <span className="text-gray-300">/</span>
-            <a href={`/?type=${encodeURIComponent(property.type)}&status=${property.status}`} className="hover:text-red-600 transition-colors text-gray-500">{property.type} en {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : 'Proyecto'}</a>
-            <span className="text-gray-300">/</span>
-            <span className="text-gray-800 truncate max-w-[200px]">{property.title}</span>
+          <nav aria-label="Breadcrumb">
+            <ol className="flex items-center gap-2 text-[11px] font-bold text-gray-400 list-none p-0 m-0" itemScope itemType="https://schema.org/BreadcrumbList">
+              <li className="flex items-center gap-2" itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <button onClick={onBack} className="text-red-600 font-black uppercase text-[9px] tracking-widest hover:translate-x-[-4px] transition-all flex items-center bg-red-50 px-3 py-1.5 rounded-lg mr-1">
+                  <svg className="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                  Volver
+                </button>
+                <a href="/" className="hover:text-red-600 transition-colors text-gray-500" itemProp="item"><span itemProp="name">Inicio</span></a>
+                <meta itemProp="position" content="1" />
+              </li>
+              <li className="flex items-center gap-2" aria-hidden="true">
+                <span className="text-gray-300">/</span>
+              </li>
+              <li className="flex items-center gap-2" itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <a href={`/?type=${encodeURIComponent(property.type)}&status=${property.status}`} className="hover:text-red-600 transition-colors text-gray-500" itemProp="item"><span itemProp="name">{property.type} en {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : 'Proyecto'}</span></a>
+                <meta itemProp="position" content="2" />
+              </li>
+              <li className="flex items-center gap-2" aria-hidden="true">
+                <span className="text-gray-300">/</span>
+              </li>
+              <li className="flex items-center gap-2" itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem">
+                <span className="text-gray-800 truncate max-w-[200px]" aria-current="page" itemProp="item"><span itemProp="name">{property.title}</span></span>
+                <meta itemProp="position" content="3" />
+              </li>
+            </ol>
           </nav>
         </div>
       </div>
@@ -428,7 +444,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 }}
                 className="rounded-[2rem] overflow-hidden aspect-video shadow-xl bg-gray-200 border-2 border-white relative group cursor-zoom-in"
               >
-                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" />
+                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchpriority="high" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Maximize className="text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 w-12 h-12" strokeWidth={1.5} />
                 </div>
@@ -458,7 +474,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                       }} 
                       className={`shrink-0 w-20 h-14 md:w-28 md:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${activeImage === img ? 'border-red-600 scale-105 shadow-lg' : 'border-white opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} />
+                      <img src={img} className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -472,10 +488,13 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   {property.type} · {property.bedrooms} dormitorios
                 </p>
 
-                {/* Price */}
-                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 mb-1">
+                {/* Title - H1 for SEO */}
+                <h1 className="text-xl md:text-2xl font-black text-slate-900 mb-1">{property.title}</h1>
+                
+                {/* Price - H2 */}
+                <h2 className="text-lg md:text-xl font-extrabold text-red-600 mb-1">
                   {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : property.status} S/ {property.pricePEN.toLocaleString()} · USD {property.priceUSD.toLocaleString()}
-                </h1>
+                </h2>
                 {property.maintenanceFee ? (
                   <p className="text-sm text-slate-500 font-medium mb-4">S/ {property.maintenanceFee} Mantenimiento</p>
                 ) : <div className="mb-4"></div>}
@@ -520,9 +539,8 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   </div>
                 </div>
 
-                {/* Title and Subtitle */}
+                {/* Description */}
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 mb-2">{property.title}</h2>
                   <p className="text-sm text-slate-600 font-medium mb-6">{property.address}</p>
                   <div className={`relative ${!isDescriptionExpanded ? 'max-h-24 overflow-hidden' : ''}`}>
                     <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{property.description}</p>

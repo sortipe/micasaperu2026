@@ -47,8 +47,8 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) 
                             property.status === 'FOR_SALE' ? 'Venta' : 
                             property.status === 'PROJECT' ? 'Proyecto' : 'Traspaso/Otro';
 
-      title = `${property.title} | ${property.district}, ${property.department} - Mi Casa Perú`;
-      description = `Visualiza esta increíble propiedad en ${property.district}: ${property.type} en ${operationType} por ${priceString}. ${property.bedrooms} hab, ${property.bathrooms} baños, ${property.constructionArea} m². ¡Contáctanos!`;
+      title = `${property.title} - ${property.district}, ${property.department} | Mi Casa Perú`;
+      description = `${property.type} en ${operationType} en ${property.district} - ${priceString}. ${property.bedrooms} dormitorios, ${property.bathrooms} baños, ${property.constructionArea || property.terrainArea || 0} m². ¡Contáctanos!`;
       keywords = `${property.type} en ${property.district}, ${property.type} ${operationType} ${property.department}, inmobiliaria ${property.district}, ${property.title}`;
       ogUrl = `${window.location.origin}/properties/${property.id}`;
       if (property.featuredImage) {
@@ -122,10 +122,14 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) 
     } else if (view === 'ADMIN') {
       title = 'Panel de Administración | Mi Casa Perú';
       description = 'Panel administrativo interno de micasaperu.com.';
+      updateMetaTag('name', 'robots', 'noindex, nofollow');
+      updateMetaTag('name', 'googlebot', 'noindex, nofollow');
       clearSchemaScripts();
     } else if (view === 'DASHBOARD') {
       title = 'Mi Cuenta - Dashboard | Mi Casa Perú';
       description = 'Administra tus publicaciones, planes activos e información de contacto en Mi Casa Perú.';
+      updateMetaTag('name', 'robots', 'noindex, nofollow');
+      updateMetaTag('name', 'googlebot', 'noindex, nofollow');
       clearSchemaScripts();
     } else {
       const websiteSchema = {
@@ -172,8 +176,12 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) 
     updateMetaTag('property', 'og:title', title);
     updateMetaTag('property', 'og:description', description);
     updateMetaTag('property', 'og:image', ogImage);
+    updateMetaTag('property', 'og:image:width', '1200');
+    updateMetaTag('property', 'og:image:height', '630');
     updateMetaTag('property', 'og:url', ogUrl);
-    updateMetaTag('property', 'og:type', 'website');
+    updateMetaTag('property', 'og:type', view === 'DETAILS' ? 'article' : 'website');
+    updateMetaTag('property', 'og:site_name', 'Mi Casa Perú');
+    updateMetaTag('property', 'og:locale', 'es_PE');
 
     updateMetaTag('name', 'twitter:card', 'summary_large_image');
     updateMetaTag('name', 'twitter:title', title);
