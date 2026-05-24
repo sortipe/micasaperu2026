@@ -82,7 +82,7 @@ export default async (req, res) => {
 
   // Property pages from Supabase
   try {
-    const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?select=id,updated_at,featuredImage&status=neq.DRAFT&order=updated_at.desc&limit=5000`;
+    const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?select=id,createdAt,featuredImage&status=neq.DRAFT&order=createdAt.desc&limit=5000`;
     const response = await fetch(fetchUrl, {
       headers: {
         "apikey": SUPABASE_KEY,
@@ -95,7 +95,7 @@ export default async (req, res) => {
     if (response.ok) {
       const properties = await response.json();
       for (const p of properties) {
-        const lastmod = toXmlDate(p.updated_at);
+        const lastmod = toXmlDate(p.createdAt);
         const loc = escapeXml(`${BASE_URL}/properties/${p.id}`);
         let entry = `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>`;
         if (p.featuredImage) {
