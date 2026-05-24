@@ -342,6 +342,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
     
     let isCancelled = false;
     let retryTimeout: number;
+    let resizeObserver: ResizeObserver | null = null;
 
     const initMap = () => {
       if (typeof L === 'undefined') {
@@ -369,7 +370,17 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
 
         L.marker([property.lat, property.lng], { icon: customPin }).addTo(mapInstanceRef.current);
         
-        setTimeout(() => mapInstanceRef.current && mapInstanceRef.current.invalidateSize(), 500);
+        // Robust map resizing using ResizeObserver to handle Framer Motion animations or slow flex renders
+        if (window.ResizeObserver && mapContainerRef.current) {
+          resizeObserver = new ResizeObserver(() => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.invalidateSize();
+            }
+          });
+          resizeObserver.observe(mapContainerRef.current);
+        } else {
+          setTimeout(() => mapInstanceRef.current && mapInstanceRef.current.invalidateSize(), 500);
+        }
       } catch (err) {
         console.warn("Map init error in details:", err);
       }
@@ -379,6 +390,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
     return () => { 
       isCancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
+      if (resizeObserver) resizeObserver.disconnect();
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
