@@ -3,6 +3,29 @@ const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIs
 
 const BASE_URL = "https://micasaperu.com";
 
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000;
+const RATE_LIMIT_MAX = 10;
+
+function getRateLimitKey(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || req.headers['x-real-ip']
+    || req.socket?.remoteAddress
+    || 'unknown';
+}
+
+function checkRateLimit(req) {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  let entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+    rateLimitMap.set(key, entry);
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 function escapeXml(str) {
   if (!str) return "";
   return String(str)
@@ -59,6 +82,11 @@ const TYPE_PAGES = [
 ];
 
 export default async (req, res) => {
+  if (!checkRateLimit(req)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');
+  }
+
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
 

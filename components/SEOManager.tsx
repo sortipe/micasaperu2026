@@ -5,9 +5,10 @@ interface SEOManagerProps {
   view: 'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART';
   property?: Property | null;
   searchQuery?: string;
+  properties?: Property[];
 }
 
-const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) => {
+const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, properties = [] }) => {
   useEffect(() => {
     const updateMetaTag = (attributeName: string, attributeValue: string, content: string) => {
       let element = document.querySelector(`meta[${attributeName}="${attributeValue}"]`);
@@ -110,15 +111,41 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) 
       title = `${decoded} — Propiedades en Venta y Alquiler | Mi Casa Perú`;
       description = `Encuentra las mejores propiedades en ${decoded}. Casas, departamentos y terrenos en venta y alquiler en ${decoded}, Perú.`;
       ogUrl = `${window.location.origin}/?search=${searchQuery}`;
+
+      const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        'name': `Resultados de búsqueda para ${decoded} - Mi Casa Perú`,
+        'numberOfItems': properties.length,
+        'itemListElement': properties.slice(0, 15).map((p, idx) => ({
+          '@type': 'ListItem',
+          'position': idx + 1,
+          'url': `${window.location.origin}/properties/${p.id}`,
+          'name': p.title
+        }))
+      };
+
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://micasaperu.com' },
+          { '@type': 'ListItem', position: 2, name: `Búsqueda: ${decoded}`, item: ogUrl }
+        ]
+      };
+
+      injectSchema([itemListSchema, breadcrumb]);
     } else if (view === 'PRICING') {
       title = 'Planes y Publicidad Inmobiliaria | Mi Casa Perú';
       description = 'Publica tus propiedades en Mi Casa Perú. Contamos con planes ideales para propietarios dueños directos, corredores e inmobiliarias. ¡Vende o alquila rápido!';
       keywords = 'publicar inmueble gratis, planes inmobiliarios peru, publicidad de casas, destacar anuncio inmobiliario';
       ogUrl = `${window.location.origin}/pricing`;
+      clearSchemaScripts();
     } else if (view === 'COMPLAINTS_BOOK') {
       title = 'Libro de Reclamaciones | Mi Casa Perú';
       description = 'Ponemos a tu disposición nuestro Libro de Reclamaciones digital de acuerdo al reglamento de INDECOPI en Perú.';
       ogUrl = `${window.location.origin}/complaints`;
+      clearSchemaScripts();
     } else if (view === 'ADMIN') {
       title = 'Panel de Administración | Mi Casa Perú';
       description = 'Panel administrativo interno de micasaperu.com.';
@@ -165,7 +192,24 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery }) 
         ]
       };
 
-      injectSchema([websiteSchema, breadcrumb]);
+      const itemListSchema = properties.length > 0 ? {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        'name': 'Propiedades Destacadas en Mi Casa Perú',
+        'numberOfItems': Math.min(properties.length, 12),
+        'itemListElement': properties.slice(0, 12).map((p, idx) => ({
+          '@type': 'ListItem',
+          'position': idx + 1,
+          'url': `${window.location.origin}/properties/${p.id}`,
+          'name': p.title
+        }))
+      } : null;
+
+      const schemas: any[] = [websiteSchema, breadcrumb];
+      if (itemListSchema) {
+        schemas.push(itemListSchema);
+      }
+      injectSchema(schemas);
     }
 
     document.title = title;

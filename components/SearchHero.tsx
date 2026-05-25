@@ -964,6 +964,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
         </div>
 
         <div className="w-full relative z-10 text-center px-4 flex flex-col items-center justify-center">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight text-center uppercase leading-none drop-shadow-2xl mb-8 max-w-4xl animate-fade-in">
+            Encuentra Casas, Departamentos y Terrenos en todo el Perú
+          </h1>
 
           <div className="w-full max-w-4xl mx-auto px-2">
             <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-full">

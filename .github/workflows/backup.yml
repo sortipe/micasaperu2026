@@ -1,0 +1,136 @@
+name: Backup Automático
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Motivo del backup manual'
+        required: false
+        default: 'Backup manual solicitado'
+      include_storage:
+        description: 'Incluir backup de Storage (pesado)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: backup-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BACKUP_RETENTION_DAYS: 90
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+jobs:
+  database-backup:
+    name: Backup Base de Datos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+
+      - name: Ejecutar backup de DB
+        run: bash .github/scripts/backup-database.sh
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_DIR: ./backup-output
+
+      - name: Subir backup DB a artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-db-backup-${{ github.run_id }}
+          path: backup-output/
+          retention-days: ${{ env.BACKUP_RETENTION_DAYS }}
+
+      - name: Subir backup DB a Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          name: backup-${{ github.run_id }}
+          tag: backup-${{ github.run_id }}
+          commit: ${{ github.sha }}
+          body: |
+            ## Backup Automático
+            - **Fecha:** ${{ github.event.repository.updated_at }}
+            - **Trigger:** ${{ github.event_name }}
+            - **Commit:** ${{ github.sha }}
+          artifacts: backup-output/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Limpiar backups antiguos
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - ${{ env.BACKUP_RETENTION_DAYS }});
+            for (const release of releases) {
+              if (!release.tag_name.startsWith('backup-')) continue;
+              if (new Date(release.created_at) < cutoff) {
+                console.log(`Eliminando release antiguo: ${release.tag_name}`);
+                await github.rest.repos.deleteRelease({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  release_id: release.id,
+                });
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${release.tag_name}`,
+                  });
+                } catch (e) {
+                  console.log(`Tag ${release.tag_name} ya eliminado o no existe`);
+                }
+              }
+            }
+
+  storage-backup:
+    name: Backup Storage (Archivos)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.include_storage == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar backup de Storage
+        run: node .github/scripts/backup-storage.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_DIR: ./storage-backup-output
+
+      - name: Comprimir backup de Storage
+        run: |
+          cd storage-backup-output
+          tar czf ../storage-backup-${{ github.run_id }}.tar.gz .
+          cd ..
+
+      - name: Subir backup Storage a Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          name: backup-${{ github.run_id }}
+          tag: backup-${{ github.run_id }}
+          artifacts: storage-backup-${{ github.run_id }}.tar.gz
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notificar resultado
+        if: always()
+        run: |
+          echo "Backup de Storage completado: ${{ job.status }}"

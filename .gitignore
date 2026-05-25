@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Backup output
+backup-output/
+storage-backup-output/
+*.tar.gz

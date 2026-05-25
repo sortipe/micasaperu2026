@@ -8,6 +8,30 @@ const CACHE_TTL = 300;
 const cache = new Map();
 const pendingFetches = new Map();
 
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60000;
+const RATE_LIMIT_MAX = 30;
+
+function getRateLimitKey(req) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || req.headers['x-real-ip']
+    || req.socket?.remoteAddress
+    || 'unknown';
+  return ip;
+}
+
+function checkRateLimit(req) {
+  const key = getRateLimitKey(req);
+  const now = Date.now();
+  let entry = rateLimitMap.get(key);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
+    rateLimitMap.set(key, entry);
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -120,6 +144,16 @@ function replaceMeta(html, title, description, canonical, ogImage, lastmod, keyw
 }
 
 export default async (req, res) => {
+  if (!checkRateLimit(req)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');
+  }
+
+  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX));
+  res.setHeader('X-RateLimit-Remaining', String(
+    RATE_LIMIT_MAX - (rateLimitMap.get(getRateLimitKey(req))?.count || 0)
+  ));
+
   let indexPath = path.join(process.cwd(), 'dist', 'index.html');
   if (!fs.existsSync(indexPath)) {
     indexPath = path.join(process.cwd(), 'index.html');

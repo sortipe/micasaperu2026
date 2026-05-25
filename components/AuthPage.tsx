@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 
 import { OfficeInfo } from '../types';
+import Turnstile from './Turnstile';
+import Honeypot from './Honeypot';
 
 interface AuthPageProps {
   onLogin: (email: string, role: string, password?: string, isRegistration?: boolean, name?: string) => Promise<void>;
@@ -23,6 +25,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +41,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
       return;
     }
 
+    if (!isLogin && !turnstileToken) {
+      setError('Por favor, verifica que no eres un robot.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Validación especial para Jorge como Admin (hardcoded para demo/admin inicial)
-      if (email.toLowerCase() === 'jorgejoelifzyape@gmail.com') {
-        if (password !== '140601') {
-          throw new Error('Contraseña de administrador incorrecta.');
-        }
-      }
-
       await onLogin(email, isLogin ? '' : selectedProfile, password, !isLogin, fullName);
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al intentar acceder.');
@@ -286,6 +287,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
             </div>
           )}
 
+          <Honeypot />
+          {!isLogin && <Turnstile onVerify={setTurnstileToken} />}
           <button 
             type="submit"
             disabled={isLoading}

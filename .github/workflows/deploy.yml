@@ -103,12 +103,70 @@ jobs:
         npx bundlesize2 --threshold=700KB dist/assets/index-*.js
       continue-on-error: true
 
+    - name: Smoke Test
+      run: bash .github/scripts/smoke-test.sh
+      env:
+        DIST_DIR: dist
+
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
         retention-days: 3
+
+  deploy-vercel:
+    name: 🚀 Deploy a Vercel
+    runs-on: ubuntu-latest
+    needs: build-spa
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+
+    - name: Health Check Post-Deploy
+      run: |
+        sleep 10
+        curl -sSf -o /dev/null -w "%{http_code}" "https://micasaperu.pe" || echo "⚠️ Health check falló"
+      continue-on-error: true
+
+  notify-failure:
+    name: 🔔 Notificar fallo
+    runs-on: ubuntu-latest
+    needs: [build-spa, docker-validation]
+    if: failure() && github.event_name == 'push'
+    steps:
+    - name: Notificar por Discord
+      uses: sarisia/actions-status-discord@v1
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        status: failure
+        title: "❌ Falló el despliegue de micasaperu.pe"
+        description: |
+          **Commit:** ${{ github.sha }}
+          **Rama:** ${{ github.ref }}
+          **Autor:** ${{ github.triggering_actor }}
+          **URL:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      continue-on-error: true
+
+    - name: Notificar por correo (SendGrid)
+      if: ${{ secrets.SENDGRID_API_KEY != '' }}
+      uses: sendgrid/sendgrid-action@v1
+      with:
+        api-key: ${{ secrets.SENDGRID_API_KEY }}
+        to: ${{ secrets.ALERT_EMAIL }}
+        from: alerts@micasaperu.pe
+        subject: "❌ Falló el deploy de micasaperu.pe"
+        content: |
+          El pipeline de CI/CD falló.
+          Commit: ${{ github.sha }}
+          Revisa: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      continue-on-error: true
 
   docker-validation:
     name: 🐳 Docker Build + Trivy

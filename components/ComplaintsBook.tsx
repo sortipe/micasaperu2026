@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Complaint } from '../types';
 import { ToastType } from './Toast';
+import Turnstile from './Turnstile';
+import Honeypot from './Honeypot';
 
 interface ComplaintsBookProps {
   onSave: (complaint: Partial<Complaint>) => Promise<void>;
@@ -19,12 +21,14 @@ const ComplaintsBook: React.FC<ComplaintsBookProps> = ({ onSave, onClose, showTo
   });
   const [isSending, setIsSending] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!acceptedPrivacy) {
       return showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para registrar el reclamo.", "WARNING");
     }
+    if (!turnstileToken) return showToast("Por favor, verifica que no eres un robot.", "WARNING");
     setIsSending(true);
     try {
       await onSave(formData);
@@ -186,6 +190,8 @@ const ComplaintsBook: React.FC<ComplaintsBookProps> = ({ onSave, onClose, showTo
                 </span>
               </label>
             </div>
+            <Honeypot />
+            <Turnstile onVerify={setTurnstileToken} />
             <button 
               disabled={isSending}
               className="w-full bg-red-600 text-white font-black py-5 rounded-xl shadow-2xl hover:bg-slate-900 transition-all uppercase tracking-[0.2em] text-xs disabled:opacity-50"

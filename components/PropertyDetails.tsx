@@ -4,6 +4,8 @@ import { Maximize, Building2, Bath, BedDouble, CalendarDays, X, ChevronLeft, Che
 import { motion, AnimatePresence } from 'framer-motion';
 import { Property, User, Inquiry } from '../types';
 import { ToastType } from './Toast';
+import Turnstile from './Turnstile';
+import Honeypot from './Honeypot';
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -118,6 +120,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
   const [isSuccess, setIsSuccess] = useState(false);
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [acceptedPromotions, setAcceptedPromotions] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     dni: '',
@@ -138,6 +141,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
     }
     if (formData.dni && formData.dni.length < 8) return showToast("El DNI debe tener 8 dígitos.", "WARNING");
     if (formData.phone.length < 9) return showToast("El celular debe tener 9 dígitos.", "WARNING");
+    if (!turnstileToken) return showToast("Por favor, verifica que no eres un robot.", "WARNING");
     
     setIsSending(true);
     try {
@@ -294,6 +298,8 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
               </label>
             </div>
 
+            <Honeypot />
+            <Turnstile onVerify={setTurnstileToken} />
             <button 
               disabled={isSending}
               className="w-full bg-[#0a0f1d] text-white font-black py-5 rounded-2xl shadow-xl hover:bg-red-600 transition-all text-[11px] uppercase tracking-[0.2em] mt-2 flex items-center justify-center gap-3 disabled:opacity-50 active:scale-95"
@@ -457,7 +463,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 }}
                 className="rounded-[2rem] overflow-hidden aspect-video shadow-xl bg-gray-200 border-2 border-white relative group cursor-zoom-in"
               >
-                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchpriority="high" />
+                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchpriority="high" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Maximize className="text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 w-12 h-12" strokeWidth={1.5} />
                 </div>
