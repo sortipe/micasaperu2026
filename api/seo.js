@@ -59,6 +59,154 @@ function generateBreadcrumb(items) {
   };
 }
 
+function parseProgrammaticUrl(pathname) {
+  const path = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  const parts = path.split('-en-');
+  if (parts.length < 2) return null;
+
+  let type = null;
+  let status = null;
+  let district = null;
+  let amenity = null;
+
+  let rawType = '';
+  let rawStatus = '';
+  let districtSlug = '';
+  let amenitySlug = null;
+
+  const knownTypes = {
+    'departamento': 'Departamento', 'departamentos': 'Departamento',
+    'casa': 'Casa', 'casas': 'Casa',
+    'terreno': 'Terreno', 'terrenos': 'Terreno',
+    'oficina': 'Oficina comercial', 'oficinas': 'Oficina comercial',
+    'local': 'Local comercial', 'locales': 'Local comercial',
+    'habitacion': 'Habitación', 'habitaciones': 'Habitación',
+    'lote': 'Lote', 'lotes': 'Lote',
+    'cochera': 'Cochera', 'cocheras': 'Cochera',
+    'proyecto': 'Proyectos de lotes', 'proyectos': 'Proyectos de lotes'
+  };
+
+  const knownStatus = {
+    'venta': 'FOR_SALE', 'ventas': 'FOR_SALE',
+    'alquiler': 'FOR_RENT', 'alquileres': 'FOR_RENT',
+    'temporal': 'TEMPORAL', 'temporales': 'TEMPORAL',
+    'proyecto': 'PROJECT', 'proyectos': 'PROJECT',
+    'traspaso': 'TRASPASO', 'traspasos': 'TRASPASO'
+  };
+
+  const knownDistricts = {
+    'miraflores': 'Miraflores',
+    'san-isidro': 'San Isidro', 'san isidro': 'San Isidro',
+    'santiago-de-surco': 'Santiago de Surco', 'santiago de surco': 'Santiago de Surco',
+    'surco': 'Santiago de Surco',
+    'la-molina': 'La Molina', 'la molina': 'La Molina',
+    'san-borja': 'San Borja', 'san borja': 'San Borja',
+    'los-olivos': 'Los Olivos', 'los olivos': 'Los Olivos',
+    'san-martin-de-porres': 'San Martín de Porres', 'san martin de porres': 'San Martín de Porres', 'smp': 'San Martín de Porres',
+    'san-juan-de-lurigancho': 'San Juan de Lurigancho', 'san juan de lurigancho': 'San Juan de Lurigancho', 'sjl': 'San Juan de Lurigancho',
+    'barranco': 'Barranco',
+    'jesus-maria': 'Jesús María', 'jesus maria': 'Jesús María',
+    'magdalena-del-mar': 'Magdalena del Mar', 'magdalena del mar': 'Magdalena del Mar', 'magdalena': 'Magdalena del Mar',
+    'pueblo-libre': 'Pueblo Libre', 'pueblo libre': 'Pueblo Libre',
+    'lince': 'Lince',
+    'chorrillos': 'Chorrillos',
+    'san-miguel': 'San Miguel', 'san miguel': 'San Miguel',
+    'surquillo': 'Surquillo',
+    'ate': 'Ate',
+    'breña': 'Breña', 'brena': 'Breña',
+    'santa-anita': 'Santa Anita', 'santa anita': 'Santa Anita',
+    'villa-el-salvador': 'Villa El Salvador', 'villa el salvador': 'Villa El Salvador', 'ves': 'Villa El Salvador',
+    'rimac': 'Rímac', 'rímac': 'Rímac',
+    'arequipa': 'Arequipa',
+    'trujillo': 'Trujillo',
+    'cusco': 'Cusco',
+    'tarapoto': 'Tarapoto'
+  };
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i].trim();
+    if (!part) continue;
+
+    if (knownTypes[part]) {
+      type = knownTypes[part];
+      rawType = part;
+      continue;
+    }
+
+    if (knownStatus[part]) {
+      status = knownStatus[part];
+      rawStatus = part;
+      continue;
+    }
+
+    let districtCandidate = part;
+
+    if (part.includes('-con-')) {
+      const subParts = part.split('-con-');
+      districtCandidate = subParts[0];
+      amenitySlug = 'con-' + subParts[1];
+    } else if (part.includes('-pet-friendly')) {
+      const subParts = part.split('-pet-friendly');
+      districtCandidate = subParts[0];
+      amenitySlug = 'pet-friendly';
+    } else {
+      const knownAmenities = ['jardin', 'balcon', 'piscina', 'terraza', 'cochera', 'ascensor', 'seguridad'];
+      for (const amen of knownAmenities) {
+        if (part.endsWith('-' + amen)) {
+          districtCandidate = part.substring(0, part.length - amen.length - 1);
+          amenitySlug = amen;
+          break;
+        }
+      }
+    }
+
+    if (knownDistricts[districtCandidate]) {
+      district = knownDistricts[districtCandidate];
+      districtSlug = districtCandidate;
+    } else {
+      district = districtCandidate.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      districtSlug = districtCandidate;
+    }
+  }
+
+  if (!district || (!type && !status)) {
+    return null;
+  }
+
+  if (!type) {
+    type = 'Departamento';
+    rawType = 'departamentos';
+  }
+  if (!status) {
+    status = 'FOR_SALE';
+    rawStatus = 'venta';
+  }
+
+  if (amenitySlug) {
+    if (amenitySlug.includes('jardin')) amenity = 'Áreas verdes';
+    else if (amenitySlug.includes('balcon')) amenity = 'Balcón con vista';
+    else if (amenitySlug.includes('piscina')) amenity = 'Piscina';
+    else if (amenitySlug.includes('terraza')) amenity = 'Terraza';
+    else if (amenitySlug.includes('pet-friendly') || amenitySlug.includes('mascotas')) amenity = 'Pet friendly';
+    else if (amenitySlug.includes('cochera') || amenitySlug.includes('estacionamiento')) amenity = 'Estacionamiento techado';
+    else if (amenitySlug.includes('ascensor')) amenity = 'Ascensor';
+    else if (amenitySlug.includes('seguridad')) amenity = 'Sistema de seguridad';
+  }
+
+  return {
+    type,
+    status,
+    district,
+    amenity,
+    slugs: {
+      type: rawType,
+      status: rawStatus,
+      district: districtSlug,
+      amenity: amenitySlug
+    }
+  };
+}
+
 const SEARCH_KEYWORD_PAGES = [
   { q: 'Miraflores', title: 'Departamentos en Venta en Miraflores, Lima | Mi Casa Perú', desc: 'Encuentra departamentos y casas en venta en Miraflores, Lima. El distrito más exclusivo de Lima con vista al mar, bares y restaurantes.' },
   { q: 'San+Isidro', title: 'Departamentos en Alquiler en San Isidro, Lima | Mi Casa Perú', desc: 'Departamentos en alquiler en San Isidro, el centro financiero de Lima. Ideal para ejecutivos y familias cerca a los mejores colegios.' },
@@ -171,6 +319,73 @@ export default async (req, res) => {
 
   const url = new URL(req.url, 'https://micasaperu.com');
   const pathRoute = url.pathname;
+
+  // ---- PROGRAMMATIC SEO ROUTING ----
+  const progRoute = parseProgrammaticUrl(pathRoute);
+  if (progRoute) {
+    // 1. Fetch matching properties from Supabase to create an ItemList structured schema!
+    // Construct Supabase SELECT URL
+    let fetchUrl = `${SUPABASE_URL}/rest/v1/properties?status=eq.${progRoute.status}&type=eq.${progRoute.type}&district=eq.${progRoute.district}&select=*`;
+    
+    let properties = [];
+    try {
+      const data = await fetchWithCache(fetchUrl);
+      if (data) {
+        // Filter by amenity in memory if specified
+        if (progRoute.amenity) {
+          properties = data.filter(p => p.features && p.features.includes(progRoute.amenity));
+        } else {
+          properties = data;
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching programmatic properties:", e);
+    }
+    
+    // 2. Build beautiful titles, descriptions, and keywords
+    const typeLabelPlural = progRoute.type === 'Departamento' ? 'Departamentos' :
+      progRoute.type === 'Casa' ? 'Casas' :
+      progRoute.type === 'Terreno' ? 'Terrenos' :
+      progRoute.type === 'Oficina comercial' ? 'Oficinas' :
+      progRoute.type === 'Local comercial' ? 'Locales' : progRoute.type + 's';
+      
+    const operationLabel = progRoute.status === 'FOR_RENT' ? 'en Alquiler' : 'en Venta';
+    const amenityLabel = progRoute.amenity ? ` con ${progRoute.amenity.toLowerCase()}` : '';
+    
+    const title = `${typeLabelPlural} ${operationLabel} en ${progRoute.district}${amenityLabel} | Mi Casa Perú`;
+    const description = `¿Buscas ${typeLabelPlural.toLowerCase()} ${operationLabel.toLowerCase()} en ${progRoute.district}${amenityLabel}? Encuentra ${properties.length > 0 ? properties.length : 'las mejores'} opciones de particulares, corredores y constructoras en el portal inmobiliario líder del Perú.`;
+    const canonicalUrl = `https://micasaperu.com${pathRoute}`;
+    const ogImage = properties.length > 0 && properties[0].featuredImage ? properties[0].featuredImage : 'https://micasaperu.com/og-image.jpg';
+    const lastmod = new Date().toISOString();
+    const keywords = `${typeLabelPlural.toLowerCase()} en ${progRoute.district.toLowerCase()}${amenityLabel ? ', ' + typeLabelPlural.toLowerCase() + ' con ' + progRoute.amenity.toLowerCase() : ''}, ${progRoute.type.toLowerCase()}s ${operationLabel.toLowerCase()} ${progRoute.district.toLowerCase()}`;
+    
+    html = replaceMeta(html, title, description, canonicalUrl, ogImage, lastmod, keywords);
+    
+    // 3. Inject ItemList schema to show the search results in Google Rich Snippets!
+    const breadcrumb = generateBreadcrumb([
+      { name: 'Inicio', url: 'https://micasaperu.com' },
+      { name: `${typeLabelPlural} ${operationLabel}`, url: `https://micasaperu.com/?type=${encodeURIComponent(progRoute.type)}&status=${progRoute.status}` },
+      { name: `${progRoute.district}`, url: canonicalUrl }
+    ]);
+    
+    const itemListSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      'name': title,
+      'numberOfItems': properties.length,
+      'itemListElement': properties.slice(0, 10).map((p, idx) => ({
+        '@type': 'ListItem',
+        'position': idx + 1,
+        'url': `https://micasaperu.com/properties/${p.id}`,
+        'name': p.title
+      }))
+    };
+    
+    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
+    html = html.replace('</head>', `${schemaScript}\n</head>`);
+    
+    return res.send(html);
+  }
 
   // ---- 404 handling ----
   const staticPatterns = ['/pricing', '/complaints', '/complaints/', '/search', '/login', '/cart'];

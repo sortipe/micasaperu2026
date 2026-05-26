@@ -13,6 +13,7 @@ import DevelopmentOptions from './components/DevelopmentOptions';
 import SupportButton from './components/SupportButton';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import SEOManager from './components/SEOManager';
+import { parseProgrammaticUrl } from './lib/seoUtils';
 
 // Lazy loading heavy components for high performance Core Web Vitals
 const PublicationFlow = React.lazy(() => import('./components/PublicationFlow'));
@@ -354,10 +355,46 @@ const App: React.FC = () => {
       let propertyIdFromUrl = urlParams.get('propertyId');
       
       const path = window.location.pathname;
+      const progRoute = parseProgrammaticUrl(path);
+      
       if (path === '/pricing') {
         setView('PRICING');
       } else if (path === '/complaints') {
         setView('COMPLAINTS_BOOK');
+      } else if (progRoute) {
+        // Cargar filtros del SEO programático de forma interactiva
+        const defaultFilters = { 
+          query: progRoute.district, 
+          selectedLocations: [], 
+          type: progRoute.type, 
+          status: progRoute.status, 
+          minPrice: 0, 
+          maxPrice: Infinity, 
+          currency: 'USD' as const, 
+          sortBy: 'RELEVANT', 
+          includeMaintenance: false, 
+          bedrooms: 0, 
+          maxBedrooms: Infinity, 
+          bathrooms: 0, 
+          parking: 0, 
+          minArea: 0, 
+          maxArea: Infinity, 
+          areaType: 'total' as const, 
+          advertiserType: 'all' as const, 
+          age: 'any' as const, 
+          publicationDate: 'any' as const, 
+          selectedFeatures: progRoute.amenity ? [progRoute.amenity] : [] 
+        };
+        setFilters(defaultFilters);
+        setCommittedFilters(defaultFilters);
+        
+        // Tratar de enfocar en el mapa/buscador si coincide con una ubicación conocida
+        const locMatch = PERU_LOCATIONS.find(l => l.name.toLowerCase() === progRoute.district.toLowerCase());
+        if (locMatch) {
+          setFocusedLocation(locMatch);
+        }
+        
+        setView('SEARCH');
       } else {
         // Parse property ID from clean URL path /properties/id or /propiedades/id or /propiedad/id
         const pathParts = path.split('/');
