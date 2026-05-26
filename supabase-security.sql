@@ -223,33 +223,3 @@ BEGIN
   END IF;
 END;
 $d$;
-
--- =====================================================
--- 10. POLÍTICAS DE ALMACENAMIENTO (Supabase Storage)
--- Para habilitar subidas seguras en el bucket 'properties'
--- =====================================================
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
--- 10.1 Permitir lectura pública de archivos (inmuebles, logos, banners, favicons)
-DROP POLICY IF EXISTS "Properties Storage Public Select" ON storage.objects;
-CREATE POLICY "Properties Storage Public Select" ON storage.objects
-  FOR SELECT TO public
-  USING (bucket_id = 'properties');
-
--- 10.2 Permitir subir archivos (INSERT) a usuarios autenticados
-DROP POLICY IF EXISTS "Properties Storage Auth Insert" ON storage.objects;
-CREATE POLICY "Properties Storage Auth Insert" ON storage.objects
-  FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'properties');
-
--- 10.3 Permitir actualizar archivos (UPDATE) a usuarios autenticados
-DROP POLICY IF EXISTS "Properties Storage Auth Update" ON storage.objects;
-CREATE POLICY "Properties Storage Auth Update" ON storage.objects
-  FOR UPDATE TO authenticated
-  USING (bucket_id = 'properties');
-
--- 10.4 Permitir eliminar archivos (DELETE) a usuarios autenticados
-DROP POLICY IF EXISTS "Properties Storage Auth Delete" ON storage.objects;
-CREATE POLICY "Properties Storage Auth Delete" ON storage.objects
-  FOR DELETE TO authenticated
-  USING (bucket_id = 'properties');
