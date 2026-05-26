@@ -15,6 +15,11 @@ function getRateLimitKey(req) {
 }
 
 function checkRateLimit(req) {
+  const ua = req.headers['user-agent'] || '';
+  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora\slink\spreview|showyoubot|outbrain|pinterest\/0\.|slackbot|vkShare|W3C_Validator/i.test(ua);
+  if (isCrawler) {
+    return true; // Bypass rate limit for legitimate search engine bots and preview scrapers
+  }
   const key = getRateLimitKey(req);
   const now = Date.now();
   let entry = rateLimitMap.get(key);
@@ -106,6 +111,41 @@ export default async (req, res) => {
   // Type/category pages
   for (const typePage of TYPE_PAGES) {
     urls.push(`  <url>\n    <loc>${BASE_URL}/${typePage}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.7</priority>\n  </url>`);
+  }
+
+  // Programmatic SEO landing pages (150+ combinations)
+  const PROGRAMMATIC_DISTRICTS = [
+    'miraflores', 'san-isidro', 'surco', 'la-molina', 'san-borja', 'barranco',
+    'jesus-maria', 'magdalena-del-mar', 'lince', 'san-miguel', 'chorrillos', 'pueblo-libre'
+  ];
+  
+  const PROGRAMMATIC_TYPES = ['departamentos', 'casas', 'terrenos'];
+  const PROGRAMMATIC_STATUSES = ['venta', 'alquiler'];
+  
+  // Basic combinations: 12 * 3 * 2 = 72 URLs
+  for (const dist of PROGRAMMATIC_DISTRICTS) {
+    for (const type of PROGRAMMATIC_TYPES) {
+      for (const status of PROGRAMMATIC_STATUSES) {
+        urls.push(`  <url>\n    <loc>${BASE_URL}/${type}-en-${status}-en-${dist}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+      }
+    }
+  }
+
+  // Premium amenity/intent combinations: 12 districts * 8 premium combos = 96 URLs
+  for (const dist of PROGRAMMATIC_DISTRICTS) {
+    const amenities = [
+      'departamentos-en-venta-en-' + dist + '-con-balcon',
+      'departamentos-en-alquiler-en-' + dist + '-con-balcon',
+      'departamentos-en-venta-en-' + dist + '-con-terraza',
+      'departamentos-en-alquiler-en-' + dist + '-pet-friendly',
+      'casas-en-venta-en-' + dist + '-con-jardin',
+      'casas-en-alquiler-en-' + dist + '-con-jardin',
+      'casas-en-venta-en-' + dist + '-con-piscina',
+      'departamentos-en-venta-en-' + dist + '-con-cochera'
+    ];
+    for (const combo of amenities) {
+      urls.push(`  <url>\n    <loc>${BASE_URL}/${combo}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+    }
   }
 
   // Property pages from Supabase

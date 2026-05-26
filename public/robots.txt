@@ -17,6 +17,17 @@ Disallow: /profile
 Disallow: /publish
 Disallow: /payment
 
+# Preserve crawl budget: prevent indexing of infinite faceted search filter permutations
+Disallow: /*?*minPrice=
+Disallow: /*?*maxPrice=
+Disallow: /*?*bedrooms=
+Disallow: /*?*bathrooms=
+Disallow: /*?*parking=
+Disallow: /*?*features=
+Disallow: /*?*order=
+Disallow: /*?*type=
+Disallow: /*?*status=
+
 Crawl-delay: 1
 
 Sitemap: https://micasaperu.com/sitemap.xml

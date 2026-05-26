@@ -21,6 +21,11 @@ function getRateLimitKey(req) {
 }
 
 function checkRateLimit(req) {
+  const ua = req.headers['user-agent'] || '';
+  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora\slink\spreview|showyoubot|outbrain|pinterest\/0\.|slackbot|vkShare|W3C_Validator/i.test(ua);
+  if (isCrawler) {
+    return true; // Bypass rate limit for legitimate search engine bots and preview scrapers
+  }
   const key = getRateLimitKey(req);
   const now = Date.now();
   let entry = rateLimitMap.get(key);
@@ -557,12 +562,53 @@ export default async (req, res) => {
 
   html = replaceMeta(html, title, description, canonicalUrl, ogImage, new Date().toISOString(), keywords);
 
-  // Breadcrumb for home
+  // Breadcrumb, RealEstateAgent, and ItemList for home
   if (pathRoute === '/') {
+    let properties = [];
+    try {
+      const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?status=neq.DRAFT&order=createdAt.desc&limit=10`;
+      const data = await fetchWithCache(fetchUrl);
+      if (data) properties = data;
+    } catch (e) {
+      console.error("Error fetching recent properties for home pre-render:", e);
+    }
+
     const breadcrumb = generateBreadcrumb([
       { name: 'Inicio', url: 'https://micasaperu.com' }
     ]);
-    html = html.replace('</head>', `\n<script type="application/ld+json">${JSON.stringify(breadcrumb)}\n</script>\n</head>`);
+
+    const realEstateAgentSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'RealEstateAgent',
+      'name': 'Mi Casa Perú',
+      'image': 'https://micasaperu.com/logo-1774974008886.png',
+      'url': 'https://micasaperu.com',
+      'telephone': '+51900000000',
+      'priceRange': '$$',
+      'address': {
+        '@type': 'PostalAddress',
+        'streetAddress': 'Lince',
+        'addressLocality': 'Lima',
+        'addressRegion': 'Lima',
+        'addressCountry': 'PE'
+      }
+    };
+
+    const itemListSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      'name': 'Propiedades Inmobiliarias Recientes en Perú',
+      'numberOfItems': properties.length,
+      'itemListElement': properties.map((p, idx) => ({
+        '@type': 'ListItem',
+        'position': idx + 1,
+        'url': `https://micasaperu.com/properties/${p.id}`,
+        'name': p.title
+      }))
+    };
+
+    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(realEstateAgentSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n`;
+    html = html.replace('</head>', `${schemaScript}\n</head>`);
   }
 
   return res.send(html);
