@@ -51,7 +51,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
   const [showBedroomsPopover, setShowBedroomsPopover] = useState(false);
   const [showStatusPopover, setShowStatusPopover] = useState(false);
   const [showHiddenLocations, setShowHiddenLocations] = useState(false);
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   
   const [tempMin, setTempMin] = useState<string>(filters.minPrice === 0 ? '' : filters.minPrice.toString());
   const [tempMax, setTempMax] = useState<string>(filters.maxPrice === Infinity ? '' : filters.maxPrice.toString());
@@ -945,8 +945,8 @@ const SearchHero: React.FC<SearchHeroProps> = ({
         </div>
       )}
       <div className="w-full relative min-h-[620px] md:min-h-[760px] landscape:min-h-[480px] flex flex-col items-center justify-end pt-24 pb-4 md:pt-32 md:pb-5 landscape:pt-16 landscape:pb-2 bg-slate-900 overflow-hidden">
-        <div className={`absolute inset-0 w-full h-full transition-opacity duration-500 ease-out ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-          <picture className="w-full h-full flex justify-center">
+        <div className="absolute inset-0 w-full h-full">
+          <picture className="w-full h-full flex justify-center bg-slate-900">
             {bannerUrlMobile ? (
               <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />
             ) : (
@@ -954,9 +954,10 @@ const SearchHero: React.FC<SearchHeroProps> = ({
             )}
             <img 
               src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress"} 
-              onLoad={() => setIsImageLoaded(true)} 
-              className="w-full h-full object-cover object-center transition-transform duration-700 ease-in-out block mx-auto" 
+              className="w-full h-full object-cover object-center block mx-auto" 
               alt="Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú" 
+              width="1200"
+              height="800"
               loading="eager"
               fetchPriority="high"
             />

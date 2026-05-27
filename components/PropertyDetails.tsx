@@ -203,7 +203,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner overflow-hidden border-2 border-white">
               {agentAvatar ? (
-                <img src={agentAvatar} alt={agentName} className="w-full h-full object-cover" loading="lazy" />
+                <img src={agentAvatar} alt={agentName} width="64" height="64" className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               )}
@@ -494,7 +494,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                       }} 
                       className={`shrink-0 w-20 h-14 md:w-28 md:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${activeImage === img ? 'border-red-600 scale-105 shadow-lg' : 'border-white opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
+                      <img src={img} width="112" height="80" className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -647,9 +647,9 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                           rel="noopener noreferrer"
                           className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-red-600 hover:bg-white transition-all group"
                         >
-                           <div className="w-12 h-12 bg-white text-red-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover:bg-red-600 group-hover:text-white transition-all overflow-hidden">
+                            <div className="w-12 h-12 bg-white text-red-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover:bg-red-600 group-hover:text-white transition-all overflow-hidden">
                               {doc.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                                <img src={doc} className="w-full h-full object-cover" alt="Preview" />
+                                <img src={doc} width="48" height="48" className="w-full h-full object-cover" alt="Preview" />
                               ) : (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                               )}
@@ -786,7 +786,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="h-36 overflow-hidden">
-                  <img src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
+                  <img src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} width="400" height="300" className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
                 </div>
                 <div className="p-3">
                   <p className="text-[9px] text-gray-500 mb-1">{rp.type} · {rp.bedrooms} dorm</p>

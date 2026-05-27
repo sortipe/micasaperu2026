@@ -242,6 +242,8 @@ const PropertyList: React.FC<PropertyListProps> = ({
                           src={property.agentAvatar || `https://ui-avatars.com/api/?name=${property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
                           className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" 
                           alt={property.agentName}
+                          width="40"
+                          height="40"
                           loading="lazy"
                         />
                         <div className="flex items-center gap-1.5">

@@ -47,7 +47,9 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
                 <div className="h-10 md:h-12 flex items-center animate-fade-in">
                   <img 
                     src={logo} 
-alt="Mi Casa Perú - Logo" 
+                    alt="Mi Casa Perú - Logo" 
+                    width="180"
+                    height="48"
                     className="h-full w-auto object-contain max-w-[180px]" 
                   />
                 </div>
@@ -96,7 +98,7 @@ alt="Mi Casa Perú - Logo"
                     </p>
                   </div>
                   <div className="relative group cursor-pointer" onClick={() => onNavigate('DASHBOARD')}>
-                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt={`${user.name} - Avatar`} loading="lazy" />
+                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} width="44" height="44" className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt={`${user.name} - Avatar`} loading="lazy" />
                   </div>
                 </div>
               ) : (
@@ -131,7 +133,7 @@ alt="Mi Casa Perú - Logo"
           <div className="absolute top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl p-8 flex flex-col animate-slide-up">
             <div className="flex justify-between items-center mb-8">
                {logo ? (
-                  <img src={logo} alt="App Logo" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" loading="lazy" />
+                  <img src={logo} alt="App Logo" width="140" height="32" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" loading="lazy" />
                ) : (
                   <div className="w-10 h-10" />
                )}
@@ -144,7 +146,7 @@ alt="Mi Casa Perú - Logo"
             <div className="mb-8 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
               {user ? (
                 <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleLinkClick('DASHBOARD')}>
-                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt={`${user.name} - Avatar de usuario`} loading="lazy" />
+                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} width="56" height="56" className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt={`${user.name} - Avatar de usuario`} loading="lazy" />
                   <div>
                     <p className="text-sm font-black text-[#091F4F] leading-none mb-1">{user.name}</p>
                     <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">Ver mi panel</p>
