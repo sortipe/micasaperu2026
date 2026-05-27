@@ -329,8 +329,14 @@ export default async (req, res) => {
   const progRoute = parseProgrammaticUrl(pathRoute);
   if (progRoute) {
     // 1. Fetch matching properties from Supabase to create an ItemList structured schema!
-    // Construct Supabase SELECT URL
-    let fetchUrl = `${SUPABASE_URL}/rest/v1/properties?status=eq.${progRoute.status}&type=eq.${progRoute.type}&district=eq.${progRoute.district}&select=*`;
+    // Construct Supabase SELECT URL using URLSearchParams for secure, auto-encoded parameter construction
+    const params = new URLSearchParams({
+      status: `eq.${progRoute.status}`,
+      type: `eq.${progRoute.type}`,
+      district: `eq.${progRoute.district}`,
+      select: '*'
+    });
+    let fetchUrl = `${SUPABASE_URL}/rest/v1/properties?${params.toString()}`;
     
     let properties = [];
     try {
@@ -405,10 +411,13 @@ export default async (req, res) => {
     const parts = pathRoute.split('/');
     if ((parts[1] === 'properties' || parts[1] === 'propiedades' || parts[1] === 'propiedad') && parts[2]) {
       propertyId = parts[2];
-      // Validate UUID format
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId)) {
-        propertyId = null;
-      }
+    }
+  }
+  // Enforce strict UUID validation in all cases to prevent any URL parameter injection
+  if (propertyId) {
+    propertyId = propertyId.trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId)) {
+      propertyId = null;
     }
   }
 

@@ -19,6 +19,13 @@ export function middleware(req: Request): Response | undefined {
   const ip = getClientIp(req);
   const userAgent = req.headers.get('user-agent') || '';
 
+  // Cloudflare Origin Shielding check to prevent WAF bypass
+  const bypassToken = process.env.CLOUDFLARE_BYPASS_TOKEN;
+  const requestBypassToken = req.headers.get('x-cloudflare-bypass-token');
+  if (bypassToken && requestBypassToken !== bypassToken) {
+    return new Response('Access Denied: Direct Origin Access is Forbidden', { status: 403 });
+  }
+
   const now = Date.now();
   let counter = ipCounters.get(ip);
   if (!counter || now > counter.resetAt) {
