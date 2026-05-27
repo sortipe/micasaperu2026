@@ -277,12 +277,12 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
     if (!isSupabaseConfigured) {
       if (onProgress) {
-        let p = 0;
-        const interval = setInterval(() => {
-          p += 25;
+        for (let p = 0; p <= 100; p += 25) {
           onProgress(p);
-          if (p >= 100) clearInterval(interval);
-        }, 100);
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 400));
       }
       return URL.createObjectURL(file);
     }
@@ -853,7 +853,10 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                             
                             try {
                               const url = await uploadFile(file as any, editingProperty.id!, (p) => {
-                                setUploadingGallery(prev => ({ ...prev, [tempId]: p }));
+                                setUploadingGallery(prev => {
+                                  if (prev[tempId] === undefined && p > 0) return prev;
+                                  return { ...prev, [tempId]: p };
+                                });
                               });
 
                               if (url) {
