@@ -846,8 +846,8 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                         setIsUploading(p => ({...p, gallery: true}));
 
                         try {
-                          // Upload in parallel
-                          await Promise.all(filesToUpload.map(async (file) => {
+                          // Upload sequentially to prevent CPU/memory spikes and network timeouts
+                          for (const file of filesToUpload) {
                             const tempId = Math.random().toString(36).substring(7);
                             setUploadingGallery(prev => ({ ...prev, [tempId]: 0 }));
                             
@@ -875,7 +875,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                 return next;
                               });
                             }
-                          }));
+                          }
                         } finally {
                           setIsUploading(p => ({...p, gallery: false}));
                           setUploadingGallery({}); 
