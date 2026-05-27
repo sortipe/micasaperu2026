@@ -86,7 +86,22 @@ const TYPE_PAGES = [
   "?status=PROJECT",
 ];
 
+function applySitemapSecurityHeaders(res) {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('X-Robots-Tag', 'index, follow');
+}
+
 export default async (req, res) => {
+  applySitemapSecurityHeaders(res);
+
   if (!checkRateLimit(req)) {
     res.setHeader('Retry-After', '60');
     return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');

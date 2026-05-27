@@ -296,7 +296,23 @@ function replaceMeta(html, title, description, canonical, ogImage, lastmod, keyw
   return html;
 }
 
+function applySecurityHeaders(res) {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; connect-src 'self' https://uxdnhmkoiqqeiaoxeedw.supabase.co https://api.mercadopago.com https://nominatim.openstreetmap.org; img-src 'self' data: blob: https://uxdnhmkoiqqeiaoxeedw.supabase.co https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';");
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self), interest-cohort=()');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('X-Robots-Tag', 'index, follow');
+}
+
 export default async (req, res) => {
+  applySecurityHeaders(res);
+  
   if (!checkRateLimit(req)) {
     res.setHeader('Retry-After', '60');
     return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');

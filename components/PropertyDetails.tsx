@@ -155,8 +155,9 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
         senderDni: formData.dni,
         message: formData.message,
         date: new Date().toISOString(),
-        isRead: false
-      });
+        isRead: false,
+        captchaToken: turnstileToken
+      } as any);
       setIsSuccess(true);
       showToast("Mensaje enviado con éxito", "SUCCESS");
     } catch (err) {

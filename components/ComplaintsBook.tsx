@@ -31,7 +31,10 @@ const ComplaintsBook: React.FC<ComplaintsBookProps> = ({ onSave, onClose, showTo
     if (!turnstileToken) return showToast("Por favor, verifica que no eres un robot.", "WARNING");
     setIsSending(true);
     try {
-      await onSave(formData);
+      await onSave({
+        ...formData,
+        captchaToken: turnstileToken
+      } as any);
       showToast("Su reclamación ha sido registrada con éxito. Recibirá una respuesta en el plazo legal de 15 días hábiles.", "SUCCESS");
       onClose();
     } catch (err) {

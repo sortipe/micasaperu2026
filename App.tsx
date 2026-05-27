@@ -589,11 +589,34 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (inquiryData: Partial<Inquiry>) => {
+  const handleSendMessage = async (inquiryData: Partial<Inquiry> & { captchaToken?: string }) => {
     if (!isSupabaseConfigured) {
       showToast("Supabase no está configurado. No se puede enviar el mensaje en modo demostración.", "ERROR");
       return;
     }
+
+    if (inquiryData.captchaToken) {
+      try {
+        const verifyRes = await fetch('/api/verify-captcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: inquiryData.captchaToken })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success) {
+          showToast("La verificación de seguridad falló. Inténtalo de nuevo.", "ERROR");
+          throw new Error("Captcha verification failed");
+        }
+      } catch (e) {
+        console.error("CAPTCHA verification error:", e);
+        showToast("Error de verificación de seguridad.", "ERROR");
+        throw new Error("Captcha verification error");
+      }
+    } else {
+      showToast("Por favor, verifica que no eres un robot.", "WARNING");
+      throw new Error("Missing Captcha token");
+    }
+
     try {
       const isDummyAgent = inquiryData.agentId?.startsWith('00000000');
       const finalAgentId = (isDummyAgent && currentUser) ? currentUser.id : inquiryData.agentId;
@@ -1750,12 +1773,37 @@ const App: React.FC = () => {
             />
           )}
           {view === 'AUTH' && <AuthPage onLogin={handleLogin} onBack={() => handleNavigation('HOME')} officeInfo={officeInfo} />}
-          {view === 'COMPLAINTS_BOOK' && <ComplaintsBook onSave={async c => { 
+          {view === 'COMPLAINTS_BOOK' && <ComplaintsBook onSave={async (c: any) => { 
             if (!isSupabaseConfigured) {
               showToast("Supabase no está configurado. No se puede enviar el reclamo en modo demostración.", "ERROR");
               throw new Error("Supabase no configurado");
             }
-            await supabase.from('complaints').insert(c); 
+            
+            if (c.captchaToken) {
+              try {
+                const verifyRes = await fetch('/api/verify-captcha', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token: c.captchaToken })
+                });
+                const verifyData = await verifyRes.json();
+                if (!verifyData.success) {
+                  showToast("La verificación de seguridad falló. Inténtalo de nuevo.", "ERROR");
+                  throw new Error("Captcha verification failed");
+                }
+              } catch (e) {
+                console.error("CAPTCHA verification error:", e);
+                showToast("Error de verificación de seguridad.", "ERROR");
+                throw new Error("Captcha verification error");
+              }
+            } else {
+              showToast("Por favor, verifica que no eres un robot.", "WARNING");
+              throw new Error("Missing Captcha token");
+            }
+
+            const { captchaToken, ...complaintPayload } = c;
+            const { error } = await supabase.from('complaints').insert([complaintPayload]);
+            if (error) throw error;
           }} onClose={() => handleNavigation('HOME')} showToast={showToast} />}
           </Suspense>
         </main>

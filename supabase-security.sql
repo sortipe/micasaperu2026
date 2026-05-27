@@ -99,7 +99,7 @@ BEGIN
     DROP POLICY IF EXISTS "Profiles select auth" ON public.profiles;
     CREATE POLICY "Profiles select auth" ON public.profiles
       FOR SELECT TO authenticated
-      USING (true);
+      USING (auth.uid() = id OR is_admin(auth.uid()));
 
     DROP POLICY IF EXISTS "Profiles insert" ON public.profiles;
     CREATE POLICY "Profiles insert" ON public.profiles
@@ -220,6 +220,60 @@ BEGIN
     CREATE POLICY "Complaints select" ON public.complaints
       FOR SELECT TO authenticated
       USING (is_admin(auth.uid()));
+  END IF;
+END;
+$d$;
+
+-- 10. Complaints: rate limiting (máx 3 por email por hora) + sanitización
+CREATE OR REPLACE FUNCTION public.check_complaint_rate_limit(p_email text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $f$
+DECLARE
+  recent_count int;
+BEGIN
+  SELECT COUNT(*) INTO recent_count
+  FROM public.complaints
+  WHERE "claimantEmail" = p_email
+    AND "date" > now() - interval '1 hour';
+  RETURN recent_count < 3;
+END;
+$f$;
+
+CREATE OR REPLACE FUNCTION public.validate_complaint()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $f$
+BEGIN
+  IF NOT check_complaint_rate_limit(NEW."claimantEmail") THEN
+    RAISE EXCEPTION 'Demasiadas solicitudes. Intenta de nuevo en 1 hora.'
+      USING HINT = 'Rate limit excedido para este email.';
+  END IF;
+
+  NEW."detail" := regexp_replace(NEW."detail", '<[^>]+>', '', 'g');
+  NEW."request" := regexp_replace(NEW."request", '<[^>]+>', '', 'g');
+  NEW."claimantName" := regexp_replace(NEW."claimantName", '<[^>]+>', '', 'g');
+
+  IF NEW."claimantDocNumber" IS NOT NULL AND length(NEW."claimantDocNumber") > 0
+     AND NEW."claimantDocType" = 'DNI' AND NEW."claimantDocNumber" !~ '^\d{8}$' THEN
+    RAISE EXCEPTION 'DNI inválido.'
+      USING HINT = 'El DNI debe tener exactamente 8 dígitos.';
+  END IF;
+
+  RETURN NEW;
+END;
+$f$;
+
+DO $d$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'complaints') THEN
+    DROP TRIGGER IF EXISTS validate_complaint_trigger ON public.complaints;
+    CREATE TRIGGER validate_complaint_trigger
+      BEFORE INSERT ON public.complaints
+      FOR EACH ROW
+      EXECUTE FUNCTION public.validate_complaint();
   END IF;
 END;
 $d$;

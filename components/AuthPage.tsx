@@ -49,6 +49,20 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
     setIsLoading(true);
 
     try {
+      if (!isLogin) {
+        const verifyRes = await fetch('/api/verify-captcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: turnstileToken })
+        });
+        const verifyData = await verifyRes.json();
+        if (!verifyData.success) {
+          setError('La verificación de seguridad (CAPTCHA) falló. Por favor, inténtalo de nuevo.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       await onLogin(email, isLogin ? '' : selectedProfile, password, !isLogin, fullName);
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al intentar acceder.');
