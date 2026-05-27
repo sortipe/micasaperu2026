@@ -34,6 +34,7 @@ import { restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 
 import { CapacitorHttp } from '@capacitor/core';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface PublicationFlowProps {
   user: User;

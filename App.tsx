@@ -14,6 +14,7 @@ import SupportButton from './components/SupportButton';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import SEOManager from './components/SEOManager';
 import { parseProgrammaticUrl } from './lib/seoUtils';
+import 'leaflet/dist/leaflet.css';
 
 // Lazy loading heavy components for high performance Core Web Vitals
 const PublicationFlow = React.lazy(() => import('./components/PublicationFlow'));

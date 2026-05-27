@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured, compressImage } from '../lib/supabase';
 import { ToastType } from './Toast';
 
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface AdminPanelProps {
   user: User;
