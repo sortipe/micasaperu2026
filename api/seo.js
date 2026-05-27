@@ -64,6 +64,12 @@ function generateBreadcrumb(items) {
   };
 }
 
+function injectSsrDom(html, ssrContent) {
+  if (!ssrContent) return html;
+  const wrappedContent = `<div id="seo-ssr-content" style="position: absolute; opacity: 0; pointer-events: none; z-index: -1;">${ssrContent}</div>`;
+  return html.replace('</body>', `${wrappedContent}\n</body>`);
+}
+
 function parseProgrammaticUrl(pathname) {
   const path = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
   const parts = path.split('-en-');
@@ -411,6 +417,28 @@ export default async (req, res) => {
     const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
     html = html.replace('</head>', `${schemaScript}\n</head>`);
     
+    const ssrHtml = `
+      <header>
+        <h1>${escapeHtml(title)}</h1>
+        <p>${escapeHtml(description)}</p>
+      </header>
+      <main>
+        <ul>
+          ${properties.map(p => `
+            <li>
+              <article>
+                <h2><a href="https://micasaperu.com/properties/${p.id}">${escapeHtml(p.title)}</a></h2>
+                <p>${escapeHtml(p.description || '')}</p>
+                <p>Precio: ${p.priceUSD ? '$' + p.priceUSD : (p.pricePEN ? 'S/' + p.pricePEN : 'Consultar')}</p>
+                <p>Ubicación: ${escapeHtml(p.district || '')}</p>
+              </article>
+            </li>
+          `).join('')}
+        </ul>
+      </main>
+    `;
+    html = injectSsrDom(html, ssrHtml);
+    
     return res.send(html);
   }
 
@@ -506,6 +534,26 @@ export default async (req, res) => {
 
         const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(realEstateSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
         html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, schemaScript);
+        
+        const ssrHtml = `
+          <article>
+            <header>
+              <h1>${escapeHtml(property.title)}</h1>
+              <p>Precio: ${escapeHtml(priceString)}</p>
+            </header>
+            <section>
+              <img src="${escapeHtml(ogImage)}" alt="${escapeHtml(property.title)}" />
+              <p>${escapeHtml(property.description || '')}</p>
+              <ul>
+                <li>Dormitorios: ${property.bedrooms || 0}</li>
+                <li>Baños: ${property.bathrooms || 0}</li>
+                <li>Área: ${property.constructionArea || property.terrainArea || 0} m²</li>
+                <li>Ubicación: ${escapeHtml(property.district || '')}, ${escapeHtml(property.department || '')}</li>
+              </ul>
+            </section>
+          </article>
+        `;
+        html = injectSsrDom(html, ssrHtml);
       } else {
         // Property not found — serve generic but indexed
         html = replaceMeta(html,
@@ -634,6 +682,22 @@ export default async (req, res) => {
 
     const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(realEstateAgentSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n`;
     html = html.replace('</head>', `${schemaScript}\n</head>`);
+    
+    const ssrHtml = `
+      <main>
+        <h1>Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú</h1>
+        <p>El portal inmobiliario líder en el Perú.</p>
+        <h2>Propiedades Recientes</h2>
+        <ul>
+          ${properties.map(p => `
+            <li>
+              <a href="https://micasaperu.com/properties/${p.id}">${escapeHtml(p.title)}</a>
+            </li>
+          `).join('')}
+        </ul>
+      </main>
+    `;
+    html = injectSsrDom(html, ssrHtml);
   }
 
   return res.send(html);

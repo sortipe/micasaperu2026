@@ -428,7 +428,18 @@ const App: React.FC = () => {
           // Opcional: Limpiar estados específicos del usuario si es necesario
         }
       });
-      return () => subscription.unsubscribe();
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, []);
+
+  // Limpiar el contenido SSR inyectado por SEO una vez que React ha montado
+  useEffect(() => {
+    const ssrContent = document.getElementById('seo-ssr-content');
+    if (ssrContent) {
+      ssrContent.remove();
+      console.log('✅ SEO SSR Content cleaned up after hydration');
     }
   }, []);
 
