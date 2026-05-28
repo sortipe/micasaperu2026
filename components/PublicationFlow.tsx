@@ -766,6 +766,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                           if (url) updateField('featuredImage', url);
                         } finally {
                           setIsUploading(p => ({...p, featured: false}));
+                          if (featuredInputRef.current) featuredInputRef.current.value = '';
                         }
                       }
                     }} />

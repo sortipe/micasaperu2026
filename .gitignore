@@ -29,3 +29,5 @@ dist-ssr
 backup-output/
 storage-backup-output/
 *.tar.gz
+
+dist_electron/
