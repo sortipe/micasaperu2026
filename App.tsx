@@ -4,13 +4,7 @@ import { Property, User, Role, Package, Transaction, PaymentMethod, LocationItem
 import { INITIAL_PROPERTIES, PACKAGES as INITIAL_PACKAGES, PERU_LOCATIONS } from './constants';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import PropertyList from './components/PropertyList';
-import SearchHero from './components/SearchHero';
-import LegalModal from './components/LegalModal';
 import Toast, { ToastType } from './components/Toast';
-import CookieConsent from './components/CookieConsent';
-import DevelopmentOptions from './components/DevelopmentOptions';
-import SupportButton from './components/SupportButton';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import SEOManager from './components/SEOManager';
 import { parseProgrammaticUrl } from './lib/seoUtils';
@@ -26,6 +20,14 @@ const AuthPage = React.lazy(() => import('./components/AuthPage'));
 const PaymentFlow = React.lazy(() => import('./components/PaymentFlow'));
 const ComplaintsBook = React.lazy(() => import('./components/ComplaintsBook'));
 const CartPage = React.lazy(() => import('./components/CartPage'));
+
+// Code splitting for secondary components (reduces INP and FCP)
+const PropertyList = React.lazy(() => import('./components/PropertyList'));
+const SearchHero = React.lazy(() => import('./components/SearchHero'));
+const LegalModal = React.lazy(() => import('./components/LegalModal'));
+const CookieConsent = React.lazy(() => import('./components/CookieConsent'));
+const DevelopmentOptions = React.lazy(() => import('./components/DevelopmentOptions'));
+const SupportButton = React.lazy(() => import('./components/SupportButton'));
 
 const LoadingFallback: React.FC = () => (
   <div className="flex-grow flex flex-col items-center justify-center p-20 min-h-[50vh] animate-pulse">

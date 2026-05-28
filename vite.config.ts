@@ -24,11 +24,13 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           output: {
             manualChunks: {
+              'vendor-react': ['react', 'react-dom'],
               'vendor-framer': ['framer-motion'],
               'vendor-supabase': ['@supabase/supabase-js'],
               'vendor-leaflet': ['leaflet'],
               'vendor-swiper': ['swiper'],
               'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+              'vendor-lucide': ['lucide-react'],
             }
           }
         },
