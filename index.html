@@ -58,7 +58,8 @@
     </style>
 
     <!-- Preload LCP hero banner for fast Core Web Vitals (Largest Contentful Paint) -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress" imagesrcset="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress 600w, https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress 1200w" imagesizes="(max-width: 768px) 600px, 1200px">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress" fetchpriority="high">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress" media="(max-width: 768px)" fetchpriority="high">
     <link rel="prefetch" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Preconnect to image CDNs -->

@@ -464,7 +464,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 }}
                 className="rounded-[2rem] overflow-hidden aspect-video shadow-xl bg-gray-200 border-2 border-white relative group cursor-zoom-in"
               >
-                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchpriority="high" />
+                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchPriority="high" decoding="sync" loading="eager" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Maximize className="text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 w-12 h-12" strokeWidth={1.5} />
                 </div>

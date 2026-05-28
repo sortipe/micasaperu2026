@@ -960,6 +960,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
               height="800"
               loading="eager"
               fetchPriority="high"
+              decoding="sync"
             />
           </picture>
         </div>
