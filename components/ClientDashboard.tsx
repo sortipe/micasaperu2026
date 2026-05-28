@@ -81,6 +81,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<LocationItem[]>([]);
   const [locationSearch, setLocationSearch] = useState('');
+  const [googleApiKey, setGoogleApiKey] = useState(() => localStorage.getItem('admin_google_api_key') || import.meta.env.VITE_GOOGLE_API_KEY || '');
 
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
