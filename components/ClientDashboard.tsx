@@ -276,13 +276,17 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
   const handleGenerateLocations = async () => {
     if (!aiPrompt.trim()) return;
-    if (!import.meta.env.VITE_GOOGLE_API_KEY) {
-      showToast("API Key de Google AI no configurada", "WARNING");
+    if (!googleApiKey) {
+      showToast("Por favor, introduce tu API Key de Google AI", "WARNING");
       return;
     }
+    
+    // Save to localStorage for convenience
+    localStorage.setItem('admin_google_api_key', googleApiKey);
+    
     setIsAiGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey: googleApiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: `Actúa como un experto en geografía e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
@@ -738,7 +742,19 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         return (
           <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-fade-in space-y-10">
             <div className="bg-slate-900 text-white p-8 rounded-[2rem] space-y-6">
-               <h2 className="text-xl font-black uppercase tracking-tight text-red-500">Generador de Ubicaciones IA</h2>
+               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                 <h2 className="text-xl font-black uppercase tracking-tight text-red-500">Generador de Ubicaciones IA</h2>
+                 <div className="flex items-center gap-2 w-full md:w-auto">
+                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                   <input 
+                     type="password" 
+                     className="flex-grow md:w-64 p-2 bg-white/10 rounded-lg text-xs font-bold outline-none border border-white/5 focus:ring-1 focus:ring-red-600 placeholder:text-gray-500" 
+                     placeholder="Tu Google AI API Key..." 
+                     value={googleApiKey} 
+                     onChange={e => setGoogleApiKey(e.target.value)} 
+                   />
+                 </div>
+               </div>
                <div className="flex gap-3">
                   <input type="text" className="flex-grow p-4 bg-white/10 rounded-xl font-bold outline-none border border-white/5 focus:ring-2 focus:ring-red-600" placeholder="Ej: Genera distritos residenciales de Arequipa..." value={aiPrompt} onChange={e => setAiPrompt(e.target.value)} />
                   <button disabled={isAiGenerating} onClick={handleGenerateLocations} className="bg-red-600 px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-red-600 transition-all disabled:opacity-50">
