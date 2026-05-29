@@ -319,16 +319,28 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
       
-      // Convert File to ArrayBuffer to prevent Capacitor WebView Blob streaming deadlocks
-      // which cause the upload to hang indefinitely on the second attempt.
-      const arrayBuffer = await fileToUpload.arrayBuffer();
+      // Convert File to ArrayBuffer using FileReader (most reliable across WebViews)
+      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(new Error("Error leyendo archivo local"));
+        reader.readAsArrayBuffer(fileToUpload);
+      });
       
-      const { error: uploadError } = await supabase.storage
+      // Subir con timeout explícito para evitar que la cola se bloquee permanentemente
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("El servidor tardó demasiado en responder")), 30000)
+      );
+
+      const uploadPromise = supabase.storage
         .from('properties')
         .upload(filePath, arrayBuffer, {
           contentType: fileToUpload.type || 'image/jpeg',
           upsert: true
         });
+
+      const result: any = await Promise.race([uploadPromise, timeoutPromise]);
+      const uploadError = result?.error;
 
       if (uploadError) throw uploadError;
 
