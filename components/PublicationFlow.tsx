@@ -279,14 +279,17 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
   const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
     return new Promise((resolve, reject) => {
-      uploadQueue.current = uploadQueue.current.then(async () => {
-        try {
-          const result = await performUpload(file, folder, onProgress);
-          resolve(result);
-        } catch (err) {
-          reject(err);
-        }
-      });
+      // Usar finally para asegurar que la cola siempre continúe, incluso si la anterior falló
+      uploadQueue.current = uploadQueue.current
+        .catch(() => {}) // Ignorar errores de promesas anteriores en la cola
+        .then(async () => {
+          try {
+            const result = await performUpload(file, folder, onProgress);
+            resolve(result);
+          } catch (err) {
+            reject(err);
+          }
+        });
     });
   };
 
