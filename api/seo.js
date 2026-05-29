@@ -66,8 +66,11 @@ function generateBreadcrumb(items) {
 
 function injectSsrDom(html, ssrContent) {
   if (!ssrContent) return html;
-  const wrappedContent = `<div id="seo-ssr-content" style="position: absolute; opacity: 0; pointer-events: none; z-index: -1;">${ssrContent}</div>`;
-  return html.replace('</body>', `${wrappedContent}\n</body>`);
+  // Use a class instead of inline styles for hiding, and prefer visually-hidden (accessible) or just let it render!
+  // Since React will nuke the #root element anyway, we can just inject it there to avoid Google cloaking penalties.
+  const wrappedContent = `<div id="seo-ssr-content" class="ssr-fallback-content">${ssrContent}</div>`;
+  // We place it right inside #root so it acts as the initial DOM before React's createRoot takes over.
+  return html.replace('<div id="root">', `<div id="root">\n${wrappedContent}`);
 }
 
 function parseProgrammaticUrl(pathname) {

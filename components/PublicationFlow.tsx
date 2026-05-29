@@ -303,9 +303,13 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
       
+      // Convert File to ArrayBuffer to prevent Capacitor WebView Blob streaming deadlocks
+      // which cause the upload to hang indefinitely on the second attempt.
+      const arrayBuffer = await fileToUpload.arrayBuffer();
+      
       const { error: uploadError } = await supabase.storage
         .from('properties')
-        .upload(filePath, fileToUpload, {
+        .upload(filePath, arrayBuffer, {
           contentType: fileToUpload.type || 'image/jpeg',
           upsert: true
         });

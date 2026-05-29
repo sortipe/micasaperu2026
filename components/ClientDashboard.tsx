@@ -198,9 +198,11 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
       const fileExt = fileToUpload.name ? fileToUpload.name.split('.').pop() : 'jpg';
       const fileName = `${type.toLowerCase()}-${Date.now()}.${fileExt}`;
       const filePath = `brand/${fileName}`;
+      
+      const arrayBuffer = await fileToUpload.arrayBuffer();
       const { error: uploadError } = await supabase.storage
         .from('properties')
-        .upload(filePath, fileToUpload, { 
+        .upload(filePath, arrayBuffer, { 
           contentType: fileToUpload.type || 'image/jpeg',
           upsert: true 
         });
