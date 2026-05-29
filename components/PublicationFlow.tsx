@@ -620,6 +620,29 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     </div>
                   </div>
 
+                  {user.role === 'ADMINISTRADOR' && (
+                    <div className="grid grid-cols-1 gap-6">
+                      <div className="bg-red-50 p-6 rounded-3xl border border-red-100">
+                        <label className="block text-[11px] font-black text-red-600 uppercase tracking-widest mb-3">Vencimiento de la Propiedad (Solo Admin)</label>
+                        <p className="text-[10px] text-red-500 mb-4 font-semibold">Al vencer, la propiedad se ocultará de la web, pero no se eliminará del sistema.</p>
+                        <input 
+                          type="date" 
+                          className="w-full p-5 bg-white border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-red-500 text-slate-800"
+                          value={editingProperty?.expiresAt ? editingProperty.expiresAt.split('T')[0] : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              // Ensure the time is set to end of day to avoid timezone cutoff issues
+                              const newDate = new Date(e.target.value + 'T23:59:59').toISOString();
+                              updateField('expiresAt', newDate);
+                            } else {
+                              updateField('expiresAt', '');
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {editingProperty?.status === 'PROJECT' && (
                     <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
                       <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">Fecha de Entrega</h4>

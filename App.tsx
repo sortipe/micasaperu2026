@@ -1581,7 +1581,7 @@ const App: React.FC = () => {
                 });
                 
                 const duration = pkg?.durationDays || 30;
-                let finalExpiresAt = new Date(Date.now() + duration * 86400000).toISOString();
+                let finalExpiresAt = cleanP.expiresAt || new Date(Date.now() + duration * 86400000).toISOString();
 
                 if (currentUser && currentUser.role !== 'ADMINISTRADOR') {
                   // Validar si el usuario tiene un plan que permita esta operación (Alquiler/Venta)
