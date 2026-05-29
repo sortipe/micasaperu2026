@@ -274,7 +274,23 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
     setEditingProperty(prev => prev ? { ...prev, [field]: value } : null);
   };
 
+  // Global queue to prevent concurrent uploads (which cause deadlocks in WebViews/Safari)
+  const uploadQueue = useRef<Promise<void>>(Promise.resolve());
+
   const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
+      uploadQueue.current = uploadQueue.current.then(async () => {
+        try {
+          const result = await performUpload(file, folder, onProgress);
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  };
+
+  const performUpload = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
     if (!isSupabaseConfigured) {
       if (onProgress) {
         for (let p = 0; p <= 100; p += 25) {
