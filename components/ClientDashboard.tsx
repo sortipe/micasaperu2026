@@ -289,10 +289,15 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     
     setIsAiGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: googleApiKey });
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: `Actúa como un experto en geografía e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${googleApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Actúa como un experto en geografía e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
         Genera una lista de ubicaciones geográficas que coincidan exactamente con lo solicitado.
         
         REGLAS CRÍTICAS:
@@ -300,33 +305,44 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         2. Si el usuario pide "distritos de [Provincia/Departamento]", genera solo distritos de esa zona.
         3. No mezcles tipos de ubicación (ej: no pongas avenidas si pidieron departamentos) a menos que el pedido sea genérico.
         4. El campo "parent" debe ser "Perú" para departamentos, o el nombre del Departamento/Provincia superior para distritos y urbanizaciones.
-        5. Genera hasta 30 resultados si el pedido lo requiere (como en el caso de todos los departamentos).`,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { 
-                  type: Type.STRING,
-                  description: "Nombre de la ubicación (ej: Miraflores, Lima, Av. Larco)"
+        5. Genera hasta 30 resultados si el pedido lo requiere (como en el caso de todos los departamentos).`
+            }]
+          }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "ARRAY",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  name: { 
+                    type: "STRING",
+                    description: "Nombre de la ubicación (ej: Miraflores, Lima, Av. Larco)"
+                  },
+                  type: { 
+                    type: "STRING",
+                    description: "Tipo de ubicación: Departamento, Provincia, Distrito, Urbanización, Avenida o Ciudad"
+                  },
+                  parent: { 
+                    type: "STRING",
+                    description: "Ubicación superior. Para departamentos usar 'Perú'. Para distritos usar el nombre del departamento."
+                  }
                 },
-                type: { 
-                  type: Type.STRING,
-                  description: "Tipo de ubicación: Departamento, Provincia, Distrito, Urbanización, Avenida o Ciudad"
-                },
-                parent: { 
-                  type: Type.STRING,
-                  description: "Ubicación superior. Para departamentos usar 'Perú'. Para distritos usar el nombre del departamento."
-                }
-              },
-              required: ["name", "type", "parent"]
+                required: ["name", "type", "parent"]
+              }
             }
           }
-        }
+        })
       });
-      const data = JSON.parse(response.text || '[]');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Error al conectar con la API de Google");
+      }
+
+      const result = await response.json();
+      const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+      const data = JSON.parse(textResponse);
       setAiSuggestions(data);
       showToast("Ubicaciones generadas con éxito", "SUCCESS");
     } catch (err) { showToast("Error con la IA: " + (err as Error).message, "ERROR"); } 
