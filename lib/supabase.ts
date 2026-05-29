@@ -177,14 +177,40 @@ if (FORCE_DEMO_MODE) {
   console.info('Using hardcoded Supabase connection (VITE_ environment variables missing).');
 }
 
+// In-memory mutex to replace navigator.locks which deadlocks on WebViews
+let isAuthLockAcquired = false;
+const authLockQueue: Array<() => void> = [];
+
+const acquireAuthLock = async (): Promise<void> => {
+  if (!isAuthLockAcquired) {
+    isAuthLockAcquired = true;
+    return;
+  }
+  return new Promise(resolve => authLockQueue.push(resolve));
+};
+
+const releaseAuthLock = () => {
+  if (authLockQueue.length > 0) {
+    const next = authLockQueue.shift();
+    if (next) next();
+  } else {
+    isAuthLockAcquired = false;
+  }
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    // Custom no-op lock to completely bypass navigator.locks (resolves Web Locks deadlocks on Android/iOS WebViews)
+    // Custom JS mutex to bypass buggy navigator.locks while maintaining thread safety
     lock: async (_name, _acquireTimeout, fn) => {
-      return await fn();
+      await acquireAuthLock();
+      try {
+        return await fn();
+      } finally {
+        releaseAuthLock();
+      }
     },
     storage: {
       getItem: (key) => {

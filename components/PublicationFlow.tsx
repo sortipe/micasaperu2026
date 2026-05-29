@@ -385,7 +385,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   };
 
   const handleFinalize = async () => {
-    if (!editingProperty) return;
+    if (!editingProperty || isSaving) return;
     setIsSaving(true);
     try {
       if (editingId) {
