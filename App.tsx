@@ -1152,7 +1152,7 @@ const App: React.FC = () => {
               <SearchHero locations={locations} filters={filters} bannerUrl={homeBanner} bannerUrlMobile={homeBannerMobile} onFilterChange={setFilters} onSearch={handlePerformSearch} />
               <DevelopmentOptions properties={properties} onPropertySelect={handleOpenProperty} currency={filters.currency} />
               <div className="container mx-auto px-4 py-16">
-                <h1 className="text-xl md:text-3xl font-black text-[#091F4F] text-center uppercase tracking-tight mb-16 max-w-4xl mx-auto leading-none border-b-4 border-red-600 pb-6">
+                <h1 className="text-[24px] md:text-[40px] font-black text-[#091F4F] text-center uppercase tracking-tight mb-16 max-w-4xl mx-auto leading-none border-b-4 border-red-600 pb-6">
                   Encuentra Casas, Departamentos y Terrenos en todo el Perú
                 </h1>
                 {properties.filter(p => p.planType === 'SUPER_FEATURED').length > 0 && (
