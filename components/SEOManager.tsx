@@ -213,24 +213,42 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
     }
 
     document.title = title;
+    document.documentElement.lang = 'es-PE';
 
     updateMetaTag('name', 'description', description);
     updateMetaTag('name', 'keywords', keywords);
+    updateMetaTag('name', 'author', 'Mi Casa Perú');
 
+    // Manejo de Canonical Link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', ogUrl);
+
+    // Open Graph
     updateMetaTag('property', 'og:title', title);
     updateMetaTag('property', 'og:description', description);
     updateMetaTag('property', 'og:image', ogImage);
+    updateMetaTag('property', 'og:image:secure_url', ogImage);
     updateMetaTag('property', 'og:image:width', '1200');
     updateMetaTag('property', 'og:image:height', '630');
+    updateMetaTag('property', 'og:image:alt', title);
     updateMetaTag('property', 'og:url', ogUrl);
     updateMetaTag('property', 'og:type', view === 'DETAILS' ? 'article' : 'website');
     updateMetaTag('property', 'og:site_name', 'Mi Casa Perú');
     updateMetaTag('property', 'og:locale', 'es_PE');
 
+    // Twitter Cards
     updateMetaTag('name', 'twitter:card', 'summary_large_image');
     updateMetaTag('name', 'twitter:title', title);
     updateMetaTag('name', 'twitter:description', description);
     updateMetaTag('name', 'twitter:image', ogImage);
+    updateMetaTag('name', 'twitter:image:alt', title);
+    updateMetaTag('name', 'twitter:site', '@micasaperu');
+    updateMetaTag('name', 'twitter:creator', '@micasaperu');
 
   }, [view, property, searchQuery]);
 
