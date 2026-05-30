@@ -1375,14 +1375,25 @@ const App: React.FC = () => {
                 onAddProperty={() => { setSelectedPropertyId(null); setView('ADMIN'); }} 
                 onEditProperty={id => { setSelectedPropertyId(id); setView('ADMIN'); }} 
                 onDeleteProperty={async id => { 
+                  // Optimistic update
+                  setProperties(prev => {
+                    const newProps = prev.filter(p => p.id !== id);
+                    localStorage.setItem('micasaperu_cache_properties', JSON.stringify(newProps));
+                    return newProps;
+                  });
+                  
                   try {
                     const { error } = await supabase.from('properties').delete().eq('id', id); 
                     if (error) throw error;
+                    // Add a cache buster timestamp to fetchProperties if we really want to, 
+                    // but optimistic update is usually enough.
                     await fetchProperties(); 
                     showToast("Inmueble eliminado", "SUCCESS"); 
                   } catch (err) {
                     showToast("Error al eliminar el inmueble", "ERROR");
                     console.error(err);
+                    // Revert on error
+                    await fetchProperties();
                   }
                 }}
                 onLogout={handleLogout} 
