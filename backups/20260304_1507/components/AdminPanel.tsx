@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useRef } from 'react';
 import { Property, User, PropertyCategory } from '../types';
 import { DEPARTMENTS, COMMON_FEATURES, PROPERTY_CATEGORIES } from '../constants';
@@ -145,7 +145,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
   const handleSave = async () => {
     if (editingProperty && editingProperty.id) {
       if (!editingProperty.title) {
-        showToast("Por favor ingresa un título.", "WARNING");
+        showToast("Por favor ingresa un tÃ­tulo.", "WARNING");
         return;
       }
       if (!editingProperty.featuredImage) {
@@ -153,7 +153,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
         return;
       }
       if (!editingProperty.district || !editingProperty.address) {
-        showToast("Por favor completa la ubicación (Distrito y Dirección).", "WARNING");
+        showToast("Por favor completa la ubicaciÃ³n (Distrito y DirecciÃ³n).", "WARNING");
         return;
       }
 
@@ -173,7 +173,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
 
       const textToCheck = `${editingProperty.title} ${editingProperty.description} ${editingProperty.address}`;
       if (containsContactInfo(textToCheck)) {
-        showToast("No se permite incluir teléfonos ni correos en el título, descripción o dirección.", "WARNING");
+        showToast("No se permite incluir telÃ©fonos ni correos en el tÃ­tulo, descripciÃ³n o direcciÃ³n.", "WARNING");
         return;
       }
 
@@ -427,7 +427,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
            </div>
            <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Modo Administrador Activo</p>
-              <h2 className="text-sm font-black uppercase">Estás editando el inmueble de: <span className="text-red-500">{editingProperty.agentName}</span></h2>
+              <h2 className="text-sm font-black uppercase">EstÃ¡s editando el inmueble de: <span className="text-red-500">{editingProperty.agentName}</span></h2>
            </div>
         </div>
       )}
@@ -435,7 +435,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">{editingId ? 'Editar Anuncio' : 'Publicar Inmueble'}</h1>
-          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Completa los datos técnicos</p>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Completa los datos tÃ©cnicos</p>
         </div>
         <button onClick={onCancel} className="text-gray-400 hover:text-red-600 font-black uppercase text-[10px] tracking-widest transition-colors flex items-center">
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -449,7 +449,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Título del anuncio</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">TÃ­tulo del anuncio</label>
                   <input type="text" className="w-full p-4 bg-gray-50 border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.title || ''} onChange={(e) => updateField('title', e.target.value)} />
                 </div>
                 <div>
@@ -477,11 +477,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Plan de Publicación</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Plan de PublicaciÃ³n</label>
                   <select className="w-full p-4 bg-gray-50 border-none rounded-2xl font-bold cursor-pointer" value={editingProperty.planType || 'BASIC'} onChange={(e) => updateField('planType', e.target.value)}>
-                    <option value="BASIC">Básico (Normal)</option>
+                    <option value="BASIC">BÃ¡sico (Normal)</option>
                     <option value="FEATURED">Destacado</option>
-                    <option value="SUPER_FEATURED">Súper Destacado</option>
+                    <option value="SUPER_FEATURED">SÃºper Destacado</option>
                   </select>
                 </div>
               </div>
@@ -503,7 +503,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Año de Entrega</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">AÃ±o de Entrega</label>
                       <input 
                         type="number" 
                         className="w-full p-4 bg-white border-none rounded-2xl font-bold focus:ring-2 focus:ring-orange-500 outline-none" 
@@ -516,16 +516,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                 </div>
               )}
 
-              {/* NUEVA SECCIÓN DE FICHA TÉCNICA */}
+              {/* NUEVA SECCIÃ“N DE FICHA TÃ‰CNICA */}
               <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-200">
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-red-600 pl-4">Ficha Técnica Detallada</h3>
+                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-red-600 pl-4">Ficha TÃ©cnica Detallada</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Habitaciones</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.bedrooms || 0} onChange={(e) => updateField('bedrooms', Number(e.target.value))} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Baños</label>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">BaÃ±os</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.bathrooms || 0} onChange={(e) => updateField('bathrooms', Number(e.target.value))} />
                   </div>
                   <div className="flex items-end gap-2">
@@ -539,40 +539,40 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                     </label>
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">N° Pisos</label>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">NÂ° Pisos</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.floors || 1} onChange={(e) => updateField('floors', Number(e.target.value))} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Antigüedad (Años)</label>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">AntigÃ¼edad (AÃ±os)</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.yearBuilt ?? 0} onChange={(e) => updateField('yearBuilt', Number(e.target.value))} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Área Construida (m²)</label>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Ãrea Construida (mÂ²)</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.builtArea || 0} onChange={(e) => updateField('builtArea', Number(e.target.value))} />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Área Total/Terreno (m²)</label>
+                    <label className="block text-[9px] font-black text-gray-400 uppercase mb-2">Ãrea Total/Terreno (mÂ²)</label>
                     <input type="number" className="w-full p-3 bg-white border border-gray-200 rounded-xl font-bold outline-none focus:ring-2 focus:ring-red-500" value={editingProperty.constructionArea || 0} onChange={(e) => updateField('constructionArea', Number(e.target.value))} />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Descripción pública</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">DescripciÃ³n pÃºblica</label>
                 <textarea className="w-full p-4 bg-gray-50 border-none rounded-2xl font-medium min-h-[150px] resize-none" value={editingProperty.description || ''} onChange={(e) => updateField('description', e.target.value)} />
               </div>
             </div>
 
             <div className="bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100 space-y-6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest border-l-4 border-red-600 pl-4">Localización</h3>
+                <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest border-l-4 border-red-600 pl-4">LocalizaciÃ³n</h3>
                 <button onClick={getCurrentLocation} className="bg-white text-blue-600 border border-blue-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">GPS Actual</button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input type="text" className="w-full p-3 bg-white rounded-xl font-bold" value={editingProperty.department || ''} onChange={(e) => updateField('department', e.target.value)} placeholder="Departamento" />
                 <input type="text" className="w-full p-3 bg-white rounded-xl font-bold" value={editingProperty.district || ''} onChange={(e) => updateField('district', e.target.value)} placeholder="Distrito" />
               </div>
-              <input type="text" className="w-full p-3 bg-white rounded-xl font-bold" value={editingProperty.address || ''} onChange={(e) => updateField('address', e.target.value)} placeholder="Dirección Exacta" />
+              <input type="text" className="w-full p-3 bg-white rounded-xl font-bold" value={editingProperty.address || ''} onChange={(e) => updateField('address', e.target.value)} placeholder="DirecciÃ³n Exacta" />
               
               <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -626,14 +626,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
              <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 flex flex-col items-center">
                 <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-widest mb-6 w-full text-left">Foto de Portada</h4>
                 <div className="relative w-full aspect-[4/3] rounded-[2rem] bg-gray-50 border-4 border-dashed border-gray-100 overflow-hidden flex items-center justify-center cursor-pointer group shadow-inner" onClick={() => featuredInputRef.current?.click()}>
-                  {editingProperty.featuredImage ? <img src={editingProperty.featuredImage} className="w-full h-full object-cover rounded-[1.5rem]" /> : <span className="text-gray-300 font-black uppercase text-[10px] tracking-widest">Subir foto</span>}
+                  {editingProperty.featuredImage ? <img loading="lazy" src={editingProperty.featuredImage} className="w-full h-full object-cover rounded-[1.5rem]" /> : <span className="text-gray-300 font-black uppercase text-[10px] tracking-widest">Subir foto</span>}
                   {isUploading.featured && <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-sm z-10"><div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div></div>}
                 </div>
                 <input type="file" ref={featuredInputRef} className="hidden" accept="image/*" onChange={handleFeaturedUpload} />
              </div>
 
               <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl border border-gray-100">
-                <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-widest mb-6">Galería</h4>
+                <h4 className="text-[13px] font-black text-slate-900 uppercase tracking-widest mb-6">GalerÃ­a</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {(editingProperty.gallery || []).map((img, idx) => (
                     <div 
@@ -645,7 +645,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                       onDragEnd={handleDragEnd}
                       className={`relative aspect-square rounded-[1.5rem] overflow-hidden group cursor-move ${draggedGalleryIndex === idx ? 'opacity-50' : ''}`}
                     >
-                      <img src={img} className="w-full h-full object-cover" />
+                      <img loading="lazy" src={img} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button onClick={() => moveGalleryImage(idx, 'left')} className="bg-white text-slate-900 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"/></svg></button>
                         <button onClick={() => removeGalleryImage(idx)} className="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-900 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"/></svg></button>
@@ -667,7 +667,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
                     <div key={idx} className="relative group flex items-center gap-4 p-3 bg-gray-50 rounded-2xl border border-gray-100">
                       <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600 shrink-0 overflow-hidden">
                         {doc.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                          <img src={doc} className="w-full h-full object-cover" alt="Preview" />
+                          <img loading="lazy" src={doc} className="w-full h-full object-cover" alt="Preview" />
                         ) : (
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         )}
@@ -701,3 +701,4 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ user, properties, editingId, on
 };
 
 export default AdminPanel;
+

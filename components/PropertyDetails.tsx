@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useRef } from 'react';
 import { Maximize, Building2, Bath, BedDouble, CalendarDays, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -126,7 +126,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
     dni: '',
     email: '',
     phone: '',
-    message: `Hola, estoy interesado en el inmueble "${property.title}" y me gustaría recibir más información. Gracias.`
+    message: `Hola, estoy interesado en el inmueble "${property.title}" y me gustarÃ­a recibir mÃ¡s informaciÃ³n. Gracias.`
   });
 
   const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, field: string, maxLength: number) => {
@@ -137,10 +137,10 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!acceptedPrivacy) {
-      return showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para enviar la solicitud.", "WARNING");
+      return showToast("Debe aceptar las PolÃ­ticas de Privacidad (Ley NÂ° 29733) para enviar la solicitud.", "WARNING");
     }
-    if (formData.dni && formData.dni.length < 8) return showToast("El DNI debe tener 8 dígitos.", "WARNING");
-    if (formData.phone.length < 9) return showToast("El celular debe tener 9 dígitos.", "WARNING");
+    if (formData.dni && formData.dni.length < 8) return showToast("El DNI debe tener 8 dÃ­gitos.", "WARNING");
+    if (formData.phone.length < 9) return showToast("El celular debe tener 9 dÃ­gitos.", "WARNING");
     if (!turnstileToken) return showToast("Por favor, verifica que no eres un robot.", "WARNING");
     
     setIsSending(true);
@@ -159,7 +159,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
         captchaToken: turnstileToken
       } as any);
       setIsSuccess(true);
-      showToast("Mensaje enviado con éxito", "SUCCESS");
+      showToast("Mensaje enviado con Ã©xito", "SUCCESS");
     } catch (err) {
       showToast("Hubo un error al enviar tu mensaje. Por favor intenta de nuevo.", "ERROR");
     } finally {
@@ -174,9 +174,9 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
           <div className="w-20 h-20 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h2 className="text-2xl font-black text-[#0f172a] uppercase tracking-tight mb-2">¡Mensaje Enviado!</h2>
+          <h2 className="text-2xl font-black text-[#0f172a] uppercase tracking-tight mb-2">Â¡Mensaje Enviado!</h2>
           <p className="text-gray-500 text-sm font-bold uppercase tracking-widest mb-8 leading-relaxed">
-            El agente se pondrá en contacto contigo pronto.
+            El agente se pondrÃ¡ en contacto contigo pronto.
           </p>
           <button 
             onClick={onClose}
@@ -209,7 +209,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
               )}
             </div>
             <h2 className="text-lg font-black text-[#0f172a] uppercase tracking-tight leading-none">CONTACTARTE CON</h2>
-            <p className="text-red-600 text-base font-black uppercase tracking-tight mt-1">{agentName || 'AGENTE MICASAPERÚ'}</p>
+            <p className="text-red-600 text-base font-black uppercase tracking-tight mt-1">{agentName || 'AGENTE MICASAPERÃš'}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -252,7 +252,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
             </div>
 
             <div>
-              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Correo Electrónico</label>
+              <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block ml-1">Correo ElectrÃ³nico</label>
               <input 
                 required 
                 type="email" 
@@ -283,7 +283,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
                   onChange={e => setAcceptedPrivacy(e.target.checked)}
                 />
                 <span>
-                  Autorizo el tratamiento de mis datos de acuerdo a las <strong className="text-red-600 font-bold hover:underline">Políticas de Privacidad</strong> y la <strong className="font-bold text-slate-900">Ley N° 29733 (Protección de Datos Personales en Perú)</strong>.
+                  Autorizo el tratamiento de mis datos de acuerdo a las <strong className="text-red-600 font-bold hover:underline">PolÃ­ticas de Privacidad</strong> y la <strong className="font-bold text-slate-900">Ley NÂ° 29733 (ProtecciÃ³n de Datos Personales en PerÃº)</strong>.
                 </span>
               </label>
               <label className="flex items-start gap-2.5 text-[10px] text-slate-600 cursor-pointer select-none leading-relaxed">
@@ -294,7 +294,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
                   onChange={e => setAcceptedPromotions(e.target.checked)}
                 />
                 <span>
-                  Autorizo el uso de mi información para fines de promociones y ofertas comerciales.
+                  Autorizo el uso de mi informaciÃ³n para fines de promociones y ofertas comerciales.
                 </span>
               </label>
             </div>
@@ -409,7 +409,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
   const handleWhatsappClick = () => {
     const whatsappNumber = agent?.whatsapp || property.agentWhatsapp;
     if (!whatsappNumber) {
-      showToast("Este agente no ha configurado su número de WhatsApp.", "WARNING");
+      showToast("Este agente no ha configurado su nÃºmero de WhatsApp.", "WARNING");
       return;
     }
     // Remove non-numeric characters
@@ -505,7 +505,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
               {/* Type and Bedrooms */}
               <div>
                 <p className="text-sm text-gray-500 font-medium mb-2">
-                  {property.type} · {property.bedrooms} dormitorios
+                  {property.type} Â· {property.bedrooms} dormitorios
                 </p>
 
                 {/* Title - H1 for SEO */}
@@ -513,7 +513,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 
                 {/* Price - H2 */}
                 <h2 className="text-lg md:text-xl font-extrabold text-red-600 mb-1">
-                  {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : property.status} S/ {property.pricePEN.toLocaleString()} · USD {property.priceUSD.toLocaleString()}
+                  {property.status === 'FOR_RENT' ? 'Alquiler' : property.status === 'FOR_SALE' ? 'Venta' : property.status} S/ {property.pricePEN.toLocaleString()} Â· USD {property.priceUSD.toLocaleString()}
                 </h2>
                 {property.maintenanceFee ? (
                   <p className="text-sm text-slate-500 font-medium mb-4">S/ {property.maintenanceFee} Mantenimiento</p>
@@ -534,18 +534,18 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-y border-gray-100 mb-8">
                   <div className="flex flex-col items-center text-center">
                     <Maximize className="w-6 h-6 text-gray-600 mb-2" strokeWidth={1.5} />
-                    <span className="text-sm font-bold text-slate-900">{property.constructionArea || 0} m²</span>
+                    <span className="text-sm font-bold text-slate-900">{property.constructionArea || 0} mÂ²</span>
                     <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">tot.</span>
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <Building2 className="w-6 h-6 text-gray-600 mb-2" strokeWidth={1.5} />
-                    <span className="text-sm font-bold text-slate-900">{property.builtArea || 0} m²</span>
+                    <span className="text-sm font-bold text-slate-900">{property.builtArea || 0} mÂ²</span>
                     <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">cub.</span>
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <Bath className="w-6 h-6 text-gray-600 mb-2" strokeWidth={1.5} />
                     <span className="text-sm font-bold text-slate-900">{property.bathrooms}</span>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">baños</span>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">baÃ±os</span>
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <BedDouble className="w-6 h-6 text-gray-600 mb-2" strokeWidth={1.5} />
@@ -554,8 +554,8 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   </div>
                   <div className="flex flex-col items-center text-center">
                     <CalendarDays className="w-6 h-6 text-gray-600 mb-2" strokeWidth={1.5} />
-                    <span className="text-sm font-bold text-slate-900">{property.yearBuilt === 0 ? 'Estreno' : `${property.yearBuilt || 0} años`}</span>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">antigüedad</span>
+                    <span className="text-sm font-bold text-slate-900">{property.yearBuilt === 0 ? 'Estreno' : `${property.yearBuilt || 0} aÃ±os`}</span>
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest mt-1">antigÃ¼edad</span>
                   </div>
                 </div>
 
@@ -572,15 +572,15 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     className="text-sm font-bold text-slate-900 flex items-center gap-1 mt-4 hover:text-red-600 transition-colors"
                   >
-                    {isDescriptionExpanded ? 'Ocultar descripción' : 'Leer descripción completa'}
+                    {isDescriptionExpanded ? 'Ocultar descripciÃ³n' : 'Leer descripciÃ³n completa'}
                     <svg className={`w-4 h-4 transition-transform ${isDescriptionExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
                   </button>
                 </div>
               </div>
 
-              {/* FICHA TÉCNICA EXPANDIDA */}
+              {/* FICHA TÃ‰CNICA EXPANDIDA */}
               <div className="pt-6 border-t border-gray-50">
-                <h2 className="text-lg font-black text-slate-900 mb-5 uppercase tracking-tight border-l-4 border-red-600 pl-3">Especificaciones Técnicas</h2>
+                <h2 className="text-lg font-black text-slate-900 mb-5 uppercase tracking-tight border-l-4 border-red-600 pl-3">Especificaciones TÃ©cnicas</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
                     <p className="text-xl font-black text-slate-900 leading-none mb-1">{property.bedrooms}</p>
@@ -588,7 +588,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   </div>
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
                     <p className="text-xl font-black text-slate-900 leading-none mb-1">{property.bathrooms}</p>
-                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Baños</p>
+                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">BaÃ±os</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
                     <p className="text-xl font-black text-slate-900 leading-none mb-1">{property.parking || 0}</p>
@@ -599,16 +599,16 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                     <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Pisos</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
-                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.yearBuilt === 0 ? 'Estreno' : `${property.yearBuilt || 0} años`}</p>
-                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Antigüedad</p>
+                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.yearBuilt === 0 ? 'Estreno' : `${property.yearBuilt || 0} aÃ±os`}</p>
+                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">AntigÃ¼edad</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
-                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.builtArea || 0} m²</p>
-                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Área Construida</p>
+                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.builtArea || 0} mÂ²</p>
+                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Ãrea Construida</p>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-2xl text-center border border-slate-100">
-                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.constructionArea || 0} m²</p>
-                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Área Total/Terreno</p>
+                    <p className="text-lg font-black text-slate-900 leading-none mb-1">{property.constructionArea || 0} mÂ²</p>
+                    <p className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Ãrea Total/Terreno</p>
                   </div>
                   {property.status === 'PROJECT' && (
                     <div className="p-3 bg-orange-50 rounded-2xl text-center border border-orange-100">
@@ -621,7 +621,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
 
               {property.features && property.features.length > 0 && (
                 <div className="pt-6 border-t border-gray-50">
-                   <h2 className="text-lg font-black text-slate-900 mb-5 uppercase tracking-tight border-l-4 border-red-600 pl-3">Características y Amenidades</h2>
+                   <h2 className="text-lg font-black text-slate-900 mb-5 uppercase tracking-tight border-l-4 border-red-600 pl-3">CaracterÃ­sticas y Amenidades</h2>
                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-6">
                       {property.features.map((feature, idx) => (
                         <div key={idx} className="flex items-center gap-3 group">
@@ -649,7 +649,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                         >
                             <div className="w-12 h-12 bg-white text-red-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover:bg-red-600 group-hover:text-white transition-all overflow-hidden">
                               {doc.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                                <img src={doc} width="48" height="48" className="w-full h-full object-cover" alt="Preview" />
+                                <img loading="lazy" src={doc} width="48" height="48" className="w-full h-full object-cover" alt="Preview" />
                               ) : (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                               )}
@@ -673,7 +673,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 <form className="space-y-3" onSubmit={(e) => { 
                   e.preventDefault(); 
                   if (!sidebarAcceptedPrivacy) {
-                    showToast("Debe aceptar las Políticas de Privacidad (Ley N° 29733) para contactar al anunciante.", "WARNING");
+                    showToast("Debe aceptar las PolÃ­ticas de Privacidad (Ley NÂ° 29733) para contactar al anunciante.", "WARNING");
                     return;
                   }
                   setShowContactForm(true); 
@@ -691,7 +691,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                     />
                     <input 
                       type="text" 
-                      placeholder="Teléfono" 
+                      placeholder="TelÃ©fono" 
                       className="w-full p-3 border border-gray-300 rounded-md text-sm outline-none focus:border-red-500"
                     />
                   </div>
@@ -704,7 +704,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                     placeholder="Mensaje" 
                     rows={3}
                     className="w-full p-3 border border-gray-300 rounded-md text-sm outline-none focus:border-red-500 resize-none"
-                    defaultValue={`¡Hola! Quiero que se comuniquen conmigo por este inmueble en alquiler que vi en Micasaperu.`}
+                    defaultValue={`Â¡Hola! Quiero que se comuniquen conmigo por este inmueble en alquiler que vi en Micasaperu.`}
                   />
                   <div className="space-y-2 pt-2">
                     <label className="flex items-start gap-2.5 text-[10px] text-gray-600 cursor-pointer select-none leading-relaxed">
@@ -714,7 +714,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                         checked={sidebarAcceptedPrivacy}
                         onChange={e => setSidebarAcceptedPrivacy(e.target.checked)}
                       />
-                      <span>Acepto las Políticas de Privacidad y el tratamiento de mis datos de acuerdo a la Ley N° 29733 (Ley de Protección de Datos Personales en el Perú).</span>
+                      <span>Acepto las PolÃ­ticas de Privacidad y el tratamiento de mis datos de acuerdo a la Ley NÂ° 29733 (Ley de ProtecciÃ³n de Datos Personales en el PerÃº).</span>
                     </label>
                     <label className="flex items-start gap-2.5 text-[10px] text-gray-600 cursor-pointer select-none leading-relaxed">
                       <input 
@@ -723,7 +723,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                         checked={sidebarAcceptedPromotions}
                         onChange={e => setSidebarAcceptedPromotions(e.target.checked)}
                       />
-                      <span>Autorizo el uso de mi información para fines de promociones y ofertas comerciales.</span>
+                      <span>Autorizo el uso de mi informaciÃ³n para fines de promociones y ofertas comerciales.</span>
                     </label>
                   </div>
                   <div className="pt-2 space-y-2">
@@ -749,14 +749,14 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
               <div className="bg-white p-4 rounded-[1rem] shadow-md border border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-                    <img 
+                    <img loading="lazy" 
                       src={agent?.avatar || property.agentAvatar || `https://ui-avatars.com/api/?name=${agent?.name || property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
                       alt={agent?.name || property.agentName} 
                       className="w-full h-full object-cover" 
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-900">{agent?.name || property.agentName || 'Agente Micasaperú'}</p>
+                    <p className="text-sm font-bold text-slate-900">{agent?.name || property.agentName || 'Agente MicasaperÃº'}</p>
                     <p className="text-xs text-gray-500">{agent?.phone || property.agentWhatsapp || 'Contactar para info'}</p>
                   </div>
                 </div>
@@ -764,7 +764,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   onClick={handleWhatsappClick}
                   className="text-sm font-bold text-slate-900 flex items-center gap-1 hover:text-red-600 transition-colors"
                 >
-                  Ver teléfono
+                  Ver telÃ©fono
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 </button>
               </div>
@@ -789,7 +789,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                   <img src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} width="400" height="300" className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
                 </div>
                 <div className="p-3">
-                  <p className="text-[9px] text-gray-500 mb-1">{rp.type} · {rp.bedrooms} dorm</p>
+                  <p className="text-[9px] text-gray-500 mb-1">{rp.type} Â· {rp.bedrooms} dorm</p>
                   <p className="text-sm font-bold text-slate-900 truncate">
                     {rp.priceUSD ? `$ ${rp.priceUSD.toLocaleString()}` : `S/ ${rp.pricePEN.toLocaleString()}`}
                   </p>
@@ -804,7 +804,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
       {showContactForm && (
         <ContactFormModal 
           property={property}
-          agentName={agent?.name || property.agentName || 'AGENTE MICASAPERÚ'} 
+          agentName={agent?.name || property.agentName || 'AGENTE MICASAPERÃš'} 
           agentAvatar={agent?.avatar || property.agentAvatar || `https://ui-avatars.com/api/?name=${agent?.name || property.agentName || 'Asesor'}&background=0f172a&color=fff`}
           onClose={() => setShowContactForm(false)} 
           onSend={onSendMessage}
@@ -824,3 +824,4 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
 };
 
 export default PropertyDetails;
+

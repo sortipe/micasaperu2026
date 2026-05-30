@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Mousewheel, Autoplay } from 'swiper/modules';
 
@@ -81,7 +81,7 @@ const SortablePhoto: React.FC<SortablePhotoProps> = ({ id, url, onRemove }) => {
       style={style} 
       className="relative aspect-square rounded-2xl overflow-hidden group touch-none"
     >
-      <img src={url} width="400" height="300" className="w-full h-full object-cover" />
+      <img loading="lazy" src={url} width="400" height="300" className="w-full h-full object-cover" />
       <div 
         {...attributes} 
         {...listeners}
@@ -257,7 +257,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
       deliveryMonth: 'Enero',
       deliveryYear: new Date().getFullYear() + 1,
       createdAt: new Date().toISOString(),
-      expiresAt: '', // Se calculará al publicar
+      expiresAt: '', // Se calcularÃ¡ al publicar
       agentId: user.id,
       agentName: user.name,
       agentAvatar: user.avatar,
@@ -279,7 +279,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
   const uploadFile = async (file: File, folder: string, onProgress?: (p: number) => void): Promise<string | null> => {
     return new Promise((resolve, reject) => {
-      // Usar finally para asegurar que la cola siempre continúe, incluso si la anterior falló
+      // Usar finally para asegurar que la cola siempre continÃºe, incluso si la anterior fallÃ³
       uploadQueue.current = uploadQueue.current
         .catch(() => {}) // Ignorar errores de promesas anteriores en la cola
         .then(async () => {
@@ -330,9 +330,9 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
         reader.readAsArrayBuffer(fileToUpload);
       });
       
-      // Subir con timeout explícito para evitar que la cola se bloquee permanentemente
+      // Subir con timeout explÃ­cito para evitar que la cola se bloquee permanentemente
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("El servidor tardó demasiado en responder")), 30000)
+        setTimeout(() => reject(new Error("El servidor tardÃ³ demasiado en responder")), 30000)
       );
 
       const uploadPromise = supabase.storage
@@ -408,7 +408,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
       } else {
         await onAdd(editingProperty as Property);
       }
-      showToast("Inmueble publicado con éxito", "SUCCESS");
+      showToast("Inmueble publicado con Ã©xito", "SUCCESS");
     } catch (err) {
       showToast("Error al guardar", "ERROR");
     } finally {
@@ -493,11 +493,11 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
           <div className="lg:col-span-3 space-y-8">
             {currentStep === 'PRINCIPALES' && (
               <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-12 border border-gray-100 animate-fade-in">
-                <h2 className="text-3xl font-black text-slate-900 mb-8">¡Cuéntanos sobre tu inmueble!</h2>
+                <h2 className="text-3xl font-black text-slate-900 mb-8">Â¡CuÃ©ntanos sobre tu inmueble!</h2>
                 
                 <div className="space-y-8">
                   <div>
-                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Título del anuncio</label>
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">TÃ­tulo del anuncio</label>
                     <input 
                       type="text" 
                       className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold text-lg outline-none focus:ring-2 focus:ring-orange-500" 
@@ -566,7 +566,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Baños</label>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">BaÃ±os</label>
                       <input 
                         type="number" 
                         className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
@@ -598,7 +598,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Área Const. (m²)</label>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Ãrea Const. (mÂ²)</label>
                       <input 
                         type="number" 
                         className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
@@ -611,7 +611,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Área Terreno (m²)</label>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Ãrea Terreno (mÂ²)</label>
                       <input 
                         type="number" 
                         className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
@@ -641,7 +641,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Antigüedad (Años)</label>
+                      <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">AntigÃ¼edad (AÃ±os)</label>
                       <input 
                         type="number" 
                         className="w-full p-5 bg-gray-50 border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-orange-500"
@@ -655,7 +655,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     <div className="grid grid-cols-1 gap-6">
                       <div className="bg-red-50 p-6 rounded-3xl border border-red-100">
                         <label className="block text-[11px] font-black text-red-600 uppercase tracking-widest mb-3">Vencimiento de la Propiedad (Solo Admin)</label>
-                        <p className="text-[10px] text-red-500 mb-4 font-semibold">Al vencer, la propiedad se ocultará de la web, pero no se eliminará del sistema.</p>
+                        <p className="text-[10px] text-red-500 mb-4 font-semibold">Al vencer, la propiedad se ocultarÃ¡ de la web, pero no se eliminarÃ¡ del sistema.</p>
                         <input 
                           type="date" 
                           className="w-full p-5 bg-white border-none rounded-2xl font-bold outline-none focus:ring-2 focus:ring-red-500 text-slate-800"
@@ -698,14 +698,14 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                   )}
 
                   <div className="space-y-6">
-                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-l-4 border-orange-500 pl-4">Ubicación</h3>
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest border-l-4 border-orange-500 pl-4">UbicaciÃ³n</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Distrito" value={editingProperty?.district || ''} onChange={(e) => updateField('district', e.target.value)} />
-                      <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="Dirección" value={editingProperty?.address || ''} onChange={(e) => updateField('address', e.target.value)} />
+                      <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" placeholder="DirecciÃ³n" value={editingProperty?.address || ''} onChange={(e) => updateField('address', e.target.value)} />
                     </div>
 
                     <div className="relative">
-                      <label className="block text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2 ml-1">Buscar dirección exacta (Sugerido)</label>
+                      <label className="block text-[10px] font-black text-orange-500 uppercase tracking-widest mb-2 ml-1">Buscar direcciÃ³n exacta (Sugerido)</label>
                       <div className="relative group">
                         <input 
                           type="text" 
@@ -806,7 +806,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                       className="relative w-full aspect-video rounded-[2rem] bg-gray-50 border-4 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all overflow-hidden"
                     >
                       {editingProperty?.featuredImage ? (
-                        <img src={editingProperty.featuredImage} width="400" height="300" className="w-full h-full object-cover" />
+                        <img loading="lazy" src={editingProperty.featuredImage} width="400" height="300" className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-center">
                           <svg className="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -831,7 +831,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">Galería de fotos (Máx. 10)</label>
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-4">GalerÃ­a de fotos (MÃ¡x. 10)</label>
                     <DndContext 
                       sensors={sensors}
                       collisionDetection={closestCenter}
@@ -877,7 +877,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               <div className="p-3 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                                 <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"/></svg>
                               </div>
-                              <span className="mt-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">Añadir Foto</span>
+                              <span className="mt-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">AÃ±adir Foto</span>
                             </div>
                           )}
                         </div>
@@ -893,13 +893,13 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                         const remaining = 10 - currentCount;
                         
                         if (remaining <= 0) {
-                          showToast("Límite de 10 fotos alcanzado", "WARNING");
+                          showToast("LÃ­mite de 10 fotos alcanzado", "WARNING");
                           return;
                         }
 
                         const filesToUpload = files.slice(0, remaining);
                         if (files.length > remaining) {
-                          showToast(`Solo se pueden añadir ${remaining} fotos más`, "WARNING");
+                          showToast(`Solo se pueden aÃ±adir ${remaining} fotos mÃ¡s`, "WARNING");
                         }
 
                         setIsUploading(p => ({...p, gallery: true}));
@@ -957,7 +957,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                 
                 <div className="space-y-10">
                   <div>
-                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Amenidades y Características</label>
+                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-widest mb-6">Amenidades y CaracterÃ­sticas</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {COMMON_FEATURES.map((feature, idx) => (
                         <label key={idx} className="flex items-center gap-3 cursor-pointer group">
@@ -981,15 +981,15 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                   </div>
 
                   <div className="bg-gray-50 p-8 rounded-[2rem]">
-                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-3">Autorización de Anuncios</h4>
-                    <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed">Autorizo expresamente a MICASAPERÚ a publicar, difundir y promocionar las imágenes e información del inmueble en redes sociales, páginas web y medios digitales, con fines comerciales.</p>
+                    <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-3">AutorizaciÃ³n de Anuncios</h4>
+                    <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed">Autorizo expresamente a MICASAPERÃš a publicar, difundir y promocionar las imÃ¡genes e informaciÃ³n del inmueble en redes sociales, pÃ¡ginas web y medios digitales, con fines comerciales.</p>
                     <div className="flex gap-8">
                       <label className="flex items-center gap-3 cursor-pointer group">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingProperty?.allowAdsUsage === true ? 'border-orange-500' : 'border-gray-300'}`}>
                           {editingProperty?.allowAdsUsage === true && <div className="w-2.5 h-2.5 bg-orange-500 rounded-full" />}
                         </div>
                         <input type="radio" className="hidden" checked={editingProperty?.allowAdsUsage === true} onChange={() => updateField('allowAdsUsage', true)} />
-                        <span className="text-xs font-black uppercase tracking-widest">Sí, permito</span>
+                        <span className="text-xs font-black uppercase tracking-widest">SÃ­, permito</span>
                       </label>
                       <label className="flex items-center gap-3 cursor-pointer group">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${editingProperty?.allowAdsUsage === false ? 'border-orange-500' : 'border-gray-300'}`}>
@@ -1011,7 +1011,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div>
                         <h2 className="text-3xl font-black text-slate-900 mb-2">Publica tu inmueble</h2>
-                        <p className="text-gray-500 font-medium">Elige cómo quieres activar tu anuncio.</p>
+                        <p className="text-gray-500 font-medium">Elige cÃ³mo quieres activar tu anuncio.</p>
                       </div>
                       
                       {((user.propertiesRemaining || 0) > 0 || (user.featuredRemaining || 0) > 0 || (user.superFeaturedRemaining || 0) > 0) && (
@@ -1026,7 +1026,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                             onClick={() => { setUseCredits(true); setSelectedPlan(null); }}
                             className={`px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${useCredits ? 'bg-white text-slate-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                           >
-                            Usar mis Créditos
+                            Usar mis CrÃ©ditos
                           </button>
                         </div>
                       )}
@@ -1042,7 +1042,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               onClick={() => {
                                 updateField('planType', 'BASIC');
                                 setPaymentStatus('SUCCESS');
-                                showToast("Crédito Simple seleccionado", "SUCCESS");
+                                showToast("CrÃ©dito Simple seleccionado", "SUCCESS");
                               }}
                               className="p-8 rounded-3xl border-2 border-gray-100 hover:border-orange-500 transition-all text-left group bg-gray-50/50"
                             >
@@ -1050,8 +1050,8 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
                               </div>
                               <h3 className="text-lg font-black text-slate-900 mb-1">Simple</h3>
-                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Créditos: {user.propertiesRemaining}</p>
-                              <span className="inline-block bg-orange-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar Crédito</span>
+                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">CrÃ©ditos: {user.propertiesRemaining}</p>
+                              <span className="inline-block bg-orange-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar CrÃ©dito</span>
                             </button>
                           )}
                           
@@ -1060,7 +1060,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               onClick={() => {
                                 updateField('planType', 'FEATURED');
                                 setPaymentStatus('SUCCESS');
-                                showToast("Crédito Destacado seleccionado", "SUCCESS");
+                                showToast("CrÃ©dito Destacado seleccionado", "SUCCESS");
                               }}
                               className="p-8 rounded-3xl border-2 border-gray-100 hover:border-blue-500 transition-all text-left group bg-gray-50/50"
                             >
@@ -1068,8 +1068,8 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                               </div>
                               <h3 className="text-lg font-black text-slate-900 mb-1">Destacado</h3>
-                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Créditos: {user.featuredRemaining}</p>
-                              <span className="inline-block bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar Crédito</span>
+                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">CrÃ©ditos: {user.featuredRemaining}</p>
+                              <span className="inline-block bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar CrÃ©dito</span>
                             </button>
                           )}
 
@@ -1078,7 +1078,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               onClick={() => {
                                 updateField('planType', 'SUPER_FEATURED');
                                 setPaymentStatus('SUCCESS');
-                                showToast("Crédito Super Destacado seleccionado", "SUCCESS");
+                                showToast("CrÃ©dito Super Destacado seleccionado", "SUCCESS");
                               }}
                               className="p-8 rounded-3xl border-2 border-gray-100 hover:border-purple-500 transition-all text-left group bg-gray-50/50"
                             >
@@ -1086,8 +1086,8 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z"/></svg>
                               </div>
                               <h3 className="text-lg font-black text-slate-900 mb-1">Super Destacado</h3>
-                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Créditos: {user.superFeaturedRemaining}</p>
-                              <span className="inline-block bg-purple-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar Crédito</span>
+                              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">CrÃ©ditos: {user.superFeaturedRemaining}</p>
+                              <span className="inline-block bg-purple-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">Usar CrÃ©dito</span>
                             </button>
                           )}
                         </div>
@@ -1121,7 +1121,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                                   className="flex items-center gap-2 text-gray-400 hover:text-red-600 font-black text-[10px] uppercase tracking-widest mb-4 transition-colors"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                                  Volver a categorías
+                                  Volver a categorÃ­as
                                 </button>
                                 <div className="relative group/swiper">
                                   <Swiper
@@ -1258,7 +1258,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                               mpPublicKey={mpPublicKey}
                               onSuccess={() => {
                                 setPaymentStatus('SUCCESS');
-                                showToast("Pago procesado con éxito", "SUCCESS");
+                                showToast("Pago procesado con Ã©xito", "SUCCESS");
                               }}
                               onCancel={() => setSelectedPlan(null)}
                               onRecordTransaction={async (methodName, operationNumber, securityCode) => {
@@ -1276,9 +1276,9 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                     <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8">
                       <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 mb-4">¡Todo listo para publicar!</h2>
+                    <h2 className="text-3xl font-black text-slate-900 mb-4">Â¡Todo listo para publicar!</h2>
                     <p className="text-gray-500 font-medium mb-10 max-w-md mx-auto">
-                      {isAdmin ? "Como administrador, puedes publicar este inmueble de forma gratuita e inmediata." : "Tu pago ha sido procesado. Haz clic abajo para finalizar la publicación."}
+                      {isAdmin ? "Como administrador, puedes publicar este inmueble de forma gratuita e inmediata." : "Tu pago ha sido procesado. Haz clic abajo para finalizar la publicaciÃ³n."}
                     </p>
                     <button 
                       onClick={handleFinalize}
@@ -1327,7 +1327,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                 </div>
                 <div className="flex items-center gap-3 text-xs font-bold text-gray-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span>{editingProperty?.district || 'Ubicación'}</span>
+                  <span>{editingProperty?.district || 'UbicaciÃ³n'}</span>
                 </div>
               </div>
 
@@ -1357,3 +1357,4 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
 };
 
 export default PublicationFlow;
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { User } from '../types';
 
 interface NavbarProps {
@@ -45,9 +45,9 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
             >
               {logo ? (
                 <div className="h-10 md:h-12 flex items-center animate-fade-in">
-                  <img 
+                  <img loading="lazy" 
                     src={logo} 
-                    alt="Mi Casa Perú - Logo" 
+                    alt="Mi Casa PerÃº - Logo" 
                     width="180"
                     height="48"
                     className="h-full w-auto object-contain max-w-[180px]" 
@@ -154,12 +154,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
                 </div>
               ) : (
                 <div className="text-center">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">¿Ya tienes cuenta?</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Â¿Ya tienes cuenta?</p>
                   <button 
                     onClick={() => handleLinkClick('AUTH')}
                     className="w-full bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg"
                   >
-                    Iniciar Sesión
+                    Iniciar SesiÃ³n
                   </button>
                 </div>
               )}
@@ -185,7 +185,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo, ca
             </div>
 
             <div className="mt-auto pt-8 border-t border-gray-100 text-center">
-               <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">MICASAPERU © 2025</p>
+               <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">MICASAPERU Â© 2025</p>
             </div>
           </div>
         </div>

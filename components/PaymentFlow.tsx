@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Package, User, PaymentMethod, CartItem } from '../types';
 import { ToastType } from './Toast';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
@@ -92,13 +92,13 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   
   const description = isCart 
     ? `Compra de ${initialCartItems!.length} planes` 
-    : `Suscripción: ${selectedPkg?.name}`;
+    : `SuscripciÃ³n: ${selectedPkg?.name}`;
 
 
 
   const handleProcessMP = async () => {
     if (!mpAccessToken) {
-       showToast("Las credenciales de Mercado Pago no están configuradas correctamente.", "ERROR");
+       showToast("Las credenciales de Mercado Pago no estÃ¡n configuradas correctamente.", "ERROR");
        return;
     }
     
@@ -110,7 +110,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
     try {
       setIsProcessing(true);
       
-      // Si el usuario pidió guardar el DNI, lo enviamos al perfil (Sin bloquear el pago)
+      // Si el usuario pidiÃ³ guardar el DNI, lo enviamos al perfil (Sin bloquear el pago)
       if (saveDni && dni !== user.dni && onUpdateProfile) {
         onUpdateProfile({ dni }).catch(err => console.error("Supabase Profile Sync failed (ignoring for payment):", err));
       }
@@ -156,7 +156,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
       }
       if (data.id) {
         setPreferenceId(data.id);
-        // El SDK se encargará de renderizar el botón oficial usando este ID
+        // El SDK se encargarÃ¡ de renderizar el botÃ³n oficial usando este ID
       } else {
         throw new Error(data.message || "Error al crear preferencia con Mercado Pago");
       }
@@ -187,15 +187,15 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
     if (!selectedMethod) return;
 
     if (!operationNumber.trim() && !securityCode.trim()) {
-      showToast("Por favor, ingresa al menos el número de operación o código de seguridad.", "WARNING");
+      showToast("Por favor, ingresa al menos el nÃºmero de operaciÃ³n o cÃ³digo de seguridad.", "WARNING");
       return;
     }
 
     setIsProcessing(true);
     try {
-      // Registramos la transacción en la DB
+      // Registramos la transacciÃ³n en la DB
       await onRecordTransaction(selectedMethod.name, operationNumber, securityCode);
-      // Pequeña pausa para feedback visual y pasamos al éxito
+      // PequeÃ±a pausa para feedback visual y pasamos al Ã©xito
       setTimeout(() => {
         setIsProcessing(false);
         setStep('SUCCESS');
@@ -214,7 +214,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
           <div className="w-20 h-20 bg-green-50 text-green-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">¡Solicitud Enviada!</h1>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">Â¡Solicitud Enviada!</h1>
           <p className="text-gray-500 text-base font-medium mb-10 leading-relaxed">
             Hemos recibido tu comprobante de <span className="text-red-600 font-black">{selectedMethod?.name}</span>. <br/>
             Validaremos tu pago en breve para activar {isCart ? 'tus planes' : <span className="font-bold text-slate-900">{selectedPkg?.name}</span>}.
@@ -262,10 +262,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               
               {step === 'SELECT' && showPackageSelection ? (
                 <div className="animate-fade-in flex flex-col h-full">
-                  {/* Si no hay categoría seleccionada, mostrar categorías */}
+                  {/* Si no hay categorÃ­a seleccionada, mostrar categorÃ­as */}
                   {!selectedCategory ? (
                     <>
-                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-6">Selecciona una categoría</h2>
+                      <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-6">Selecciona una categorÃ­a</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {getCategories().map(category => (
                           <button
@@ -285,14 +285,14 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                       </div>
                     </>
                   ) : (
-                    /* Si hay categoría seleccionada, mostrar paquetes */
+                    /* Si hay categorÃ­a seleccionada, mostrar paquetes */
                     <>
                       <button 
                         onClick={handleBackToCategories}
                         className="flex items-center gap-2 text-gray-400 hover:text-red-600 font-black text-[10px] uppercase tracking-widest mb-4 transition-colors"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                        Volver a categorías
+                        Volver a categorÃ­as
                       </button>
                       <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-6">{selectedCategory}</h2>
                       <div className="flex-grow space-y-4 overflow-y-auto">
@@ -312,7 +312,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                               <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{pkg.description}</p>
                               <div className="flex gap-4 mt-3">
                                 <span className="text-[9px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-1 rounded-lg">
-                                  {pkg.durationDays} días
+                                  {pkg.durationDays} dÃ­as
                                 </span>
                                 <span className="text-[9px] font-black text-purple-600 uppercase bg-purple-50 px-2 py-1 rounded-lg">
                                   {pkg.propertyLimit} {pkg.propertyLimit === 1 ? 'propiedad' : 'propiedades'}
@@ -347,7 +347,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                       ))
                     ) : (
                       <div className="text-center py-12">
-                        <p className="text-gray-400 font-bold text-xs uppercase">No hay planes disponibles en esta categoría</p>
+                        <p className="text-gray-400 font-bold text-xs uppercase">No hay planes disponibles en esta categorÃ­a</p>
                       </div>
                     )}
                   </div>
@@ -356,7 +356,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                 </div>
               ) : step === 'METHOD' ? (
                 <div className="animate-fade-in flex flex-col h-full">
-                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-8">Selecciona tu método de pago</h2>
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-8">Selecciona tu mÃ©todo de pago</h2>
                   <div className="space-y-4 flex-grow">
                     {activeMethods.length > 0 ? activeMethods.map(m => (
                       <div 
@@ -378,13 +378,13 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                           </div>
                           <div>
                             <h3 className="text-sm font-black text-gray-900 uppercase">{m.name}</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de Crédito/Débito' : m.type === 'MERCADOPAGO' ? 'Mercado Pago' : 'Escaneo de Código QR'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de CrÃ©dito/DÃ©bito' : m.type === 'MERCADOPAGO' ? 'Mercado Pago' : 'Escaneo de CÃ³digo QR'}</p>
                           </div>
                         </div>
                         <svg className="w-4 h-4 text-gray-300 group-hover:text-red-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                       </div>
                     )) : (
-                      <p className="text-center text-gray-400 font-bold text-xs uppercase py-20">No hay métodos disponibles.</p>
+                      <p className="text-center text-gray-400 font-bold text-xs uppercase py-20">No hay mÃ©todos disponibles.</p>
                     )}
                   </div>
                 </div>
@@ -392,7 +392,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                 <div className="animate-fade-in flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
                      <h2 className="text-xl font-black text-[#0f172a] uppercase tracking-tight">{selectedMethod.name}</h2>
-                     <button onClick={() => setStep('METHOD')} className="text-[10px] font-black text-red-600 uppercase border-b-2 border-red-500/20 hover:border-red-500 transition-all">Cambiar Método</button>
+                     <button onClick={() => setStep('METHOD')} className="text-[10px] font-black text-red-600 uppercase border-b-2 border-red-500/20 hover:border-red-500 transition-all">Cambiar MÃ©todo</button>
                   </div>
 
                   <div className="flex-grow flex flex-col items-center justify-center">
@@ -404,7 +404,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                <span className="font-black text-slate-900 uppercase">{selectedMethod.bankName || 'BCP'}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                               <span className="font-black text-gray-400 uppercase">N° de Cuenta</span>
+                               <span className="font-black text-gray-400 uppercase">NÂ° de Cuenta</span>
                                <span className="font-black text-slate-900">{selectedMethod.accountNumber}</span>
                             </div>
                             {selectedMethod.cci && (
@@ -435,11 +435,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                               <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100">
                                  <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    Datos de Facturación
+                                    Datos de FacturaciÃ³n
                                  </h4>
                                  <div className="space-y-4">
                                     <div>
-                                       <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1 text-left">N° de Documento (DNI/RUC)</label>
+                                       <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1 text-left">NÂ° de Documento (DNI/RUC)</label>
                                        <input 
                                          type="text" 
                                          className="w-full p-4 bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl font-black text-slate-900 outline-none transition-all placeholder:text-gray-200" 
@@ -462,7 +462,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                 disabled={isProcessing || dni.length < 8} 
                                 className="w-full bg-[#009EE3] text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-[#0089c7] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                               >
-                                {isProcessing ? 'Validando Datos...' : 'Generar Botón de Pago'}
+                                {isProcessing ? 'Validando Datos...' : 'Generar BotÃ³n de Pago'}
                                 {!isProcessing && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>}
                               </button>
                            </div>
@@ -475,7 +475,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                     onReady={() => console.log("Mercado Pago Wallet Brick is ready")}
                                     onError={(error) => {
                                       console.error("Mercado Pago Brick Error:", error);
-                                      showToast("Error al cargar el botón de pago de Mercado Pago", "ERROR");
+                                      showToast("Error al cargar el botÃ³n de pago de Mercado Pago", "ERROR");
                                     }}
                                   />
                                 ) : (
@@ -486,7 +486,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                                 )}
                               </div>
                               
-                              <button onClick={() => setPreferenceId(null)} className="mt-6 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-[0.2em] border-b border-transparent hover:border-blue-200 pb-1">← Volver a Editar Datos</button>
+                              <button onClick={() => setPreferenceId(null)} className="mt-6 text-[9px] font-black text-gray-400 uppercase hover:text-blue-500 transition-all tracking-[0.2em] border-b border-transparent hover:border-blue-200 pb-1">â† Volver a Editar Datos</button>
                            </div>
                          )}
 
@@ -497,10 +497,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                     ) : (
                       <div className="flex flex-col items-center text-center">
                          <div className="w-44 h-44 bg-white p-3 rounded-[2rem] border-4 border-gray-50 shadow-inner mb-6 flex items-center justify-center overflow-hidden">
-                           <img src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="Código QR para pago con Yape" />
+                           <img loading="lazy" src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="CÃ³digo QR para pago con Yape" />
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                           {selectedMethod.instructions || 'Escanea el código y adjunta una captura de pantalla del comprobante'}
+                           {selectedMethod.instructions || 'Escanea el cÃ³digo y adjunta una captura de pantalla del comprobante'}
                          </p>
                       </div>
                     )}
@@ -511,7 +511,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                       <div className="w-full space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Número de Operación</label>
+                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">NÃºmero de OperaciÃ³n</label>
                             <input 
                               type="text" 
                               className="w-full p-4 bg-gray-50 border-2 border-transparent hover:border-gray-200 focus:border-red-500 rounded-2xl font-bold text-slate-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-medium" 
@@ -521,7 +521,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                             />
                           </div>
                           <div>
-                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Código de Seguridad</label>
+                            <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">CÃ³digo de Seguridad</label>
                             <input 
                               type="text" 
                               className="w-full p-4 bg-gray-50 border-2 border-transparent hover:border-gray-200 focus:border-red-500 rounded-2xl font-bold text-slate-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-medium" 
@@ -542,7 +542,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                               <span>PROCESANDO...</span>
                             </>
                           ) : (
-                            <span>YA REALICÉ EL PAGO</span>
+                            <span>YA REALICÃ‰ EL PAGO</span>
                           )}
                         </button>
                       </div>
@@ -553,10 +553,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
             </div>
           </div>
 
-          {/* Columna Derecha: Resumen de Suscripción (Estilo Captura) */}
+          {/* Columna Derecha: Resumen de SuscripciÃ³n (Estilo Captura) */}
           <div className="lg:col-span-5">
             <div className="bg-[#0f172a] rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-               {/* Decoración sutil */}
+               {/* DecoraciÃ³n sutil */}
                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-[60px] -mr-16 -mt-16"></div>
                
                <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-12">Resumen de Compra</h3>
@@ -581,7 +581,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                        <div>
                          <h4 className="text-2xl font-black tracking-tight leading-none mb-2">{selectedPkg.name}</h4>
                          <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">
-                           {pkgQuantity > 1 ? `Cant: ${pkgQuantity}` : `Vigencia: ${selectedPkg.durationDays} días`}
+                           {pkgQuantity > 1 ? `Cant: ${pkgQuantity}` : `Vigencia: ${selectedPkg.durationDays} dÃ­as`}
                          </p>
                        </div>
                        <div className="text-right shrink-0">
@@ -613,7 +613,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
                      </div>
                      <div className="flex items-center gap-3">
                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {selectedPkg.durationDays} días</p>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {selectedPkg.durationDays} dÃ­as</p>
                      </div>
                   </div>
                 )}
@@ -627,3 +627,4 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
 };
 
 export default PaymentFlow;
+

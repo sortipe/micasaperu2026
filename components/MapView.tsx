@@ -1,4 +1,4 @@
-
+﻿
 import React, { useEffect, useRef, useState } from 'react';
 import * as turf from '@turf/turf';
 import L from 'leaflet';
@@ -47,7 +47,7 @@ const MapView: React.FC<MapViewProps> = ({
         zoomControl: false, attributionControl: false, maxBounds: PERU_BOUNDS, minZoom: 5, zoomSnap: 1
       }).setView(initialState?.center || [-12.046, -77.042], initialState?.zoom || 12);
 
-      // Usamos el layer de Google para mejor visualización urbana en Perú
+      // Usamos el layer de Google para mejor visualizaciÃ³n urbana en PerÃº
       L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=es-419').addTo(mapInstanceRef.current);
       markersLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current);
       boundaryLayerRef.current = L.layerGroup().addTo(mapInstanceRef.current);
@@ -56,7 +56,7 @@ const MapView: React.FC<MapViewProps> = ({
         onStateChange({ center: [mapInstanceRef.current.getCenter().lat, mapInstanceRef.current.getCenter().lng], zoom: mapInstanceRef.current.getZoom() });
       });
 
-      // Asegurar que el mapa tome el tamaño correcto
+      // Asegurar que el mapa tome el tamaÃ±o correcto
       setTimeout(() => { 
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize(); 
@@ -68,7 +68,7 @@ const MapView: React.FC<MapViewProps> = ({
     return () => { if (mapInstanceRef.current) { mapInstanceRef.current.remove(); mapInstanceRef.current = null; } };
   }, []);
 
-  // Lógica de zoom a las propiedades (Fallback)
+  // LÃ³gica de zoom a las propiedades (Fallback)
   const fitToMarkers = () => {
     if (!mapInstanceRef.current || properties.length === 0) return;
     try {
@@ -89,7 +89,7 @@ const MapView: React.FC<MapViewProps> = ({
     }
   };
 
-  // Lógica de vectorización (Zoom al distrito/ciudad) con Fallback ante "Failed to fetch"
+  // LÃ³gica de vectorizaciÃ³n (Zoom al distrito/ciudad) con Fallback ante "Failed to fetch"
   useEffect(() => {
     if (isVisible && mapInstanceRef.current) {
       setTimeout(() => mapInstanceRef.current.invalidateSize(), 100);
@@ -99,11 +99,11 @@ const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!isMapReady || !mapInstanceRef.current) return;
     
-    // Si no hay ubicación, limpiamos el polígono y re-ajustamos a los marcadores si existen
+    // Si no hay ubicaciÃ³n, limpiamos el polÃ­gono y re-ajustamos a los marcadores si existen
     if (!focusedLocation) {
       boundaryLayerRef.current?.clearLayers();
       lastVectorized.current = null;
-      // Por defecto en Lima cuando no hay ubicación específica (según requerimiento)
+      // Por defecto en Lima cuando no hay ubicaciÃ³n especÃ­fica (segÃºn requerimiento)
       mapInstanceRef.current?.setView([-12.046, -77.042], 12, { animate: true });
       return;
     }
@@ -112,11 +112,11 @@ const MapView: React.FC<MapViewProps> = ({
     const locParent = focusedLocation.parent;
     const fullLocName = locParent ? `${locName}, ${locParent}` : locName;
 
-    // Evitar re-vectorizar lo mismo si ya está centrado
+    // Evitar re-vectorizar lo mismo si ya estÃ¡ centrado
     if (lastVectorized.current === fullLocName) return;
 
-    // FALLBACK LOCAL INMEDIATO: Si la ubicación está en nuestra lista de constantes con coordenadas,
-    // movemos el mapa allí primero antes de intentar el fetch.
+    // FALLBACK LOCAL INMEDIATO: Si la ubicaciÃ³n estÃ¡ en nuestra lista de constantes con coordenadas,
+    // movemos el mapa allÃ­ primero antes de intentar el fetch.
     const localLoc = PERU_LOCATIONS.find(l => l.name.toLowerCase() === locName.toLowerCase());
     if (localLoc && localLoc.lat && localLoc.lng) {
       mapInstanceRef.current.setView([localLoc.lat, localLoc.lng], 12, { animate: true });
@@ -124,7 +124,7 @@ const MapView: React.FC<MapViewProps> = ({
 
     const vectorize = async () => {
       try {
-        // Si ya tenemos un punto local, nos movemos ahí de inmediato para dar feedback visual
+        // Si ya tenemos un punto local, nos movemos ahÃ­ de inmediato para dar feedback visual
         if (localLoc && localLoc.lat && localLoc.lng) {
           mapInstanceRef.current.setView([localLoc.lat, localLoc.lng], 12, { animate: true });
         }
@@ -134,7 +134,7 @@ const MapView: React.FC<MapViewProps> = ({
           : `${fullLocName}, Peru`;
 
         // Nominatim requiere un tiempo entre peticiones y a veces falla por CORS.
-        // Intentamos la petición con un timeout corto.
+        // Intentamos la peticiÃ³n con un timeout corto.
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -170,14 +170,14 @@ const MapView: React.FC<MapViewProps> = ({
             duration: 1.5
           });
           
-          // Filtrado espacial: Solo mostramos propiedades dentro del área
+          // Filtrado espacial: Solo mostramos propiedades dentro del Ã¡rea
           const idsInArea = fullProperties.filter(p => {
             if (!p.lat || !p.lng) return false;
             
             // Primero verificamos con bounds por rendimiento
             if (!bounds.contains([p.lat, p.lng])) return false;
             
-            // Si está en el bounding box, verificamos con turf si está dentro del polígono
+            // Si estÃ¡ en el bounding box, verificamos con turf si estÃ¡ dentro del polÃ­gono
             try {
               const pt = turf.point([p.lng, p.lat]); // turf usa [lng, lat]
               let isInside = false;
@@ -195,7 +195,7 @@ const MapView: React.FC<MapViewProps> = ({
                   }
                 }
               } else {
-                isInside = true; // Fallback a bounds si no es un polígono
+                isInside = true; // Fallback a bounds si no es un polÃ­gono
               }
               
               return isInside;
@@ -205,13 +205,13 @@ const MapView: React.FC<MapViewProps> = ({
             }
           }).map(p => p.id);
           
-          // Siempre aplicamos el filtro espacial si hay polígono, incluso si está vacío
-          // Esto asegura que solo se muestren propiedades DENTRO del área seleccionada
+          // Siempre aplicamos el filtro espacial si hay polÃ­gono, incluso si estÃ¡ vacÃ­o
+          // Esto asegura que solo se muestren propiedades DENTRO del Ã¡rea seleccionada
           onSpatialFilter(idsInArea);
           
           lastVectorized.current = fullLocName;
         } else {
-          // Fallback: Si no hay polígono, usamos el punto local para filtrar por cercanía (radio 3km)
+          // Fallback: Si no hay polÃ­gono, usamos el punto local para filtrar por cercanÃ­a (radio 3km)
           if (localLoc && localLoc.lat && localLoc.lng) {
             const center = L.latLng(localLoc.lat, localLoc.lng);
             const idsNearby = fullProperties.filter(p => {
@@ -228,7 +228,7 @@ const MapView: React.FC<MapViewProps> = ({
         }
       } catch (err) { 
         console.warn("Vectorization failed, using text-based search fallback:", err);
-        // En caso de error de red, nos aseguramos de que no se quede la lista vacía
+        // En caso de error de red, nos aseguramos de que no se quede la lista vacÃ­a
         onSpatialFilter(null); 
         if (!lastVectorized.current) fitToMarkers();
       }
@@ -277,7 +277,7 @@ const MapView: React.FC<MapViewProps> = ({
     <div className="w-full h-full relative overflow-hidden flex flex-col bg-[#aad3df]">
       <div ref={mapContainerRef} className="absolute inset-0 z-0 h-full w-full" />
       
-      {/* Botón Volver a Lista */}
+      {/* BotÃ³n Volver a Lista */}
       <div className="absolute top-8 right-8 z-[1000]">
         <button onClick={onSwitchToList} className="bg-white px-8 py-4 rounded-2xl shadow-2xl border border-white font-black text-[10px] uppercase tracking-widest flex items-center space-x-3 hover:bg-[#091F4F] hover:text-white transition-all">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -290,14 +290,14 @@ const MapView: React.FC<MapViewProps> = ({
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[3000] w-full max-w-sm px-4">
           <div className="bg-white rounded-[2rem] shadow-2xl border border-gray-100 flex p-3 animate-slide-up">
             <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0">
-              <img src={focusedProperty.featuredImage} className="w-full h-full object-cover" alt={`${focusedProperty.title} - ${focusedProperty.district}`} />
+              <img loading="lazy" src={focusedProperty.featuredImage} className="w-full h-full object-cover" alt={`${focusedProperty.title} - ${focusedProperty.district}`} />
             </div>
             <div className="pl-4 flex flex-col justify-center flex-grow">
                <span className="text-red-600 font-black text-xl tracking-tighter leading-none mb-1">
                  {currency === 'USD' ? '$' : 'S/'} {currency === 'USD' ? focusedProperty.priceUSD.toLocaleString() : focusedProperty.pricePEN.toLocaleString()}
                </span>
                <h4 className="text-gray-900 font-black text-[9px] uppercase line-clamp-1 mb-2 tracking-tight">
-                 {focusedProperty.district} • {focusedProperty.type}
+                 {focusedProperty.district} â€¢ {focusedProperty.type}
                </h4>
                <button 
                  onClick={(e) => handlePropertyClick(focusedProperty.id, e)} 
@@ -320,3 +320,4 @@ const MapView: React.FC<MapViewProps> = ({
 };
 
 export default MapView;
+

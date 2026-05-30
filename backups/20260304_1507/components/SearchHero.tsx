@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useRef } from 'react';
 import { LocationItem } from '../types';
 import { PROPERTY_CATEGORIES, COMMON_FEATURES } from '../constants';
@@ -106,7 +106,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
   const handleLocationSelect = (loc: LocationItem) => {
     const isAlreadySelected = filters.selectedLocations.some(l => l.name === loc.name);
     
-    // Si ya está seleccionado, solo cerramos el dropdown
+    // Si ya estÃ¡ seleccionado, solo cerramos el dropdown
     if (isAlreadySelected) {
       setShowLocationResults(false);
       const newFilters = { ...filters, query: '' };
@@ -115,7 +115,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
       return;
     }
     
-    // Actualizamos filtros y disparamos búsqueda con el nombre explícito para el mapa
+    // Actualizamos filtros y disparamos bÃºsqueda con el nombre explÃ­cito para el mapa
     const newFilters = { 
       ...filters, 
       selectedLocations: [...filters.selectedLocations, loc], 
@@ -246,9 +246,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
               </div>
               
               <div className="flex-grow overflow-y-auto p-5 md:p-6 space-y-6 md:space-y-8 custom-scrollbar">
-                {/* Características */}
+                {/* CaracterÃ­sticas */}
                 <div>
-                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Características</label>
+                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">CaracterÃ­sticas</label>
                   <input 
                     type="text" 
                     placeholder="Ej: piscina, amueblado, permite mascotas..." 
@@ -278,7 +278,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   <div className="grid grid-cols-3 gap-3">
                     <div className="relative">
                       <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold text-sm outline-none appearance-none pr-10">
-                        <option>m²</option>
+                        <option>mÂ²</option>
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
@@ -289,9 +289,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   </div>
                 </div>
 
-                {/* Baños */}
+                {/* BaÃ±os */}
                 <div>
-                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Baños</label>
+                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">BaÃ±os</label>
                   <div className="flex border border-gray-200 rounded-2xl overflow-hidden">
                     {[1, 2, 3, 4, 5].map(n => (
                       <button 
@@ -328,7 +328,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                     {[
                       { id: 'all', label: 'Todos' },
                       { id: 'real_estate', label: 'Inmobiliaria' },
-                      { id: 'direct_owner', label: 'Dueño directo' }
+                      { id: 'direct_owner', label: 'DueÃ±o directo' }
                     ].map(type => (
                       <label key={type.id} className="flex items-center gap-3 cursor-pointer group">
                         <input type="radio" name="advertiserType" checked={filters.advertiserType === type.id} onChange={() => onFilterChange({...filters, advertiserType: type.id})} className="hidden" />
@@ -341,15 +341,15 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   </div>
                 </div>
 
-                {/* Antigüedad */}
+                {/* AntigÃ¼edad */}
                 <div>
-                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Antigüedad</label>
+                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">AntigÃ¼edad</label>
                   <div className="space-y-3">
                     {[
                       { id: 'any', label: 'Cualquiera' },
-                      { id: 'under_construction', label: 'En construcción' },
+                      { id: 'under_construction', label: 'En construcciÃ³n' },
                       { id: 'brand_new', label: 'A estrenar' },
-                      { id: 'up_to_5_years', label: 'Hasta 5 años' }
+                      { id: 'up_to_5_years', label: 'Hasta 5 aÃ±os' }
                     ].map(age => (
                       <label key={age.id} className="flex items-center gap-3 cursor-pointer group">
                         <input type="radio" name="age" checked={filters.age === age.id} onChange={() => onFilterChange({...filters, age: age.id})} className="hidden" />
@@ -361,20 +361,20 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                     ))}
                   </div>
                   <button className="mt-4 flex items-center gap-1 text-[11px] font-black text-slate-900 uppercase tracking-widest hover:text-red-600 transition-colors">
-                    Ver más
+                    Ver mÃ¡s
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
 
-                {/* Fecha de publicación */}
+                {/* Fecha de publicaciÃ³n */}
                 <div>
-                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Fecha de publicación</label>
+                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Fecha de publicaciÃ³n</label>
                   <div className="space-y-3">
                     {[
                       { id: 'any', label: 'Cualquiera' },
                       { id: 'yesterday', label: 'Desde ayer' },
                       { id: 'today', label: 'Hoy' },
-                      { id: 'last_week', label: 'Última semana' }
+                      { id: 'last_week', label: 'Ãšltima semana' }
                     ].map(date => (
                       <label key={date.id} className="flex items-center gap-3 cursor-pointer group">
                         <input type="radio" name="publicationDate" checked={filters.publicationDate === date.id} onChange={() => onFilterChange({...filters, publicationDate: date.id})} className="hidden" />
@@ -386,7 +386,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                     ))}
                   </div>
                   <button className="mt-4 flex items-center gap-1 text-[11px] font-black text-slate-900 uppercase tracking-widest hover:text-red-600 transition-colors">
-                    Ver más
+                    Ver mÃ¡s
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                 </div>
@@ -397,7 +397,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     {[
                       { id: 'bodega', label: 'Bodega' },
-                      { id: 'cafeteria', label: 'Área de cafetería' }
+                      { id: 'cafeteria', label: 'Ãrea de cafeterÃ­a' }
                     ].map(feature => (
                       <label key={feature.id} className="flex items-center gap-3 cursor-pointer group">
                         <input 
@@ -506,12 +506,12 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 onClick={() => setShowStatusPopover(!showStatusPopover)}
                 className={`w-full h-[50px] px-4 rounded-xl border font-black text-[10px] uppercase tracking-widest flex items-center justify-between gap-2 transition-all shadow-sm ${showStatusPopover ? 'border-red-600 text-red-600 bg-red-50' : 'bg-white text-slate-800 border-gray-200'}`}
               >
-                <span>{tabs.find(t => t.id === filters.status)?.label || 'Operación'}</span>
+                <span>{tabs.find(t => t.id === filters.status)?.label || 'OperaciÃ³n'}</span>
                 <svg className={`w-3.5 h-3.5 transition-transform ${showStatusPopover ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"/></svg>
               </button>
               {showStatusPopover && (
                 <div className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[2000] p-6 w-[200px] animate-slide-up">
-                  <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Tipo de operación</h4>
+                  <h4 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Tipo de operaciÃ³n</h4>
                   <div className="space-y-3">
                     {tabs.map(tab => (
                       <label key={tab.id} className="flex items-center gap-3 cursor-pointer group">
@@ -565,7 +565,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                         value={tempMinBed}
                         onChange={e => setTempMinBed(e.target.value)}
                       >
-                        <option value="">Sin mínimo</option>
+                        <option value="">Sin mÃ­nimo</option>
                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} {n === 1 ? 'dorm' : 'dorms'}</option>)}
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -578,7 +578,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                         value={tempMaxBed}
                         onChange={e => setTempMaxBed(e.target.value)}
                       >
-                        <option value="">sin máximo</option>
+                        <option value="">sin mÃ¡ximo</option>
                         {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} {n === 1 ? 'dorm' : 'dorms'}</option>)}
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -661,9 +661,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
             </div>
             
             <div className="flex-grow overflow-y-auto p-5 md:p-6 space-y-6 md:space-y-8 custom-scrollbar">
-              {/* Tipo de operación */}
+              {/* Tipo de operaciÃ³n */}
               <div>
-                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Tipo de operación</label>
+                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Tipo de operaciÃ³n</label>
                 <div className="grid grid-cols-2 gap-3">
                   {tabs.map(tab => (
                     <label key={tab.id} className="flex items-center gap-3 cursor-pointer group">
@@ -683,9 +683,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 </div>
               </div>
 
-              {/* Características */}
+              {/* CaracterÃ­sticas */}
               <div>
-                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Características</label>
+                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">CaracterÃ­sticas</label>
                 <input 
                   type="text" 
                   placeholder="Ej: piscina, amueblado, permite mascotas..." 
@@ -715,7 +715,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 <div className="grid grid-cols-3 gap-3">
                   <div className="relative">
                     <select className="w-full p-4 bg-gray-50 border border-gray-200 rounded-2xl font-bold text-sm outline-none appearance-none pr-10">
-                      <option>m²</option>
+                      <option>mÂ²</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
@@ -726,9 +726,9 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 </div>
               </div>
 
-              {/* Baños */}
+              {/* BaÃ±os */}
               <div>
-                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Baños</label>
+                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">BaÃ±os</label>
                 <div className="flex border border-gray-200 rounded-2xl overflow-hidden">
                   {[1, 2, 3, 4, 5].map(n => (
                     <button 
@@ -765,7 +765,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   {[
                     { id: 'all', label: 'Todos' },
                     { id: 'real_estate', label: 'Inmobiliaria' },
-                    { id: 'direct_owner', label: 'Dueño directo' }
+                    { id: 'direct_owner', label: 'DueÃ±o directo' }
                   ].map(type => (
                     <label key={type.id} className="flex items-center gap-3 cursor-pointer group">
                       <input type="radio" name="advertiserType" checked={filters.advertiserType === type.id} onChange={() => onFilterChange({...filters, advertiserType: type.id})} className="hidden" />
@@ -778,15 +778,15 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 </div>
               </div>
 
-              {/* Antigüedad */}
+              {/* AntigÃ¼edad */}
               <div>
-                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Antigüedad</label>
+                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">AntigÃ¼edad</label>
                 <div className="space-y-3">
                   {[
                     { id: 'any', label: 'Cualquiera' },
-                    { id: 'under_construction', label: 'En construcción' },
+                    { id: 'under_construction', label: 'En construcciÃ³n' },
                     { id: 'brand_new', label: 'A estrenar' },
-                    { id: 'up_to_5_years', label: 'Hasta 5 años' }
+                    { id: 'up_to_5_years', label: 'Hasta 5 aÃ±os' }
                   ].map(age => (
                     <label key={age.id} className="flex items-center gap-3 cursor-pointer group">
                       <input type="radio" name="age" checked={filters.age === age.id} onChange={() => onFilterChange({...filters, age: age.id})} className="hidden" />
@@ -798,20 +798,20 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   ))}
                 </div>
                 <button className="mt-4 flex items-center gap-1 text-[11px] font-black text-slate-900 uppercase tracking-widest hover:text-red-600 transition-colors">
-                  Ver más
+                  Ver mÃ¡s
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
               </div>
 
-              {/* Fecha de publicación */}
+              {/* Fecha de publicaciÃ³n */}
               <div>
-                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Fecha de publicación</label>
+                <label className="block text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4">Fecha de publicaciÃ³n</label>
                 <div className="space-y-3">
                   {[
                     { id: 'any', label: 'Cualquiera' },
                     { id: 'yesterday', label: 'Desde ayer' },
                     { id: 'today', label: 'Hoy' },
-                    { id: 'last_week', label: 'Última semana' }
+                    { id: 'last_week', label: 'Ãšltima semana' }
                   ].map(date => (
                     <label key={date.id} className="flex items-center gap-3 cursor-pointer group">
                       <input type="radio" name="publicationDate" checked={filters.publicationDate === date.id} onChange={() => onFilterChange({...filters, publicationDate: date.id})} className="hidden" />
@@ -823,7 +823,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                   ))}
                 </div>
                 <button className="mt-4 flex items-center gap-1 text-[11px] font-black text-slate-900 uppercase tracking-widest hover:text-red-600 transition-colors">
-                  Ver más
+                  Ver mÃ¡s
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
               </div>
@@ -834,7 +834,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { id: 'bodega', label: 'Bodega' },
-                    { id: 'cafeteria', label: 'Área de cafetería' }
+                    { id: 'cafeteria', label: 'Ãrea de cafeterÃ­a' }
                   ].map(feature => (
                     <label key={feature.id} className="flex items-center gap-3 cursor-pointer group">
                       <input 
@@ -891,12 +891,12 @@ const SearchHero: React.FC<SearchHeroProps> = ({
       )}
       <div className="relative pt-20 pb-24 md:pt-24 md:pb-32 min-h-[600px] flex flex-col items-center justify-center bg-slate-900">
         <div className={`absolute inset-0 transition-opacity duration-1000 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-          <img src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=80&w=2070"} onLoad={() => setIsImageLoaded(true)} className="w-full h-full object-cover brightness-[0.6]" alt="Banner" />
+          <img loading="lazy" src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=80&w=2070"} onLoad={() => setIsImageLoaded(true)} className="w-full h-full object-cover brightness-[0.6]" alt="Banner" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10 text-center max-w-6xl">
           <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-10 md:mb-16 animate-slide-up leading-tight drop-shadow-2xl">
-            Tu próximo hogar <br/><span className="text-red-600 italic">está aquí.</span>
+            Tu prÃ³ximo hogar <br/><span className="text-red-600 italic">estÃ¡ aquÃ­.</span>
           </h1>
 
           <div className="w-full max-w-5xl mx-auto px-2">
@@ -942,7 +942,7 @@ const SearchHero: React.FC<SearchHeroProps> = ({
                     <input 
                       type="text" 
                       className="flex-grow bg-transparent border-none outline-none font-bold text-slate-800 text-sm md:text-lg placeholder:text-gray-300 min-w-[150px]" 
-                      placeholder={filters.selectedLocations.length > 0 ? "" : "¿En qué distrito o ciudad buscas?"}
+                      placeholder={filters.selectedLocations.length > 0 ? "" : "Â¿En quÃ© distrito o ciudad buscas?"}
                       value={filters.query} 
                       onChange={e => { 
                         const val = e.target.value;
@@ -1005,3 +1005,4 @@ const SearchHero: React.FC<SearchHeroProps> = ({
 };
 
 export default SearchHero;
+

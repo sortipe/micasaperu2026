@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { Package, User, PaymentMethod } from '../types';
 import { ToastType } from './Toast';
@@ -31,7 +31,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
       Culqi.settings({
         title: 'Micasaperu',
         currency: 'PEN',
-        description: `Suscripción: ${pkg.name}`,
+        description: `SuscripciÃ³n: ${pkg.name}`,
         amount: Math.round(pkg.price * 100),
       });
       Culqi.options({
@@ -51,11 +51,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
           // const res = await fetch('/api/culqi/charge', { ... });
           
           console.log('Simulating payment success with token:', token);
-          await onRecordTransaction('Tarjeta de Crédito / Débito (Culqi)');
+          await onRecordTransaction('Tarjeta de CrÃ©dito / DÃ©bito (Culqi)');
           setStep('SUCCESS');
         } catch (err) {
           console.error(err);
-          showToast('Error de conexión al procesar el pago', 'ERROR');
+          showToast('Error de conexiÃ³n al procesar el pago', 'ERROR');
         } finally {
           setIsProcessing(false);
           Culqi.close();
@@ -70,9 +70,9 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
     if (!selectedMethod) return;
     setIsProcessing(true);
     try {
-      // Registramos la transacción en la DB
+      // Registramos la transacciÃ³n en la DB
       await onRecordTransaction(selectedMethod.name);
-      // Pequeña pausa para feedback visual y pasamos al éxito
+      // PequeÃ±a pausa para feedback visual y pasamos al Ã©xito
       setTimeout(() => {
         setIsProcessing(false);
         setStep('SUCCESS');
@@ -91,7 +91,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
           <div className="w-20 h-20 bg-green-50 text-green-600 rounded-[1.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
           </div>
-          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">¡Solicitud Enviada!</h1>
+          <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">Â¡Solicitud Enviada!</h1>
           <p className="text-gray-500 text-base font-medium mb-10 leading-relaxed">
             Hemos recibido tu comprobante de <span className="text-red-600 font-black">{selectedMethod?.name}</span>. <br/>
             Validaremos tu pago en breve para activar tu <span className="font-bold text-slate-900">{pkg.name}</span>.
@@ -135,7 +135,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
               
               {step === 'METHOD' ? (
                 <div className="animate-fade-in flex flex-col h-full">
-                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-8">Selecciona tu método de pago</h2>
+                  <h2 className="text-lg font-black text-gray-900 uppercase tracking-tight mb-8">Selecciona tu mÃ©todo de pago</h2>
                   <div className="space-y-4 flex-grow">
                     {activeMethods.length > 0 ? activeMethods.map(m => (
                       <div 
@@ -155,13 +155,13 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                           </div>
                           <div>
                             <h3 className="text-sm font-black text-gray-900 uppercase">{m.name}</h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de Crédito/Débito' : 'Escaneo de Código QR'}</p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.type === 'TRANSFER' ? 'Transferencia Bancaria' : m.type === 'CARD' ? 'Tarjeta de CrÃ©dito/DÃ©bito' : 'Escaneo de CÃ³digo QR'}</p>
                           </div>
                         </div>
                         <svg className="w-4 h-4 text-gray-300 group-hover:text-red-600 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
                       </div>
                     )) : (
-                      <p className="text-center text-gray-400 font-bold text-xs uppercase py-20">No hay métodos disponibles.</p>
+                      <p className="text-center text-gray-400 font-bold text-xs uppercase py-20">No hay mÃ©todos disponibles.</p>
                     )}
                   </div>
                 </div>
@@ -169,7 +169,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                 <div className="animate-fade-in flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
                      <h2 className="text-xl font-black text-[#0f172a] uppercase tracking-tight">{selectedMethod.name}</h2>
-                     <button onClick={() => setStep('METHOD')} className="text-[10px] font-black text-red-600 uppercase border-b-2 border-red-500/20 hover:border-red-500 transition-all">Cambiar Método</button>
+                     <button onClick={() => setStep('METHOD')} className="text-[10px] font-black text-red-600 uppercase border-b-2 border-red-500/20 hover:border-red-500 transition-all">Cambiar MÃ©todo</button>
                   </div>
 
                   <div className="flex-grow flex flex-col items-center justify-center">
@@ -181,7 +181,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                                <span className="font-black text-slate-900 uppercase">{selectedMethod.bankName || 'BCP'}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                               <span className="font-black text-gray-400 uppercase">N° de Cuenta</span>
+                               <span className="font-black text-gray-400 uppercase">NÂ° de Cuenta</span>
                                <span className="font-black text-slate-900">{selectedMethod.accountNumber}</span>
                             </div>
                             {selectedMethod.cci && (
@@ -202,16 +202,16 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                           Paga de forma segura usando Culqi con tu tarjeta de crédito o débito
+                           Paga de forma segura usando Culqi con tu tarjeta de crÃ©dito o dÃ©bito
                          </p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center text-center">
                          <div className="w-44 h-44 bg-white p-3 rounded-[2rem] border-4 border-gray-50 shadow-inner mb-6 flex items-center justify-center overflow-hidden">
-                           <img src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="QR" />
+                           <img loading="lazy" src={selectedMethod.qrUrl} className="w-full h-full object-contain" alt="QR" />
                          </div>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest max-w-[280px]">
-                           Escanea el código y adjunta una captura de pantalla del comprobante
+                           Escanea el cÃ³digo y adjunta una captura de pantalla del comprobante
                          </p>
                       </div>
                     )}
@@ -231,7 +231,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                       ) : selectedMethod.type === 'CARD' ? (
                         <span>PAGAR CON TARJETA</span>
                       ) : (
-                        <span>YA REALICÉ EL PAGO</span>
+                        <span>YA REALICÃ‰ EL PAGO</span>
                       )}
                     </button>
                     
@@ -251,19 +251,19 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
             </div>
           </div>
 
-          {/* Columna Derecha: Resumen de Suscripción (Estilo Captura) */}
+          {/* Columna Derecha: Resumen de SuscripciÃ³n (Estilo Captura) */}
           <div className="lg:col-span-5">
             <div className="bg-[#0f172a] rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-               {/* Decoración sutil */}
+               {/* DecoraciÃ³n sutil */}
                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-[60px] -mr-16 -mt-16"></div>
                
-               <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-12">Resumen de Suscripción</h3>
+               <h3 className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-12">Resumen de SuscripciÃ³n</h3>
                
                <div className="space-y-10 mb-10 pb-10 border-b border-white/10">
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <h4 className="text-2xl font-black tracking-tight leading-none mb-2">{pkg.name}</h4>
-                      <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">Suscripción Mensual Inmobiliaria</p>
+                      <p className="text-gray-500 text-[10px] font-black uppercase tracking-tight">SuscripciÃ³n Mensual Inmobiliaria</p>
                     </div>
                     <div className="text-right">
                       <span className="text-2xl font-black text-red-500 tracking-tighter">S/ {pkg.price}</span>
@@ -278,7 +278,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                   </div>
                </div>
 
-               {/* Beneficios rápidos en el resumen */}
+               {/* Beneficios rÃ¡pidos en el resumen */}
                <div className="mt-10 pt-8 border-t border-white/5 space-y-3">
                   <div className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
@@ -286,7 +286,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {pkg.durationDays} días</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Vigencia por {pkg.durationDays} dÃ­as</p>
                   </div>
                </div>
             </div>
@@ -299,3 +299,4 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({ pkg, user, paymentMethods, on
 };
 
 export default PaymentFlow;
+

@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState } from 'react';
 import { Property } from '../types';
 
@@ -26,7 +26,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
     return (
       <div className="text-center py-20 bg-white rounded-[3rem] border-4 border-dashed border-gray-100 w-full animate-fade-in">
         <p className="text-gray-900 text-2xl font-black mb-2">No hallamos coincidencias</p>
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-8">Intenta ajustando los filtros de búsqueda</p>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-8">Intenta ajustando los filtros de bÃºsqueda</p>
         <button onClick={onClearFilters} className="bg-red-600 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">Limpiar filtros</button>
       </div>
     );
@@ -51,12 +51,12 @@ const PropertyList: React.FC<PropertyListProps> = ({
             >
               {/* Image Section */}
               <div className="relative w-full md:w-[320px] shrink-0 overflow-hidden aspect-[4/3] md:aspect-auto h-full">
-                <img src={property.featuredImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img loading="lazy" src={property.featuredImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 
                 {/* Tag on image */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                   <span className="md:hidden bg-[#2d3277] text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-lg">
-                    {property.status === 'PROJECT' ? 'En planos' : (property.planType === 'SUPER_FEATURED' ? 'Súper Destacado' : (property.planType === 'FEATURED' || property.isFeatured ? 'Destacado' : 'Normal'))}
+                    {property.status === 'PROJECT' ? 'En planos' : (property.planType === 'SUPER_FEATURED' ? 'SÃºper Destacado' : (property.planType === 'FEATURED' || property.isFeatured ? 'Destacado' : 'Normal'))}
                   </span>
                   <span className="hidden md:block bg-white/90 backdrop-blur-sm text-slate-900 text-[11px] font-bold px-3 py-1 rounded shadow-sm">
                     {property.features?.[0] || 'Inmueble'}
@@ -107,7 +107,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                   {/* Desktop Price Line */}
                   <div className="hidden md:block mb-1">
                     <h2 className="text-[22px] font-bold text-slate-900 leading-none">
-                      S/ {(property.pricePEN || 0).toLocaleString()} · USD {(property.priceUSD || 0).toLocaleString()}
+                      S/ {(property.pricePEN || 0).toLocaleString()} Â· USD {(property.priceUSD || 0).toLocaleString()}
                     </h2>
                     {property.maintenanceFee ? (
                       <p className="text-[13px] text-slate-500 font-medium mt-1.5">S/ {property.maintenanceFee} Mantenimiento</p>
@@ -118,16 +118,16 @@ const PropertyList: React.FC<PropertyListProps> = ({
 
                   {/* Mobile Stats Row */}
                   <div className="md:hidden flex items-center divide-x divide-gray-200 mb-4 text-[13px] text-slate-600 font-medium">
-                    <div className="pr-3">{property.builtArea} m² área total</div>
+                    <div className="pr-3">{property.builtArea} mÂ² Ã¡rea total</div>
                     <div className="px-3">{property.bedrooms} dorm.</div>
-                    <div className="pl-3">{property.bathrooms} baños</div>
+                    <div className="pl-3">{property.bathrooms} baÃ±os</div>
                   </div>
 
                   {/* Desktop Stats Line */}
                   <div className="hidden md:flex items-center gap-3 mb-3 text-[13px] text-slate-700 font-medium">
-                    <span>{property.builtArea} m² área total</span>
+                    <span>{property.builtArea} mÂ² Ã¡rea total</span>
                     <span>{property.bedrooms} dorm.</span>
-                    <span>{property.bathrooms} baños</span>
+                    <span>{property.bathrooms} baÃ±os</span>
                     <span>{property.parking} estac.</span>
                   </div>
 
@@ -172,7 +172,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                 {/* Desktop Bottom Bar */}
                 <div className="hidden md:flex items-center justify-between mt-auto">
                   <div className="flex items-center gap-3">
-                    <img 
+                    <img loading="lazy" 
                       src={property.agentAvatar || `https://ui-avatars.com/api/?name=${property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
                       className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" 
                       alt={property.agentName}
@@ -183,7 +183,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                           <div className="w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
                             <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                           </div>
-                          <span className="text-[12px] font-bold text-yellow-600 uppercase tracking-wide">Súper destacado</span>
+                          <span className="text-[12px] font-bold text-yellow-600 uppercase tracking-wide">SÃºper destacado</span>
                         </>
                       )}
                       {(property.planType === 'FEATURED' || (property.isFeatured && property.planType !== 'SUPER_FEATURED')) && (
@@ -231,7 +231,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
             onClick={(e) => handlePropertyClick(property.id, e)}
           >
             <div className={`relative ${isSlider ? 'h-40' : 'h-48'}`}>
-              <img src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" />
+              <img loading="lazy" src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" />
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(property.id); }}
                 className="absolute top-2 right-2 w-7 h-7 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-colors"
@@ -241,7 +241,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
               <div className="absolute top-2 left-2 flex flex-col gap-1">
                 {property.planType === 'SUPER_FEATURED' && (
                   <span className={`bg-yellow-400 text-slate-900 ${isSlider ? 'text-[8px] px-1.5 py-0.5' : 'text-[9px] px-2 py-1'} font-black rounded uppercase tracking-widest shadow-sm`}>
-                    Súper Destacado
+                    SÃºper Destacado
                   </span>
                 )}
                 {(property.planType === 'FEATURED' || (property.isFeatured && property.planType !== 'SUPER_FEATURED')) && (
@@ -257,7 +257,7 @@ const PropertyList: React.FC<PropertyListProps> = ({
                  property.status === 'FOR_RENT' ? 'Alquiler' :
                  property.status === 'TEMPORAL' ? 'Temporal' :
                  property.status === 'TRASPASO' ? 'Traspaso' :
-                 'Proyecto'} · {property.type}
+                 'Proyecto'} Â· {property.type}
               </p>
               <p className="text-[9px] text-gray-500 mb-0.5">{property.status === 'FOR_RENT' ? 'Alquiler' : 'Desde'}</p>
               <p className={`${isSlider ? 'text-xs' : 'text-lg'} font-black text-slate-900 mb-1`}>
@@ -278,11 +278,11 @@ const PropertyList: React.FC<PropertyListProps> = ({
                 </div>
                 <div className="flex items-center gap-1 whitespace-nowrap">
                   <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                  <span>{property.bathrooms} baños</span>
+                  <span>{property.bathrooms} baÃ±os</span>
                 </div>
                 <div className="flex items-center gap-1 whitespace-nowrap">
                   <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
-                  <span>{property.builtArea} m² área total</span>
+                  <span>{property.builtArea} mÂ² Ã¡rea total</span>
                 </div>
               </div>
             </div>
@@ -294,3 +294,4 @@ const PropertyList: React.FC<PropertyListProps> = ({
 };
 
 export default PropertyList;
+

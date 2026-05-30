@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, Property, Package, Transaction, LegalDoc, Inquiry, Notification, SocialLink, OfficeInfo, LocationItem, Complaint, PaymentMethod, LegalDocType } from '../types';
 import { supabase, isSupabaseConfigured, compressImage } from '../lib/supabase';
@@ -163,7 +163,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
     else setIsUpdatingProfile(true);
 
     if (!isSupabaseConfigured) {
-      showToast("Modo Demo: Supabase no configurado. El archivo no se subirá permanentemente.", "WARNING");
+      showToast("Modo Demo: Supabase no configurado. El archivo no se subirÃ¡ permanentemente.", "WARNING");
       const url = URL.createObjectURL(file);
       if (type === 'LOGO') await onUpdateLogo(url);
       else if (type === 'BANNER') await onUpdateBanner(url);
@@ -297,14 +297,14 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Actúa como un experto en geografía e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
-        Genera una lista de ubicaciones geográficas que coincidan exactamente con lo solicitado.
+              text: `ActÃºa como un experto en geografÃ­a e inmobiliaria peruana. Analiza cuidadosamente el siguiente pedido: "${aiPrompt}".
+        Genera una lista de ubicaciones geogrÃ¡ficas que coincidan exactamente con lo solicitado.
         
-        REGLAS CRÍTICAS:
-        1. Si el usuario pide "departamentos", genera ÚNICAMENTE los departamentos del Perú (son 24 departamentos + 1 Provincia Constitucional).
+        REGLAS CRÃTICAS:
+        1. Si el usuario pide "departamentos", genera ÃšNICAMENTE los departamentos del PerÃº (son 24 departamentos + 1 Provincia Constitucional).
         2. Si el usuario pide "distritos de [Provincia/Departamento]", genera solo distritos de esa zona.
-        3. No mezcles tipos de ubicación (ej: no pongas avenidas si pidieron departamentos) a menos que el pedido sea genérico.
-        4. El campo "parent" debe ser "Perú" para departamentos, o el nombre del Departamento/Provincia superior para distritos y urbanizaciones.
+        3. No mezcles tipos de ubicaciÃ³n (ej: no pongas avenidas si pidieron departamentos) a menos que el pedido sea genÃ©rico.
+        4. El campo "parent" debe ser "PerÃº" para departamentos, o el nombre del Departamento/Provincia superior para distritos y urbanizaciones.
         5. Genera hasta 30 resultados si el pedido lo requiere (como en el caso de todos los departamentos).`
             }]
           }],
@@ -317,15 +317,15 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                 properties: {
                   name: { 
                     type: "STRING",
-                    description: "Nombre de la ubicación (ej: Miraflores, Lima, Av. Larco)"
+                    description: "Nombre de la ubicaciÃ³n (ej: Miraflores, Lima, Av. Larco)"
                   },
                   type: { 
                     type: "STRING",
-                    description: "Tipo de ubicación: Departamento, Provincia, Distrito, Urbanización, Avenida o Ciudad"
+                    description: "Tipo de ubicaciÃ³n: Departamento, Provincia, Distrito, UrbanizaciÃ³n, Avenida o Ciudad"
                   },
                   parent: { 
                     type: "STRING",
-                    description: "Ubicación superior. Para departamentos usar 'Perú'. Para distritos usar el nombre del departamento."
+                    description: "UbicaciÃ³n superior. Para departamentos usar 'PerÃº'. Para distritos usar el nombre del departamento."
                   }
                 },
                 required: ["name", "type", "parent"]
@@ -344,21 +344,21 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
       const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
       const data = JSON.parse(textResponse);
       setAiSuggestions(data);
-      showToast("Ubicaciones generadas con éxito", "SUCCESS");
+      showToast("Ubicaciones generadas con Ã©xito", "SUCCESS");
     } catch (err) { showToast("Error con la IA: " + (err as Error).message, "ERROR"); } 
     finally { setIsAiGenerating(false); }
   };
 
   const saveAiSuggestion = async (loc: LocationItem) => {
     if (isLocationSaved(loc)) {
-      showToast("Esta ubicación ya existe.", "WARNING");
+      showToast("Esta ubicaciÃ³n ya existe.", "WARNING");
       setAiSuggestions(prev => prev.filter(s => s.name !== loc.name));
       return;
     }
     try {
       await onSaveLocation(loc);
       setAiSuggestions(prev => prev.filter(s => s.name !== loc.name));
-    } catch (err) { showToast("Error al guardar ubicación.", "ERROR"); }
+    } catch (err) { showToast("Error al guardar ubicaciÃ³n.", "ERROR"); }
   };
 
   const handleAddPropertyClick = () => {
@@ -469,7 +469,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   </div>
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold text-blue-900 leading-relaxed">
-                      Si realizaste un pago por transferencia o depósito, un administrador debe validar el comprobante para activar tus publicaciones.
+                      Si realizaste un pago por transferencia o depÃ³sito, un administrador debe validar el comprobante para activar tus publicaciones.
                     </p>
                     <button 
                       onClick={() => setActiveTab('MY_PAYMENTS')}
@@ -500,7 +500,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         return (
           <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-fade-in">
             <div className="flex justify-between items-center mb-10">
-              <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">Gestión de Inmuebles</h2>
+              <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">GestiÃ³n de Inmuebles</h2>
               <button onClick={handleAddPropertyClick} className="bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all">+ Nuevo</button>
             </div>
             <div className="overflow-x-auto">
@@ -519,7 +519,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                     <tr key={p.id} className="group">
                       <td className="py-6 px-4">
                         <div className="flex items-center gap-4">
-                          <img src={p.featuredImage} className="w-16 h-12 rounded-lg object-cover" />
+                          <img loading="lazy" src={p.featuredImage} className="w-16 h-12 rounded-lg object-cover" />
                           <div className="max-w-[200px]">
                             <p className="font-black text-sm text-slate-900 truncate">{p.title}</p>
                             <p className="text-[9px] text-gray-400 font-bold uppercase">{p.district}, {p.department}</p>
@@ -543,7 +543,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                               const now = new Date().getTime();
                               const diff = expiry - now;
                               const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                              return days > 0 ? `${days} días` : 'Expirado';
+                              return days > 0 ? `${days} dÃ­as` : 'Expirado';
                             })()}
                           </p>
                           <p className="text-[9px] text-gray-400 font-bold uppercase">Restantes</p>
@@ -553,7 +553,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                          <div className="flex items-center gap-2">
                            <button onClick={() => onEditProperty(p.id)} className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-slate-900 hover:text-white transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" strokeWidth="2.5"/></svg></button>
                            <button onClick={() => setConfirmAction({ 
-                              message: "¿Estás seguro de que deseas eliminar este inmueble? Se perderá el crédito usado para esta propiedad.", 
+                              message: "Â¿EstÃ¡s seguro de que deseas eliminar este inmueble? Se perderÃ¡ el crÃ©dito usado para esta propiedad.", 
                               onConfirm: () => onDeleteProperty(p.id) 
                             })} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeWidth="2.5"/></svg></button>
                          </div>
@@ -569,7 +569,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         if (!isAdmin) return null;
         return (
           <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-fade-in">
-            <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight mb-10">Validación de Ventas</h2>
+            <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight mb-10">ValidaciÃ³n de Ventas</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -613,7 +613,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                             const newStatus = e.target.value as 'COMPLETED' | 'PENDING' | 'CANCELLED';
                             if (newStatus !== t.status) {
                               setConfirmAction({
-                                message: `¿Cambiar estado a ${newStatus === 'COMPLETED' ? 'APROBADO' : newStatus === 'PENDING' ? 'PENDIENTE' : 'RECHAZADO'}?`,
+                                message: `Â¿Cambiar estado a ${newStatus === 'COMPLETED' ? 'APROBADO' : newStatus === 'PENDING' ? 'PENDIENTE' : 'RECHAZADO'}?`,
                                 onConfirm: () => onUpdateTransactionStatus(t.id, newStatus)
                               });
                             }
@@ -651,7 +651,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <div className="p-6 bg-gray-50 rounded-3xl flex flex-col items-center">
                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Logo Principal</p>
                      <div className="w-full aspect-[2/1] bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden mb-4 relative group cursor-pointer" onClick={() => logoInputRef.current?.click()}>
-                        {appLogo ? <img src={appLogo} className="h-12 w-auto object-contain" /> : <span className="text-gray-300 text-[10px] font-black">Subir Logo</span>}
+                        {appLogo ? <img loading="lazy" src={appLogo} className="h-12 w-auto object-contain" /> : <span className="text-gray-300 text-[10px] font-black">Subir Logo</span>}
                         {isUploadingLogo && <div className="absolute inset-0 bg-white/80 flex items-center justify-center animate-pulse"><div className="w-6 h-6 border-3 border-red-600 border-t-transparent rounded-full animate-spin"></div></div>}
                      </div>
                      <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'LOGO')} />
@@ -659,23 +659,23 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <div className="p-6 bg-gray-50 rounded-3xl flex flex-col items-center">
                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Banner Escritorio (Web)</p>
                      <div className="w-full aspect-[2/1] bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden mb-4 relative group cursor-pointer" onClick={() => bannerInputRef.current?.click()}>
-                        {homeBanner ? <img src={homeBanner} className="w-full h-full object-cover" /> : <span className="text-gray-300 text-[10px] font-black">Subir Banner Web</span>}
+                        {homeBanner ? <img loading="lazy" src={homeBanner} className="w-full h-full object-cover" /> : <span className="text-gray-300 text-[10px] font-black">Subir Banner Web</span>}
                         {isUploadingBanner && <div className="absolute inset-0 bg-white/80 flex items-center justify-center animate-pulse"><div className="w-6 h-6 border-3 border-red-600 border-t-transparent rounded-full animate-spin"></div></div>}
                      </div>
                      <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'BANNER')} />
                   </div>
                   <div className="p-6 bg-gray-50 rounded-3xl flex flex-col items-center">
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Banner Móvil (Dispositivos)</p>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Banner MÃ³vil (Dispositivos)</p>
                      <div className="w-full aspect-[3/4] max-w-[200px] bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden mb-4 relative group cursor-pointer" onClick={() => bannerMobileInputRef.current?.click()}>
-                        {homeBannerMobile ? <img src={homeBannerMobile} className="w-full h-full object-cover" /> : <span className="text-gray-300 text-[10px] font-black">Subir Banner Móvil</span>}
+                        {homeBannerMobile ? <img loading="lazy" src={homeBannerMobile} className="w-full h-full object-cover" /> : <span className="text-gray-300 text-[10px] font-black">Subir Banner MÃ³vil</span>}
                         {isUploadingBannerMobile && <div className="absolute inset-0 bg-white/80 flex items-center justify-center animate-pulse"><div className="w-6 h-6 border-3 border-red-600 border-t-transparent rounded-full animate-spin"></div></div>}
                      </div>
                      <input type="file" ref={bannerMobileInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'BANNER_MOBILE')} />
                   </div>
                   <div className="p-6 bg-gray-50 rounded-3xl flex flex-col items-center">
-                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Favicon (Pestaña)</p>
+                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Favicon (PestaÃ±a)</p>
                      <div className="w-full aspect-[2/1] bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden mb-4 relative group cursor-pointer" onClick={() => faviconInputRef.current?.click()}>
-                        {favicon ? <img src={favicon} className="w-8 h-8 object-contain" /> : <span className="text-gray-300 text-[10px] font-black">Subir Icono</span>}
+                        {favicon ? <img loading="lazy" src={favicon} className="w-8 h-8 object-contain" /> : <span className="text-gray-300 text-[10px] font-black">Subir Icono</span>}
                         {isUploadingFavicon && <div className="absolute inset-0 bg-white/80 flex items-center justify-center animate-pulse"><div className="w-6 h-6 border-3 border-red-600 border-t-transparent rounded-full animate-spin"></div></div>}
                      </div>
                      <input type="file" ref={faviconInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'FAVICON')} />
@@ -684,17 +684,17 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
             </div>
             <div>
                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">Información de Oficina</h2>
+                  <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">InformaciÃ³n de Oficina</h2>
                   <button onClick={saveOfficeSettings} className="bg-[#091F4F] text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600">Guardar</button>
                </div>
                <div className="space-y-4">
-                  <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.address} onChange={e => setTempOfficeInfo({...tempOfficeInfo, address: e.target.value})} placeholder="Dirección física" />
+                  <input type="text" className="w-full p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.address} onChange={e => setTempOfficeInfo({...tempOfficeInfo, address: e.target.value})} placeholder="DirecciÃ³n fÃ­sica" />
                   <div className="grid grid-cols-2 gap-4">
                      <input type="email" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.email} onChange={e => setTempOfficeInfo({...tempOfficeInfo, email: e.target.value})} placeholder="Email de contacto" />
                      <input type="text" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.phone} onChange={e => setTempOfficeInfo({...tempOfficeInfo, phone: e.target.value})} placeholder="WhatsApp Oficina (9 dgt)" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                     <input type="text" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.supportWhatsapp || ''} onChange={e => setTempOfficeInfo({...tempOfficeInfo, supportWhatsapp: e.target.value})} placeholder="WhatsApp de Soporte (Botón Flotante)" />
+                     <input type="text" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.supportWhatsapp || ''} onChange={e => setTempOfficeInfo({...tempOfficeInfo, supportWhatsapp: e.target.value})} placeholder="WhatsApp de Soporte (BotÃ³n Flotante)" />
                      <input type="text" className="p-4 bg-gray-50 rounded-2xl font-bold" value={tempOfficeInfo.constructoraWhatsapp || ''} onChange={e => setTempOfficeInfo({...tempOfficeInfo, constructoraWhatsapp: e.target.value})} placeholder="WhatsApp para Constructoras" />
                   </div>
                </div>
@@ -729,7 +729,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   </div>
                </div>
                <p className="mt-4 text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
-                  * Las credenciales se guardan automáticamente al perder el foco del campo (onBlur). Asegúrate de que coincidan con tu cuenta de Mercado Pago Perú.
+                  * Las credenciales se guardan automÃ¡ticamente al perder el foco del campo (onBlur). AsegÃºrate de que coincidan con tu cuenta de Mercado Pago PerÃº.
                </p>
             </div>
 
@@ -739,13 +739,13 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <div className="max-w-xl">
                      <p className="text-sm font-black text-red-900 uppercase mb-2">Reiniciar Cache del Sitio</p>
                      <p className="text-xs text-red-700 font-bold leading-relaxed">
-                        Si has realizado cambios en la base de datos o en los perfiles de usuario y los usuarios no los ven, usa este botón. 
-                        Esto forzará a todos los navegadores a limpiar su memoria local y recargar la información más reciente al siguiente refresh.
+                        Si has realizado cambios en la base de datos o en los perfiles de usuario y los usuarios no los ven, usa este botÃ³n. 
+                        Esto forzarÃ¡ a todos los navegadores a limpiar su memoria local y recargar la informaciÃ³n mÃ¡s reciente al siguiente refresh.
                      </p>
                   </div>
                   <button 
                      onClick={() => setConfirmAction({
-                       message: "¿Estás seguro de que deseas reiniciar el cache para TODOS los usuarios? Esto forzará una recarga del sistema la próxima vez que entren.",
+                       message: "Â¿EstÃ¡s seguro de que deseas reiniciar el cache para TODOS los usuarios? Esto forzarÃ¡ una recarga del sistema la prÃ³xima vez que entren.",
                        onConfirm: () => onResetGlobalCache?.()
                      })}
                      className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-red-100"
@@ -798,7 +798,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                              <button 
                                onClick={() => saveAiSuggestion(s)} 
                                className="p-2 bg-red-600 rounded-lg hover:bg-red-500 transition-colors"
-                               title="Guardar ubicación"
+                               title="Guardar ubicaciÃ³n"
                              >
                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                              </button>
@@ -833,16 +833,16 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         return (
           <div className="bg-gray-50/50 p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 animate-fade-in space-y-8">
              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">Gestión de Planes</h2>
+                <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight">GestiÃ³n de Planes</h2>
                 <button onClick={handleAddNewPackage} className="bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-100 hover:bg-[#091F4F] transition-all">+ Agregar Plan</button>
              </div>
              
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {localPackages.map(pkg => (
                   <div key={pkg.id} className="bg-white p-8 rounded-[2.5rem] shadow-lg border border-gray-100 flex flex-col space-y-6 animate-slide-up group relative">
-                     {/* Botón borrar */}
+                     {/* BotÃ³n borrar */}
                      <button 
-                        onClick={() => setConfirmAction({ message: "¿Eliminar plan?", onConfirm: () => onDeletePackage(pkg.id) })}
+                        onClick={() => setConfirmAction({ message: "Â¿Eliminar plan?", onConfirm: () => onDeletePackage(pkg.id) })}
                         className="absolute top-6 right-6 text-gray-300 hover:text-red-600 transition-colors"
                      >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
@@ -869,7 +869,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      </div>
 
                      <div className="bg-green-50 p-4 rounded-2xl border-2 border-green-200">
-                        <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-3">Precio de Oferta (Vacío = Sin Oferta)</p>
+                        <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-3">Precio de Oferta (VacÃ­o = Sin Oferta)</p>
                         <div className="grid grid-cols-2 gap-4">
                            <div>
                               <p className="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Precio Oferta</p>
@@ -902,23 +902,23 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      </div>
 
                      <div className="bg-gray-50 p-6 rounded-2xl">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Descripción (Separar con | para varias líneas)</p>
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">DescripciÃ³n (Separar con | para varias lÃ­neas)</p>
                         <textarea 
                            className="w-full bg-transparent text-sm font-medium text-slate-600 outline-none resize-none min-h-[60px]" 
                            value={pkg.description} 
                            onChange={e => handlePackageChange(pkg.id, 'description', e.target.value)} 
-                           placeholder="Escribe la descripción del plan..."
+                           placeholder="Escribe la descripciÃ³n del plan..."
                            rows={2} 
                         />
                      </div>
 
                      <div className="bg-gray-50 p-6 rounded-2xl">
-                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Beneficios (Checks - Una por línea)</p>
+                        <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Beneficios (Checks - Una por lÃ­nea)</p>
                         <textarea 
                            className="w-full bg-transparent text-sm font-medium text-slate-600 outline-none resize-none min-h-[80px]" 
                            value={pkg.features?.join('\n') || ''} 
                            onChange={e => handlePackageChange(pkg.id, 'features', e.target.value.split('\n'))} 
-                           placeholder="Ej: 1 Propiedad&#10;30 días de publicación&#10;Destacado Premium"
+                           placeholder="Ej: 1 Propiedad&#10;30 dÃ­as de publicaciÃ³n&#10;Destacado Premium"
                            rows={3} 
                         />
                      </div>
@@ -934,7 +934,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                            />
                         </div>
                         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Días de Duración</p>
+                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">DÃ­as de DuraciÃ³n</p>
                            <input type="number" className="w-full bg-transparent font-black text-sm text-[#091F4F] outline-none" value={pkg.durationDays} onChange={e => handlePackageChange(pkg.id, 'durationDays', Number(e.target.value))} />
                         </div>
                         <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
@@ -958,7 +958,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      </div>
 
                       <div className="space-y-3">
-                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Operación Permitida</p>
+                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">OperaciÃ³n Permitida</p>
                          <div className="flex gap-2">
                            {(['RENT', 'SALE', 'BOTH'] as const).map(op => (
                              <button
@@ -989,9 +989,9 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                        </div>
 
                       <div className="space-y-3">
-                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Roles Permitidos (Vacío = Todos)</p>
+                         <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-1">Roles Permitidos (VacÃ­o = Todos)</p>
                         <div className="flex flex-wrap gap-2">
-                          {(['PARTICULAR DUEÑO DIRECTO', 'INMOBILARIA CORREDOR', 'CONSTRUCTORA DESARROLLADORA'] as const).map(role => (
+                          {(['PARTICULAR DUEÃ‘O DIRECTO', 'INMOBILARIA CORREDOR', 'CONSTRUCTORA DESARROLLADORA'] as const).map(role => (
                             <button
                               key={role}
                               type="button"
@@ -1072,14 +1072,14 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                      {method.type === 'TRANSFER' ? (
                        <div className="space-y-3">
                           <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="Banco" value={method.bankName} onChange={e => onUpdatePaymentMethod({...method, bankName: e.target.value})} />
-                          <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="N° de Cuenta" value={method.accountNumber} onChange={e => onUpdatePaymentMethod({...method, accountNumber: e.target.value})} />
+                          <input className="w-full p-3 bg-white rounded-xl font-bold text-sm" placeholder="NÂ° de Cuenta" value={method.accountNumber} onChange={e => onUpdatePaymentMethod({...method, accountNumber: e.target.value})} />
                        </div>
                      ) : method.type === 'QR' ? (
                        <div className="space-y-4">
                           <div className="flex gap-4 items-center">
                             <div className="relative group w-24 h-24 bg-white rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer hover:border-red-600 transition-all" onClick={() => { setUploadingMethodId(method.id); paymentMethodInputRef.current?.click(); }}>
                               {method.qrUrl ? (
-                                <img src={method.qrUrl} className="w-full h-full object-contain" alt="QR Preview" />
+                                <img loading="lazy" src={method.qrUrl} className="w-full h-full object-contain" alt="QR Preview" />
                               ) : (
                                 <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                               )}
@@ -1099,13 +1099,13 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                           <input type="file" ref={paymentMethodInputRef} className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'QR_CODE')} />
                        </div>
                      ) : method.type === 'MERCADOPAGO' ? (
-                       <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed">Este método utiliza las credenciales de Mercado Pago definidas abajo. Al pagar, se generará una pasarela y un código de pago de manera automática.</p>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase leading-relaxed">Este mÃ©todo utiliza las credenciales de Mercado Pago definidas abajo. Al pagar, se generarÃ¡ una pasarela y un cÃ³digo de pago de manera automÃ¡tica.</p>
                      ) : null}
                      <div className="space-y-2">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Guía / Instrucciones de pago</p>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">GuÃ­a / Instrucciones de pago</p>
                         <textarea 
                           className="w-full p-4 bg-white rounded-2xl font-bold text-xs outline-none focus:ring-2 focus:ring-red-500 min-h-[80px] resize-none"
-                          placeholder="Escribe aquí las instrucciones que verá el usuario..."
+                          placeholder="Escribe aquÃ­ las instrucciones que verÃ¡ el usuario..."
                           value={method.instructions || ''}
                           onChange={e => onUpdatePaymentMethod({...method, instructions: e.target.value})}
                         />
@@ -1201,7 +1201,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
             <h2 className="text-2xl font-black text-[#091F4F] uppercase tracking-tight mb-8">Editar Perfil</h2>
             <div className="flex flex-col items-center mb-10">
                <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
-                  <img src={profileData.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-32 h-32 rounded-3xl border-4 border-white shadow-2xl object-cover" />
+                  <img loading="lazy" src={profileData.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-32 h-32 rounded-3xl border-4 border-white shadow-2xl object-cover" />
                   <div className="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" strokeWidth="2"/><circle cx="12" cy="13" r="3" strokeWidth="2"/></svg>
                   </div>
@@ -1217,7 +1217,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                    disabled={isUpdatingProfile}
                  >
                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                   {deleteAvatarConfirm ? '¿Confirmar?' : 'Eliminar foto'}
+                   {deleteAvatarConfirm ? 'Â¿Confirmar?' : 'Eliminar foto'}
                  </button>
                )}
             </div>
@@ -1228,7 +1228,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                </div>
                <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">WhatsApp (Ej: 51999888777)</label>
-                  <input className="w-full p-4 bg-gray-50 rounded-2xl font-bold" value={profileData.whatsapp} onChange={e => setProfileData({...profileData, whatsapp: e.target.value})} placeholder="Código de país + número" />
+                  <input className="w-full p-4 bg-gray-50 rounded-2xl font-bold" value={profileData.whatsapp} onChange={e => setProfileData({...profileData, whatsapp: e.target.value})} placeholder="CÃ³digo de paÃ­s + nÃºmero" />
                </div>
                 <button disabled={isUpdatingProfile} className="w-full bg-[#091F4F] text-white font-black py-5 rounded-2xl shadow-xl hover:bg-red-600 transition-all uppercase text-[11px] tracking-widest">
                   {isUpdatingProfile ? 'Guardando...' : 'Actualizar Datos'}
@@ -1240,7 +1240,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
             <div className="text-center">
               <h3 className="text-lg font-black text-[#091F4F] uppercase tracking-tight mb-3">Derechos ARCO</h3>
               <p className="text-sm text-gray-500 font-medium mb-6 max-w-md mx-auto">
-                De acuerdo a la Ley N° 29733, tienes derecho a Acceder, Rectificar, Cancelar y Oponerte al tratamiento de tus datos personales.
+                De acuerdo a la Ley NÂ° 29733, tienes derecho a Acceder, Rectificar, Cancelar y Oponerte al tratamiento de tus datos personales.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 <button onClick={() => {
@@ -1254,17 +1254,17 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   Exportar mis datos
                 </button>
                 <button onClick={() => {
-                  if (window.confirm('¿Estás seguro de solicitar la eliminación de tu cuenta y todos tus datos? Esta acción no se puede deshacer.')) {
-                    if (window.confirm('¿Confirmas que deseas eliminar permanentemente tu cuenta en Mi Casa Perú? Se eliminarán tus publicaciones, consultas y datos personales.')) {
-                      showToast('Solicitud de eliminación enviada. Te contactaremos para confirmar.', 'SUCCESS');
+                  if (window.confirm('Â¿EstÃ¡s seguro de solicitar la eliminaciÃ³n de tu cuenta y todos tus datos? Esta acciÃ³n no se puede deshacer.')) {
+                    if (window.confirm('Â¿Confirmas que deseas eliminar permanentemente tu cuenta en Mi Casa PerÃº? Se eliminarÃ¡n tus publicaciones, consultas y datos personales.')) {
+                      showToast('Solicitud de eliminaciÃ³n enviada. Te contactaremos para confirmar.', 'SUCCESS');
                     }
                   }
                 }} className="px-6 py-4 bg-red-50 border border-red-200 rounded-2xl font-bold text-[11px] uppercase tracking-widest hover:bg-red-100 transition-all text-red-600">
-                  Solicitar eliminación de cuenta
+                  Solicitar eliminaciÃ³n de cuenta
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 font-medium mt-6">
-                Ley N° 29733 - Ley de Protección de Datos Personales del Perú
+                Ley NÂ° 29733 - Ley de ProtecciÃ³n de Datos Personales del PerÃº
               </p>
             </div>
           </div>
@@ -1286,7 +1286,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                       <th className="pb-4 px-4">Fecha</th>
                       <th className="pb-4 px-4">Plan</th>
                       <th className="pb-4 px-4">Monto</th>
-                      <th className="pb-4 px-4">Método</th>
+                      <th className="pb-4 px-4">MÃ©todo</th>
                       <th className="pb-4 px-4">Estado</th>
                     </tr>
                   </thead>
@@ -1366,7 +1366,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
         <div className={`rounded-[2.5rem] p-8 text-white mb-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 border-4 border-white ${isAdmin ? 'bg-[#091F4F]' : 'bg-red-600'}`}>
           <div className="flex items-center space-x-6">
             <div className="relative group">
-              <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-20 h-20 rounded-2xl border-4 border-white/20 shadow-xl object-cover" />
+              <img loading="lazy" src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-20 h-20 rounded-2xl border-4 border-white/20 shadow-xl object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight">{user.name}</h1>
@@ -1387,7 +1387,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
             
             {isAdmin && (
               <>
-                <div className="pt-4 border-t mt-4 mb-2 px-6"><span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">Gestión</span></div>
+                <div className="pt-4 border-t mt-4 mb-2 px-6"><span className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">GestiÃ³n</span></div>
                 <button onClick={() => setActiveTab('TRANSACTIONS')} className={`flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'TRANSACTIONS' ? 'bg-red-600 text-white shadow-lg' : 'bg-white text-gray-400 hover:bg-red-50'}`}>Ventas</button>
                 <button onClick={() => setActiveTab('PACKAGES')} className={`flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'PACKAGES' ? 'bg-red-600 text-white shadow-lg' : 'bg-white text-gray-400 hover:bg-red-50'}`}>Planes</button>
                 <button onClick={() => setActiveTab('PAYMENTS')} className={`flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'PAYMENTS' ? 'bg-red-600 text-white shadow-lg' : 'bg-white text-gray-400 hover:bg-red-50'}`}>Recaudo</button>
@@ -1398,7 +1398,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
               </>
             )}
             <button onClick={() => setActiveTab('PROFILE')} className={`flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === 'PROFILE' ? 'bg-gray-200 text-gray-900 shadow-lg' : 'bg-white text-gray-400 hover:bg-gray-100'}`}>Mi Perfil</button>
-            <button onClick={onLogout} className="flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-red-600 mt-8 hover:bg-red-50 transition-colors">Cerrar Sesión</button>
+            <button onClick={onLogout} className="flex items-center gap-4 px-6 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest text-red-600 mt-8 hover:bg-red-50 transition-colors">Cerrar SesiÃ³n</button>
           </div>
 
           <div className="flex-grow min-w-0">
@@ -1426,7 +1426,7 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth="2.5" strokeLinecap="round"/></svg>
              </button>
              <h3 className="text-xl font-black text-[#091F4F] uppercase tracking-tight mb-2">Detalles del Pago</h3>
-             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-8">Información de la transacción</p>
+             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-8">InformaciÃ³n de la transacciÃ³n</p>
              
              <div className="space-y-4">
                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
@@ -1442,20 +1442,20 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
                  <span className="font-black text-red-600 text-sm">S/ {viewTransactionDetails.amount.toLocaleString()}</span>
                </div>
                <div className="bg-gray-50 p-4 rounded-xl flex justify-between items-center">
-                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Método</span>
+                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">MÃ©todo</span>
                  <span className="font-black text-slate-700 text-xs uppercase tracking-wider">{viewTransactionDetails.paymentMethodName}</span>
                </div>
                
                {(viewTransactionDetails.operationNumber || viewTransactionDetails.securityCode || viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE')) && (
                  <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl space-y-4 mt-6">
                    <div className="flex flex-col">
-                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Número de Transacción</span>
+                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">NÃºmero de TransacciÃ³n</span>
                      <span className="font-black text-blue-900 text-lg tracking-wider">
                        {viewTransactionDetails.operationNumber || (viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE') ? 'No proporcionado' : '-') }
                      </span>
                    </div>
                    <div className="flex flex-col">
-                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Código de Seguridad</span>
+                     <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">CÃ³digo de Seguridad</span>
                      <span className="font-black text-blue-900 text-lg tracking-wider">
                        {viewTransactionDetails.securityCode || (viewTransactionDetails.paymentMethodName.toUpperCase().includes('YAPE') ? 'No proporcionado' : '-') }
                      </span>
@@ -1477,3 +1477,4 @@ const ClientDashboard: React.FC<ClientDashboardProps> = ({
 };
 
 export default ClientDashboard;
+

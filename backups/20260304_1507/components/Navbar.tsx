@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { User } from '../types';
 
 interface NavbarProps {
@@ -43,14 +43,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
           >
             {logo ? (
               <div className="h-10 md:h-12 flex items-center animate-fade-in">
-                <img 
+                <img loading="lazy" 
                   src={logo} 
                   alt="App Logo" 
                   className="h-full w-auto object-contain max-w-[180px]" 
                 />
               </div>
             ) : (
-              /* Se eliminó el texto "AQUIVIVIR" de aquí para evitar el parpadeo visual */
+              /* Se eliminÃ³ el texto "AQUIVIVIR" de aquÃ­ para evitar el parpadeo visual */
               <div className="w-10 h-10 md:w-12 md:h-12" />
             )}
           </div>
@@ -88,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
                     </p>
                   </div>
                   <div className="relative group cursor-pointer" onClick={() => onNavigate('DASHBOARD')}>
-                    <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt="User" />
+                    <img loading="lazy" src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="relative w-11 h-11 rounded-2xl border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform object-cover" alt="User" />
                   </div>
                 </div>
               ) : (
@@ -123,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
           <div className="absolute top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl p-8 flex flex-col animate-slide-up">
             <div className="flex justify-between items-center mb-8">
                {logo ? (
-                 <img src={logo} alt="App Logo" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" />
+                 <img loading="lazy" src={logo} alt="App Logo" className="h-8 w-auto object-contain max-w-[140px] animate-fade-in" />
                ) : (
                  <div className="w-10 h-10" />
                )}
@@ -136,7 +136,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
             <div className="mb-8 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
               {user ? (
                 <div className="flex items-center gap-4 cursor-pointer" onClick={() => handleLinkClick('DASHBOARD')}>
-                  <img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt="User" />
+                  <img loading="lazy" src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} className="w-14 h-14 rounded-2xl border-2 border-white shadow-md object-cover" alt="User" />
                   <div>
                     <p className="text-sm font-black text-[#091F4F] leading-none mb-1">{user.name}</p>
                     <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">Ver mi panel</p>
@@ -144,12 +144,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
                 </div>
               ) : (
                 <div className="text-center">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">¿Ya tienes cuenta?</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Â¿Ya tienes cuenta?</p>
                   <button 
                     onClick={() => handleLinkClick('AUTH')}
                     className="w-full bg-red-600 text-white py-4 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg"
                   >
-                    Iniciar Sesión
+                    Iniciar SesiÃ³n
                   </button>
                 </div>
               )}
@@ -175,7 +175,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onNavigate, currentView, logo }) 
             </div>
 
             <div className="mt-auto pt-8 border-t border-gray-100 text-center">
-               <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">MICASAPERU © 2025</p>
+               <p className="text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">MICASAPERU Â© 2025</p>
             </div>
           </div>
         </div>
