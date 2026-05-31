@@ -880,11 +880,58 @@ const App: React.FC = () => {
     handleClearFilters(); 
   };
 
+  // Rate limiting: máx 5 intentos fallidos por email en 15 minutos
+  const checkRateLimit = (email: string): boolean => {
+    const key = `rl_${email.toLowerCase()}`;
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutos
+    try {
+      const stored = localStorage.getItem(key);
+      const data = stored ? JSON.parse(stored) : { attempts: 0, firstAttempt: now };
+      // Resetear si ya pasó la ventana de tiempo
+      if (now - data.firstAttempt > windowMs) {
+        localStorage.removeItem(key);
+        return true;
+      }
+      if (data.attempts >= 5) {
+        const minutesLeft = Math.ceil((windowMs - (now - data.firstAttempt)) / 60000);
+        showToast(`Demasiados intentos fallidos. Espera ${minutesLeft} minuto(s) antes de intentarlo nuevamente.`, 'ERROR');
+        return false;
+      }
+      return true;
+    } catch { return true; }
+  };
+
+  const recordFailedAttempt = (email: string) => {
+    const key = `rl_${email.toLowerCase()}`;
+    const now = Date.now();
+    try {
+      const stored = localStorage.getItem(key);
+      const data = stored ? JSON.parse(stored) : { attempts: 0, firstAttempt: now };
+      data.attempts += 1;
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch { /* silent fail */ }
+  };
+
+  const clearFailedAttempts = (email: string) => {
+    try { localStorage.removeItem(`rl_${email.toLowerCase()}`); } catch { /* silent fail */ }
+  };
+
   const handleLogin = async (email: string, role: string, password?: string, isReg: boolean = false, name?: string) => {
     if (!isSupabaseConfigured) {
       showToast("Supabase no está configurado. No se puede iniciar sesión en modo demostración.", "ERROR");
       return;
     }
+
+    // Validación básica de email para evitar inyecciones
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showToast("Por favor ingresa un correo electrónico válido.", "ERROR");
+      return;
+    }
+
+    // Rate limiting: bloquear si hay demasiados intentos fallidos
+    if (!isReg && !checkRateLimit(email)) return;
 
     setIsInitialLoading(true); // Mostrar loader durante el proceso
     try {
@@ -932,7 +979,11 @@ const App: React.FC = () => {
       } else {
         console.info("Intentando inicio de sesión...");
         result = await supabase.auth.signInWithPassword({ email, password: password || '' });
-        if (result.error) throw result.error;
+        if (result.error) {
+          recordFailedAttempt(email); // Registrar intento fallido para rate limiting
+          throw result.error;
+        }
+        clearFailedAttempts(email); // Login exitoso: limpiar contador
       }
 
       if (result.data.user) {

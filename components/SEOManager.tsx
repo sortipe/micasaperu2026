@@ -56,15 +56,25 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         ogImage = property.featuredImage;
       }
 
-      const schemaType = property.type === 'Departamento' ? 'Apartment' : 
-                          property.type === 'Casa' ? 'SingleFamilyResidence' : 'House';
-      
+      const propertyTypeSchema = property.type === 'Departamento' ? 'https://schema.org/Apartment' :
+                                  property.type === 'Casa' ? 'https://schema.org/SingleFamilyResidence' :
+                                  property.type === 'Terreno' ? 'https://schema.org/Land' :
+                                  property.type === 'Oficina' || property.type === 'Local Comercial' ? 'https://schema.org/Office' :
+                                  'https://schema.org/House';
+
       const realEstateSchema = {
         '@context': 'https://schema.org',
-        '@type': schemaType,
+        '@type': 'RealEstateListing',
         'name': property.title,
         'description': property.description,
         'image': property.gallery && property.gallery.length > 0 ? property.gallery : [property.featuredImage],
+        'url': ogUrl,
+        'datePosted': property.publishedAt || property.createdAt || new Date().toISOString().split('T')[0],
+        ...(property.status === 'FOR_RENT' ? {
+          'leaseLength': property.deliveryMonth && property.deliveryYear
+            ? `Hasta ${property.deliveryMonth} ${property.deliveryYear}`
+            : 'Mensual'
+        } : {}),
         'address': {
           '@type': 'PostalAddress',
           'streetAddress': property.address || '',
@@ -75,15 +85,25 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         ...(property.lat && property.lng ? {
           'geo': { '@type': 'GeoCoordinates', 'latitude': property.lat, 'longitude': property.lng }
         } : {}),
-        'numberOfRooms': property.bedrooms || 0,
+        'numberOfBedrooms': property.bedrooms || 0,
         'numberOfBathroomsTotal': property.bathrooms || 0,
-        'floorSize': { '@type': 'QuantitativeValue', 'value': property.constructionArea || property.terrainArea || 0, 'unitCode': 'MTK' },
+        'floorSize': {
+          '@type': 'QuantitativeValue',
+          'value': property.constructionArea || property.terrainArea || 0,
+          'unitCode': 'MTK'
+        },
+        'propertyType': propertyTypeSchema,
         'offers': {
           '@type': 'Offer',
           'priceCurrency': property.priceUSD ? 'USD' : 'PEN',
           'price': property.priceUSD || property.pricePEN || 0,
           'availability': 'https://schema.org/InStock',
           'url': ogUrl
+        },
+        'seller': {
+          '@type': 'RealEstateAgent',
+          'name': property.agentName || 'Mi Casa Perú',
+          'url': 'https://micasaperu.com'
         }
       };
 

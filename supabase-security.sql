@@ -278,29 +278,29 @@ BEGIN
 END;
 $d$;
 
--- 11. Payment Methods: cada usuario ve solo los suyos
+-- 11. Payment Methods: lectura para autenticados, solo admin modifica
 DO $d$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payment_methods') THEN
     DROP POLICY IF EXISTS "PaymentMethods select" ON public.payment_methods;
     CREATE POLICY "PaymentMethods select" ON public.payment_methods
       FOR SELECT TO authenticated
-      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+      USING (true);
 
     DROP POLICY IF EXISTS "PaymentMethods insert" ON public.payment_methods;
     CREATE POLICY "PaymentMethods insert" ON public.payment_methods
       FOR INSERT TO authenticated
-      WITH CHECK (auth.uid() = "userId");
+      WITH CHECK (is_admin(auth.uid()));
 
     DROP POLICY IF EXISTS "PaymentMethods update" ON public.payment_methods;
     CREATE POLICY "PaymentMethods update" ON public.payment_methods
       FOR UPDATE TO authenticated
-      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+      USING (is_admin(auth.uid()));
 
     DROP POLICY IF EXISTS "PaymentMethods delete" ON public.payment_methods;
     CREATE POLICY "PaymentMethods delete" ON public.payment_methods
       FOR DELETE TO authenticated
-      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+      USING (is_admin(auth.uid()));
   END IF;
 END;
 $d$;
