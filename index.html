@@ -1,16 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-PE">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport fit cover for premium safe-area Capacitor and hybrid displays -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <!-- Hard reload / Cache purging tags -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <!-- Mobile / PWA App styling headers -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+
     <meta name="theme-color" content="#091F4F">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,22 +13,27 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
     <link rel="manifest" href="/manifest.json">
-    
-    <!-- Optimizaciones de Velocidad: Preconexión a dominios clave -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="preconnect" href="https://ui-avatars.com">
+    <link rel="preconnect" href="https://uxdnhmkoiqqeiaoxeedw.supabase.co" crossorigin>
     <link rel="preconnect" href="https://b.tile.openstreetmap.org">
+    <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="dns-prefetch" href="https://api.mercadopago.com">
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
 
     <title>Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú</title>
     <meta name="description" content="El portal inmobiliario líder en el Perú. Encuentra departamentos, casas, terrenos y locales comerciales en venta y alquiler directo de dueños, corredores y constructoras en Lima y todo el Perú.">
     <meta name="keywords" content="micasaperu, departamentos en venta lima, alquilar departamento lima, inmuebles en peru, casas en venta peru, dueños directos peru, inmobiliaria peru, bienes raices lima, casas en alquiler lima, departamentos miraflores, departamentos san isidro, casas la molina, inmuebles surco, alquiler san borja, comprar casa peru, terrenos en venta lima, locales comerciales lima, oficinas en alquiler lima, dúplex en venta lima, penthouse lima">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large">
     <link rel="canonical" href="https://micasaperu.com">
     <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+    <link rel="alternate" href="https://micasaperu.com" hreflang="x-default">
+    <link rel="alternate" href="https://micasaperu.com" hreflang="es-PE">
 
-    <!-- Base Open Graph (overridden dynamically by api/seo.js for property pages) -->
     <meta property="og:title" content="Mi Casa Perú - Portal Inmobiliario del Perú">
     <meta property="og:description" content="Encuentra departamentos, casas, terrenos y locales en venta y alquiler en Lima y todo el Perú. Publicaciones directas de dueños, corredores y constructoras.">
     <meta property="og:image" content="https://micasaperu.com/og-image.jpg">
@@ -51,35 +49,22 @@
     <meta name="twitter:image" content="https://micasaperu.com/og-image.jpg">
     <meta name="twitter:image:alt" content="Mi Casa Perú - Portal Inmobiliario">
     <meta name="twitter:site" content="@micasaperu">
+    <meta name="author" content="Mi Casa Perú">
 
-    <!-- Preconnect to speed up premium Outfit & Inter font loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    
-    <!-- Inline critical CSS for above-the-fold rendering -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress" fetchpriority="high" media="(min-width: 769px)">
+    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress" fetchpriority="high" media="(max-width: 768px)">
+
     <style>
-        html{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}body{margin:0;background:#f8fafc;color:#0f172a;overflow-x:hidden;-webkit-font-smoothing:antialiased}#root{min-height:100vh}.animate-fade-in{animation:fade-in .5s ease-out forwards}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}.animate-pulse-fast{animation:pulse 1s cubic-bezier(.4,0,.6,1) infinite}.ssr-fallback-content{clip:rect(0 0 0 0);clip-path:inset(50%);height:1px;overflow:hidden;position:absolute;white-space:nowrap;width:1px;}@keyframes fade-in{from{opacity:0}to{opacity:1}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+        html{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}body{margin:0;background:#f8fafc;color:#0f172a;overflow-x:hidden;-webkit-font-smoothing:antialiased}#root{min-height:100vh}.animate-fade-in{animation:fade-in .5s ease-out forwards}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}.ssr-fallback-content{clip:rect(0 0 0 0);clip-path:inset(50%);height:1px;overflow:hidden;position:absolute;white-space:nowrap;width:1px}.bg-\\[\\#091F4F\\]{background-color:#091F4F}.text-white{color:#fff}.text-\\[\\#091F4F\\]{color:#091F4F}.text-red-600,.text-\\[\\#ef4444\\]{color:#ef4444}.font-black{font-weight:900}.text-\\[10px\\]{font-size:10px}.text-\\[11px\\]{font-size:11px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[20px\\]{font-size:20px}.text-\\[24px\\]{font-size:24px}.text-\\[28px\\]{font-size:28px}.uppercase{text-transform:uppercase}.tracking-\\[0\\.1em\\]{letter-spacing:.1em}.tracking-\\[0\\.2em\\]{letter-spacing:.2em}.tracking-\\[0\\.3em\\]{letter-spacing:.3em}.tracking-\\[0\\.05em\\]{letter-spacing:.05em}.tracking-tight{letter-spacing:-.025em}.leading-none{line-height:1}.p-\\[15px\\]{padding:15px}.p-\\[20px\\]{padding:20px}.mt-\\[10px\\]{margin-top:10px}.mb-\\[20px\\]{margin-bottom:20px}.mb-\\[30px\\]{margin-bottom:30px}.mb-\\[40px\\]{margin-bottom:40px}.gap-\\[10px\\]{gap:10px}.gap-\\[15px\\]{gap:15px}.gap-\\[20px\\]{gap:20px}.flex{display:flex}.grid{display:grid}.justify-center{justify-content:center}.items-center{align-items:center}.text-center{text-align:center}.border-l-\\[5px\\]{border-left:5px solid}.border-\\[\\#ef4444\\]{border-color:#ef4444}.pl-\\[10px\\]{padding-left:10px}.container{margin:0 auto}.mx-auto{margin-left:auto;margin-right:auto}.max-w-\\[900px\\]{max-width:900px}.max-w-4xl{max-width:56rem}.text-\\[#64748b\\]{color:#64748b}.font-bold{font-weight:700}.font-\\[#091F4F\\]{color:#091F4F}.rounded-\\[12px\\]{border-radius:12px}.border{border:1px solid}.border-\\[#e2e8f0\\]{border-color:#e2e8f0}.bg-\\[#f8fafc\\]{background-color:#f8fafc}.no-underline{text-decoration:none}.list-none{list-style:none}.p-0{padding:0}.grid-cols-\\[repeat\\(auto-fill\\,minmax\\(140px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}.grid-cols-\\[repeat\\(auto-fill\\,minmax\\(200px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}a{color:#ef4444;text-decoration:none;font-weight:700;font-size:13px}a:hover{text-decoration:underline}@media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}@keyframes fade-in{from{opacity:0}to{opacity:1}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes spin{to{transform:rotate(360deg)}}
     </style>
 
-    <!-- Preload LCP hero banner for fast Core Web Vitals (Largest Contentful Paint) -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress" fetchpriority="high">
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress" media="(max-width: 768px)" fetchpriority="high">
-    <link rel="prefetch" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Preconnect to image CDNs and API -->
-    <link rel="preconnect" href="https://images.unsplash.com">
-    <link rel="preconnect" href="https://ui-avatars.com">
-    <link rel="preconnect" href="https://uxdnhmkoiqqeiaoxeedw.supabase.co" crossorigin>
-    <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <link rel="dns-prefetch" href="https://ui-avatars.com">
-    <link rel="dns-prefetch" href="https://uxdnhmkoiqqeiaoxeedw.supabase.co">
-    <link rel="preconnect" href="https://tile.openstreetmap.org">
-    
-    <!-- Default Schema.org Structured Data (Organizations/Agent details) for static crawler indexing -->
     <script type="application/ld+json">
-    {
+    [{
       "@context": "https://schema.org",
       "@type": "RealEstateAgent",
       "name": "Mi Casa Perú",
@@ -94,62 +79,35 @@
         "addressRegion": "Lima",
         "addressCountry": "PE"
       }
-    }
-    </script>
-</head>
-<body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
-    <!-- FAQPage schema for rich results -->
-    <script type="application/ld+json">
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Mi Casa Perú",
+      "url": "https://micasaperu.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://micasaperu.com/?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "¿Cómo publicar una propiedad en Mi Casa Perú?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Regístrate gratis, selecciona el plan que mejor se adapte a tus necesidades y completa los datos de tu inmueble con fotos, planos y coordenadas."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "¿Cuánto cuesta publicar un aviso inmobiliario?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Los planes van desde S/100 mensuales por una propiedad hasta paquetes corporativos. Ofrecemos planes destacados y súper destacados para máxima exposición."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "¿Qué distritos de Lima tienen más propiedades en venta?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Miraflores, San Isidro, Santiago de Surco, La Molina, San Borja y Barranco concentran la mayor oferta de departamentos y casas en venta en Lima."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "¿Cómo contactar al dueño directo de una propiedad?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Cada propiedad tiene un formulario de contacto y un enlace directo a WhatsApp del anunciante. Puedes enviar un mensaje sin intermediarios."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "¿Mi Casa Perú es solo para Lima?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "No, tenemos propiedades en todo el Perú: Arequipa, Trujillo, Cusco, Piura, Tarapoto, Lambayeque, Ica y más regiones."
-          }
-        }
+        {"@type":"Question","name":"¿Cómo publicar una propiedad en Mi Casa Perú?","acceptedAnswer":{"@type":"Answer","text":"Regístrate gratis, selecciona el plan que mejor se adapte a tus necesidades y completa los datos de tu inmueble con fotos, planos y coordenadas."}},
+        {"@type":"Question","name":"¿Cuánto cuesta publicar un aviso inmobiliario?","acceptedAnswer":{"@type":"Answer","text":"Los planes van desde S/100 mensuales por una propiedad hasta paquetes corporativos. Ofrecemos planes destacados y súper destacados para máxima exposición."}},
+        {"@type":"Question","name":"¿Qué distritos de Lima tienen más propiedades en venta?","acceptedAnswer":{"@type":"Answer","text":"Miraflores, San Isidro, Santiago de Surco, La Molina, San Borja y Barranco concentran la mayor oferta de departamentos y casas en venta en Lima."}},
+        {"@type":"Question","name":"¿Cómo contactar al dueño directo de una propiedad?","acceptedAnswer":{"@type":"Answer","text":"Cada propiedad tiene un formulario de contacto y un enlace directo a WhatsApp del anunciante. Puedes enviar un mensaje sin intermediarios."}},
+        {"@type":"Question","name":"¿Mi Casa Perú es solo para Lima?","acceptedAnswer":{"@type":"Answer","text":"No, tenemos propiedades en todo el Perú: Arequipa, Trujillo, Cusco, Piura, Tarapoto, Lambayeque, Ica y más regiones."}}
       ]
-    }
+    }]
     </script>
-    <!-- Pre-hydrated semantic DOM skeleton inside #root. 
-         React will clean and mount dynamically over this at runtime, 
-         while search engine bots and audit crawlers instantly read rich semantic texts! -->
+</head>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
     <div id="root">
         <div class="ssr-fallback-content">
             <header style="background-color: #091F4F; color: white; padding: 15px; text-align: center; font-family: 'Outfit', sans-serif;">
@@ -160,7 +118,7 @@
                     <a href="/search" style="color: white; text-decoration: none;">Buscador</a>
                 </nav>
             </header>
-            
+
             <main style="max-width: 900px; margin: 40px auto; padding: 0 20px; font-family: 'Inter', sans-serif; line-height: 1.6;">
                 <h1 style="font-size: 28px; font-weight: 850; color: #091F4F; text-transform: uppercase; margin-bottom: 20px;">
                     Encuentra Casas, Departamentos y Terrenos en Venta y Alquiler en todo el Perú
@@ -169,7 +127,6 @@
                     Bienvenido a <strong>Mi Casa Perú</strong>, la plataforma líder de bienes raíces en el Perú. Facilitamos el contacto directo entre propietarios dueños directos, corredores inmobiliarios independientes, constructoras y compradores interesados. Explora nuestro listado completo con fotos HD, planos detallados y coordenadas interactivas.
                 </p>
 
-                <!-- Stats / Social Proof -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 40px; text-align: center;">
                     <div style="background: #f8fafc; border-radius: 12px; padding: 20px 10px; border: 1px solid #e2e8f0;">
                         <div style="font-size: 28px; font-weight: 900; color: #ef4444;">500+</div>
@@ -189,7 +146,7 @@
                     </div>
                 </div>
 
-                <section style="margin-top: 40px; content-visibility: auto; contain-intrinsic-size: 500px;">
+                <section style="margin-top: 40px;">
                     <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                         Departamentos y Casas en Venta y Alquiler — Zonas Populares de Lima
                     </h2>
@@ -219,7 +176,7 @@
                     </ul>
                 </section>
 
-                <section style="margin-top: 40px; content-visibility: auto; contain-intrinsic-size: 400px;">
+                <section style="margin-top: 40px;">
                     <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                         Buscar por Tipo de Inmueble
                     </h2>
@@ -229,14 +186,13 @@
                         <li><a href="/?type=Casa&status=FOR_SALE" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Casas en Venta Lima</a></li>
                         <li><a href="/?type=Casa&status=FOR_RENT" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Casas en Alquiler Lima</a></li>
                         <li><a href="/?type=Terreno&status=FOR_SALE" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Terrenos en Venta Lima</a></li>
-                        <li><a href="/?type=Oficina&status=FOR_RENT" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Oficinas en Alquiler Lima</a></li>
-                        <li><a href="/?type=Local+Comercial" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Locales Comerciales Lima</a></li>
+                        <li><a href="/?type=Oficina+comercial&status=FOR_RENT" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Oficinas en Alquiler Lima</a></li>
+                        <li><a href="/?type=Local+comercial&status=FOR_SALE" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Locales Comerciales Lima</a></li>
                         <li><a href="/?status=PROJECT" style="color: #ef4444; text-decoration: none; font-weight: bold; font-size: 13px;">Proyectos Inmobiliarios Lima</a></li>
                     </ul>
                 </section>
 
-                <!-- FAQ Section -->
-                <section itemscope="" itemtype="https://schema.org/FAQPage" style="margin-top: 40px; margin-bottom: 40px; content-visibility: auto; contain-intrinsic-size: 600px;">
+                <section itemscope="" itemtype="https://schema.org/FAQPage" style="margin-top: 40px; margin-bottom: 40px;">
                     <h2 style="font-size: 18px; font-weight: 800; color: #091F4F; text-transform: uppercase; margin-bottom: 15px; border-left: 5px solid #ef4444; padding-left: 10px;">
                         Preguntas Frecuentes sobre Inmuebles en Perú
                     </h2>
@@ -266,7 +222,7 @@
                     </div>
                 </section>
             </main>
-            
+
             <footer style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 30px 20px; text-align: center; font-family: 'Inter', sans-serif; font-size: 12px; color: #94a3b8;">
                 <p style="margin-bottom: 10px;">&copy; 2026 Mi Casa Perú. Todos los derechos reservados.</p>
                 <p style="margin-bottom: 10px;">Dirección: Av. Benavides 768, Int. 1303, Miraflores, Lima, Perú | Tel: +51900000000 | Email: hola@micasaperu.com</p>
@@ -281,5 +237,13 @@
         </div>
     </div>
     <script type="module" src="/index.tsx"></script>
+    <script nomodule>
+        document.addEventListener('DOMContentLoaded', function(){
+            var e=document.getElementById('root');
+            if(e&&!e.querySelector('[data-reactroot]')&&!e.querySelector('[data-reactid]')){
+                var s=document.createElement('script');s.src='/index.tsx';s.type='module';document.body.appendChild(s);
+            }
+        });
+    </script>
 </body>
 </html>

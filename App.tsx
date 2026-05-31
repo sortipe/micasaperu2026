@@ -1156,7 +1156,6 @@ const App: React.FC = () => {
       setSpatialFilterIds(null);
     }
     
-    // Update address bar path for clean routing (if in web environment)
     if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
       let path = '/';
       if (v === 'PRICING') {
@@ -1169,9 +1168,13 @@ const App: React.FC = () => {
         path = '/search';
       } else if (v === 'AUTH') {
         path = '/login';
+      } else if (v === 'HOME') {
+        path = '/';
       }
       
-      window.history.pushState({}, '', path);
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+      }
     }
   };
 

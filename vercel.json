@@ -3,135 +3,118 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; connect-src 'self' https://uxdnhmkoiqqeiaoxeedw.supabase.co https://api.mercadopago.com https://nominatim.openstreetmap.org; img-src 'self' data: blob: https://uxdnhmkoiqqeiaoxeedw.supabase.co https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://sdk.mercadopago.com; connect-src 'self' https://uxdnhmkoiqqeiaoxeedw.supabase.co wss://uxdnhmkoiqqeiaoxeedw.supabase.co https://api.mercadopago.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org; img-src 'self' data: blob: https://uxdnhmkoiqqeiaoxeedw.supabase.co https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com https://*.tile.openstreetmap.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';"
         },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=63072000; includeSubDomains; preload"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin-allow-popups"
-        },
-        {
-          "key": "Cross-Origin-Resource-Policy",
-          "value": "cross-origin"
-        },
-        {
-          "key": "X-Permitted-Cross-Domain-Policies",
-          "value": "none"
-        },
-        {
-          "key": "X-Robots-Tag",
-          "value": "index, follow"
-        }
-      ]
-    },
-    {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        }
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" },
+        { "key": "X-Permitted-Cross-Domain-Policies", "value": "none" },
+        { "key": "X-Robots-Tag", "value": "index, follow" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/robots.txt",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400, immutable"
-        },
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" },
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" },
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
     },
     {
       "source": "/og-image.jpg",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/favicon.ico",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/manifest.json",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/propiedades/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/propiedad/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/inmueble/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/inmuebles/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/departamento/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/casa/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/terreno/:id",
+      "destination": "/properties/:id",
+      "permanent": true
+    },
+    {
+      "source": "/departamentos-en-venta-en-lima/:path*",
+      "destination": "/?type=Departamento&status=FOR_SALE",
+      "permanent": true
+    },
+    {
+      "source": "/casas-en-venta-en-lima/:path*",
+      "destination": "/?type=Casa&status=FOR_SALE",
+      "permanent": true
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/api/vitals",
+      "destination": "/api/vitals"
+    },
     {
       "source": "/sitemap.xml",
       "destination": "/api/sitemap"
     },
     {
       "source": "/properties/:id",
-      "destination": "/api/seo?propertyId=:id"
-    },
-    {
-      "source": "/propiedades/:id",
-      "destination": "/api/seo?propertyId=:id"
-    },
-    {
-      "source": "/propiedad/:id",
       "destination": "/api/seo?propertyId=:id"
     },
     {
@@ -147,7 +130,7 @@
       "destination": "/api/seo"
     },
     {
-      "source": "/((?!assets/|favicon\\.ico|og-image\\.jpg|robots\\.txt|manifest\\.json|.*\\..*$).*)",
+      "source": "/((?!assets/|favicon\\.ico|og-image\\.jpg|robots\\.txt|sitemap\\.xml|manifest\\.json|api/|.*\\..*$).*)",
       "destination": "/api/seo"
     }
   ]

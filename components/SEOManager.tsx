@@ -20,38 +20,50 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
       element.setAttribute('content', content);
     };
 
+    const removeMetaTag = (attributeName: string, attributeValue: string) => {
+      const element = document.querySelector(`meta[${attributeName}="${attributeValue}"]`);
+      if (element) element.remove();
+    };
+
     const clearSchemaScripts = () => {
       const existingScripts = document.querySelectorAll('script[data-seo-schema="true"]');
       existingScripts.forEach(script => script.remove());
     };
 
-    const injectSchema = (data: object) => {
+    const injectSchema = (data: object | object[]) => {
       clearSchemaScripts();
-      const script = document.createElement('script');
-      script.type = 'application/ld+json';
-      script.setAttribute('data-seo-schema', 'true');
-      script.innerHTML = JSON.stringify(data);
-      document.head.appendChild(script);
+      const scripts = Array.isArray(data) ? data : [data];
+      scripts.forEach(item => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-seo-schema', 'true');
+        script.innerHTML = JSON.stringify(item);
+        document.head.appendChild(script);
+      });
     };
+
+    const baseUrl = 'https://micasaperu.com';
 
     let title = 'Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos';
     let description = 'El portal inmobiliario líder en Perú. Encuentra departamentos, casas, terrenos y oficinas en venta y alquiler directos de dueños, corredores e inmobiliarias.';
     let keywords = 'inmuebles en peru, comprar departamento lima, alquilar casa peru, terrenos en venta peru, micasaperu, departamentos de estreno';
     let ogUrl = window.location.origin;
     let ogImage = `${window.location.origin}/og-image.jpg`;
+    let canonicalUrl = window.location.href.split('?')[0].split('#')[0];
 
     if (view === 'DETAILS' && property) {
       const formattedPricePEN = property.pricePEN ? `S/ ${property.pricePEN.toLocaleString('es-PE')}` : '';
       const formattedPriceUSD = property.priceUSD ? `$ ${property.priceUSD.toLocaleString('en-US')}` : '';
       const priceString = [formattedPriceUSD, formattedPricePEN].filter(Boolean).join(' / ');
-      const operationType = property.status === 'FOR_RENT' ? 'Alquiler' : 
-                            property.status === 'FOR_SALE' ? 'Venta' : 
+      const operationType = property.status === 'FOR_RENT' ? 'Alquiler' :
+                            property.status === 'FOR_SALE' ? 'Venta' :
                             property.status === 'PROJECT' ? 'Proyecto' : 'Traspaso/Otro';
 
       title = `${property.title} - ${property.district}, ${property.department} | Mi Casa Perú`;
       description = `${property.type} en ${operationType} en ${property.district} - ${priceString}. ${property.bedrooms} dormitorios, ${property.bathrooms} baños, ${property.constructionArea || property.terrainArea || 0} m². ¡Contáctanos!`;
       keywords = `${property.type} en ${property.district}, ${property.type} ${operationType} ${property.department}, inmobiliaria ${property.district}, ${property.title}`;
-      ogUrl = `${window.location.origin}/properties/${property.id}`;
+      canonicalUrl = `${baseUrl}/properties/${property.id}`;
+      ogUrl = canonicalUrl;
       if (property.featuredImage) {
         ogImage = property.featuredImage;
       }
@@ -117,20 +129,36 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         ]
       };
 
-      injectSchema([realEstateSchema, breadcrumb]);
+      const websiteSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name': 'Mi Casa Perú',
+        'url': 'https://micasaperu.com',
+        'potentialAction': {
+          '@type': 'SearchAction',
+          'target': {
+            '@type': 'EntryPoint',
+            'urlTemplate': 'https://micasaperu.com/?search={search_term_string}'
+          },
+          'query-input': 'required name=search_term_string'
+        }
+      };
+
+      injectSchema([realEstateSchema, breadcrumb, websiteSchema]);
 
       updateMetaTag('property', 'article:published_time', property.createdAt || '');
-      if (property.publishedAt) {
-        updateMetaTag('property', 'article:modified_time', property.publishedAt);
-      }
+      updateMetaTag('property', 'article:modified_time', property.publishedAt || property.createdAt || '');
       updateMetaTag('property', 'article:section', property.department || '');
       updateMetaTag('property', 'article:tag', `${property.type}, ${property.district}, ${property.department}`);
+      updateMetaTag('name', 'robots', 'index, follow, max-snippet:-1, max-image-preview:large');
+      updateMetaTag('name', 'googlebot', 'index, follow, max-snippet:-1, max-image-preview:large');
 
     } else if (view === 'SEARCH' && searchQuery) {
       const decoded = decodeURIComponent(searchQuery.replace(/\+/g, ' '));
       title = `${decoded} — Propiedades en Venta y Alquiler | Mi Casa Perú`;
       description = `Encuentra las mejores propiedades en ${decoded}. Casas, departamentos y terrenos en venta y alquiler en ${decoded}, Perú.`;
-      ogUrl = `${window.location.origin}/?search=${searchQuery}`;
+      canonicalUrl = `${baseUrl}/?search=${searchQuery}`;
+      ogUrl = canonicalUrl;
 
       const itemListSchema = {
         '@context': 'https://schema.org',
@@ -140,7 +168,7 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         'itemListElement': properties.slice(0, 15).map((p, idx) => ({
           '@type': 'ListItem',
           'position': idx + 1,
-          'url': `${window.location.origin}/properties/${p.id}`,
+          'url': `${baseUrl}/properties/${p.id}`,
           'name': p.title
         }))
       };
@@ -155,36 +183,113 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
       };
 
       injectSchema([itemListSchema, breadcrumb]);
+      updateMetaTag('name', 'robots', 'index, follow, max-snippet:-1, max-image-preview:large');
+
     } else if (view === 'PRICING') {
-      title = 'Planes y Publicidad Inmobiliaria | Mi Casa Perú';
-      description = 'Publica tus propiedades en Mi Casa Perú. Contamos con planes ideales para propietarios dueños directos, corredores e inmobiliarias. ¡Vende o alquila rápido!';
-      keywords = 'publicar inmueble gratis, planes inmobiliarios peru, publicidad de casas, destacar anuncio inmobiliario';
-      ogUrl = `${window.location.origin}/pricing`;
-      clearSchemaScripts();
+      title = 'Planes y Publicidad Inmobiliaria | Publica tu Propiedad en Mi Casa Perú';
+      description = 'Publica tus propiedades en Mi Casa Perú. Planes desde S/100 para dueños directos, corredores e inmobiliarias. Destaca tu anuncio y vende más rápido.';
+      keywords = 'publicar inmueble gratis, planes inmobiliarios peru, publicidad de casas, destacar anuncio inmobiliario, cuanto cuesta publicar una propiedad';
+      canonicalUrl = `${baseUrl}/pricing`;
+      ogUrl = canonicalUrl;
+
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://micasaperu.com' },
+          { '@type': 'ListItem', position: 2, name: 'Planes de Publicidad', item: canonicalUrl }
+        ]
+      };
+      injectSchema([breadcrumb]);
+      updateMetaTag('name', 'robots', 'index, follow');
+
     } else if (view === 'COMPLAINTS_BOOK') {
-      title = 'Libro de Reclamaciones | Mi Casa Perú';
-      description = 'Ponemos a tu disposición nuestro Libro de Reclamaciones digital de acuerdo al reglamento de INDECOPI en Perú.';
-      ogUrl = `${window.location.origin}/complaints`;
-      clearSchemaScripts();
+      title = 'Libro de Reclamaciones | Mi Casa Perú - INDECOPI';
+      description = 'Ponemos a tu disposición nuestro Libro de Reclamaciones digital de acuerdo al reglamento de INDECOPI en Perú. Ley 29571.';
+      canonicalUrl = `${baseUrl}/complaints`;
+      ogUrl = canonicalUrl;
+
+      const breadcrumb = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://micasaperu.com' },
+          { '@type': 'ListItem', position: 2, name: 'Libro de Reclamaciones', item: canonicalUrl }
+        ]
+      };
+      injectSchema([breadcrumb]);
+      updateMetaTag('name', 'robots', 'index, follow');
+
+    } else if (view === 'SEARCH') {
+      title = 'Buscador de Inmuebles - Casas, Departamentos y Terrenos | Mi Casa Perú';
+      description = 'Busca y encuentra las mejores propiedades en venta y alquiler en todo el Perú. Filtra por distrito, precio, tipo de inmueble y más.';
+      canonicalUrl = `${baseUrl}/search`;
+      ogUrl = canonicalUrl;
+      updateMetaTag('name', 'robots', 'index, follow');
+
     } else if (view === 'ADMIN') {
       title = 'Panel de Administración | Mi Casa Perú';
       description = 'Panel administrativo interno de micasaperu.com.';
       updateMetaTag('name', 'robots', 'noindex, nofollow');
       updateMetaTag('name', 'googlebot', 'noindex, nofollow');
       clearSchemaScripts();
+      removeMetaTag('property', 'article:published_time');
+      return;
+
     } else if (view === 'DASHBOARD') {
       title = 'Mi Cuenta - Dashboard | Mi Casa Perú';
       description = 'Administra tus publicaciones, planes activos e información de contacto en Mi Casa Perú.';
       updateMetaTag('name', 'robots', 'noindex, nofollow');
       updateMetaTag('name', 'googlebot', 'noindex, nofollow');
       clearSchemaScripts();
+      removeMetaTag('property', 'article:published_time');
+      return;
+
+    } else if (view === 'CART') {
+      title = 'Carrito de Compras - Planes Inmobiliarios | Mi Casa Perú';
+      description = 'Revisa los planes inmobiliarios que has seleccionado para publicar tus propiedades en Mi Casa Perú.';
+      canonicalUrl = `${baseUrl}/cart`;
+      ogUrl = canonicalUrl;
+      updateMetaTag('name', 'robots', 'noindex, nofollow');
+      clearSchemaScripts();
+      return;
+
+    } else if (view === 'AUTH') {
+      title = 'Iniciar Sesión o Registrarse | Mi Casa Perú';
+      description = 'Accede a tu cuenta de Mi Casa Perú o regístrate para publicar y gestionar tus propiedades inmobiliarias.';
+      updateMetaTag('name', 'robots', 'noindex, nofollow');
+      clearSchemaScripts();
+      return;
+
+    } else if (view === 'PAYMENT') {
+      title = 'Procesar Pago - Plan Inmobiliario | Mi Casa Perú';
+      description = 'Completa el pago de tu plan inmobiliario en Mi Casa Perú de forma segura.';
+      updateMetaTag('name', 'robots', 'noindex, nofollow');
+      clearSchemaScripts();
+      return;
+
     } else {
       const websiteSchema = {
         '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name': 'Mi Casa Perú',
+        'url': 'https://micasaperu.com',
+        'potentialAction': {
+          '@type': 'SearchAction',
+          'target': {
+            '@type': 'EntryPoint',
+            'urlTemplate': 'https://micasaperu.com/?search={search_term_string}'
+          },
+          'query-input': 'required name=search_term_string'
+        }
+      };
+
+      const organizationSchema = {
+        '@context': 'https://schema.org',
         '@type': 'RealEstateAgent',
         'name': 'Mi Casa Perú',
-        'url': window.location.origin,
-        'logo': `${window.location.origin}/favicon.ico`,
+        'url': 'https://micasaperu.com',
+        'logo': `${baseUrl}/favicon.ico`,
         'description': 'El principal portal inmobiliario en el Perú para la compra, venta y alquiler de bienes raíces.',
         'address': {
           '@type': 'PostalAddress',
@@ -195,7 +300,8 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         'contactPoint': {
           '@type': 'ContactPoint',
           'contactType': 'customer support',
-          'email': 'hola@micasaperu.com'
+          'email': 'hola@micasaperu.com',
+          'availableLanguage': ['Spanish', 'English']
         },
         'sameAs': [
           'https://facebook.com/micasaperu',
@@ -220,16 +326,15 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         'itemListElement': properties.slice(0, 12).map((p, idx) => ({
           '@type': 'ListItem',
           'position': idx + 1,
-          'url': `${window.location.origin}/properties/${p.id}`,
+          'url': `${baseUrl}/properties/${p.id}`,
           'name': p.title
         }))
       } : null;
 
-      const schemas: any[] = [websiteSchema, breadcrumb];
-      if (itemListSchema) {
-        schemas.push(itemListSchema);
-      }
+      const schemas: any[] = [websiteSchema, organizationSchema, breadcrumb];
+      if (itemListSchema) schemas.push(itemListSchema);
       injectSchema(schemas);
+      updateMetaTag('name', 'robots', 'index, follow, max-snippet:-1, max-image-preview:large');
     }
 
     document.title = title;
@@ -239,16 +344,14 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
     updateMetaTag('name', 'keywords', keywords);
     updateMetaTag('name', 'author', 'Mi Casa Perú');
 
-    // Manejo de Canonical Link
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    canonical.setAttribute('href', ogUrl);
+    canonical.setAttribute('href', canonicalUrl);
 
-    // Open Graph
     updateMetaTag('property', 'og:title', title);
     updateMetaTag('property', 'og:description', description);
     updateMetaTag('property', 'og:image', ogImage);
@@ -261,7 +364,6 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
     updateMetaTag('property', 'og:site_name', 'Mi Casa Perú');
     updateMetaTag('property', 'og:locale', 'es_PE');
 
-    // Twitter Cards
     updateMetaTag('name', 'twitter:card', 'summary_large_image');
     updateMetaTag('name', 'twitter:title', title);
     updateMetaTag('name', 'twitter:description', description);

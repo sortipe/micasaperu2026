@@ -1,23 +1,16 @@
 {
   "short_name": "Mi Casa Perú",
-  "name": "Mi Casa Perú - Inmobiliaria y Bienes Raíces",
-  "description": "Busca, compra, vende y alquila inmuebles en el Perú directo de dueños, corredores y constructoras.",
+  "name": "Mi Casa Perú - Portal Inmobiliario del Perú",
+  "description": "Busca, compra, vende y alquila inmuebles en el Perú directo de dueños, corredores y constructoras. El portal inmobiliario líder con departamentos, casas y terrenos en venta y alquiler.",
   "start_url": "/",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#091F4F",
   "display": "standalone",
   "orientation": "portrait",
+  "categories": ["real estate", "property", "lifestyle", "housing"],
+  "lang": "es-PE",
+  "scope": "/",
   "icons": [
-    {
-      "src": "/favicon-32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon-16.png",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
     {
       "src": "/favicon-192.png",
       "sizes": "192x192",
@@ -29,6 +22,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Mi Casa Perú - Portal Inmobiliario"
     }
   ]
 }

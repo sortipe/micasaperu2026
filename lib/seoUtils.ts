@@ -1,8 +1,3 @@
-/**
- * Utilidades para el SEO Programático de Mi Casa Perú.
- * Proporciona el analizador de URLs dinámicas para mapear rutas amigables a filtros de búsqueda.
- */
-
 export interface ProgrammaticRoute {
   type: string;
   status: 'FOR_SALE' | 'FOR_RENT' | 'TEMPORAL' | 'PROJECT' | 'TRASPASO';
@@ -16,20 +11,8 @@ export interface ProgrammaticRoute {
   };
 }
 
-/**
- * Parsea una ruta de URL en minúsculas y extrae las variables del SEO Programático.
- * Soporta múltiples formas flexibles:
- * A) Tipo + Operación + Distrito + [Amenity]: /departamentos-en-venta-en-miraflores-con-balcon/
- * B) Tipo + Distrito + [Amenity] (Venta por defecto): /casas-en-surco-con-jardin/
- * C) Operación + Distrito + [Amenity] (Departamento por defecto): /alquileres-en-san-isidro-pet-friendly/
- * 
- * Retorna un objeto ProgrammaticRoute o null si la URL no es programática.
- */
 export function parseProgrammaticUrl(pathname: string): ProgrammaticRoute | null {
-  // Normalizar el path: eliminar barras inclinadas al inicio/final y pasar a minúsculas
   const path = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
-
-  // Dividimos la cadena por "-en-"
   const parts = path.split('-en-');
   if (parts.length < 2) return null;
 
@@ -86,32 +69,57 @@ export function parseProgrammaticUrl(pathname: string): ProgrammaticRoute | null
     'santa-anita': 'Santa Anita', 'santa anita': 'Santa Anita',
     'villa-el-salvador': 'Villa El Salvador', 'villa el salvador': 'Villa El Salvador', 'ves': 'Villa El Salvador',
     'rimac': 'Rímac', 'rímac': 'Rímac',
+    'villa-maria-del-triunfo': 'Villa María del Triunfo', 'villa maria del triunfo': 'Villa María del Triunfo', 'vmt': 'Villa María del Triunfo',
+    'san-juan-de-miraflores': 'San Juan de Miraflores', 'san juan de miraflores': 'San Juan de Miraflores',
+    'cercado-de-lima': 'Cercado de Lima', 'cercado de lima': 'Cercado de Lima', 'centro-de-lima': 'Cercado de Lima',
+    'comas': 'Comas',
+    'independencia': 'Independencia', 'independencia-lima': 'Independencia',
+    'carabayllo': 'Carabayllo',
+    'puente-piedra': 'Puente Piedra', 'puente piedra': 'Puente Piedra',
+    'ventanilla': 'Ventanilla',
+    'san-luis': 'San Luis', 'san luis': 'San Luis',
     'arequipa': 'Arequipa',
     'trujillo': 'Trujillo',
     'cusco': 'Cusco',
-    'tarapoto': 'Tarapoto'
+    'tarapoto': 'Tarapoto',
+    'ica': 'Ica',
+    'piura': 'Piura',
+    'huaraz': 'Huaraz',
+    'chiclayo': 'Chiclayo',
+    'lambayeque': 'Lambayeque',
+    'huancayo': 'Huancayo',
+    'pucallpa': 'Pucallpa',
+    'iquitos': 'Iquitos',
+    'puno': 'Puno',
+    'tacna': 'Tacna',
+    'moquegua': 'Moquegua',
+    'ayacucho': 'Ayacucho',
+    'cajamarca': 'Cajamarca',
+    'junin': 'Junín', 'junín': 'Junín',
+    'huanuco': 'Huánuco', 'huánuco': 'Huánuco',
+    'ucayali': 'Ucayali',
+    'madre-de-dios': 'Madre de Dios', 'madre de dios': 'Madre de Dios', 'puerto-maldonado': 'Madre de Dios',
+    'san-martin': 'San Martín', 'san martin': 'San Martín',
+    'ancash': 'Áncash', 'áncash': 'Áncash',
+    'apurimac': 'Apurímac', 'apurímac': 'Apurímac'
   };
 
-  // Iterar por las partes del split para clasificar cada elemento
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i].trim();
     if (!part) continue;
 
-    // Verificar si es un tipo conocido
     if (knownTypes[part]) {
       type = knownTypes[part];
       rawType = part;
       continue;
     }
 
-    // Verificar si es una operación conocida
     if (knownStatus[part]) {
       status = knownStatus[part];
       rawStatus = part;
       continue;
     }
 
-    // De lo contrario, esta parte contiene el Distrito y el Amenity
     let districtCandidate = part;
 
     if (part.includes('-con-')) {
@@ -123,7 +131,6 @@ export function parseProgrammaticUrl(pathname: string): ProgrammaticRoute | null
       districtCandidate = subParts[0];
       amenitySlug = 'pet-friendly';
     } else {
-      // Buscar sufijo conocido
       const knownAmenities = ['jardin', 'balcon', 'piscina', 'terraza', 'cochera', 'ascensor', 'seguridad'];
       for (const amen of knownAmenities) {
         if (part.endsWith('-' + amen)) {
@@ -138,28 +145,16 @@ export function parseProgrammaticUrl(pathname: string): ProgrammaticRoute | null
       district = knownDistricts[districtCandidate];
       districtSlug = districtCandidate;
     } else {
-      // Fallback: capitalizar palabras
       district = districtCandidate.replace(/-/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       districtSlug = districtCandidate;
     }
   }
 
-  // Una ruta programática válida requiere al menos un Distrito e intenciones (tipo u operación)
-  if (!district || (!type && !status)) {
-    return null;
-  }
+  if (!district || (!type && !status)) return null;
 
-  // Valores predeterminados si faltan en la URL
-  if (!type) {
-    type = 'Departamento'; // Por defecto
-    rawType = 'departamentos';
-  }
-  if (!status) {
-    status = 'FOR_SALE'; // Venta por defecto
-    rawStatus = 'venta';
-  }
+  if (!type) { type = 'Departamento'; rawType = 'departamentos'; }
+  if (!status) { status = 'FOR_SALE'; rawStatus = 'venta'; }
 
-  // Mapear Amenity Slug al nombre formal en COMMON_FEATURES
   if (amenitySlug) {
     if (amenitySlug.includes('jardin')) amenity = 'Áreas verdes';
     else if (amenitySlug.includes('balcon')) amenity = 'Balcón con vista';

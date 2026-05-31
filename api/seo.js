@@ -1,12 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-// ⚠️ SECURITY: Never hardcode credentials. Require env vars.
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('[seo.js] FATAL: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set as environment variables.');
+  console.error('[seo.js] FATAL: Missing Supabase env vars');
 }
 
 const CACHE_TTL = 300;
@@ -27,10 +26,8 @@ function getRateLimitKey(req) {
 
 function checkRateLimit(req) {
   const ua = req.headers['user-agent'] || '';
-  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora\slink\spreview|showyoubot|outbrain|pinterest\/0\.|slackbot|vkShare|W3C_Validator/i.test(ua);
-  if (isCrawler) {
-    return true; // Bypass rate limit for legitimate search engine bots and preview scrapers
-  }
+  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|slackbot|pinterest|slurp|duckduckbot|applebot|whatsapp/i.test(ua);
+  if (isCrawler) return true;
   const key = getRateLimitKey(req);
   const now = Date.now();
   let entry = rateLimitMap.get(key);
@@ -71,11 +68,75 @@ function generateBreadcrumb(items) {
 
 function injectSsrDom(html, ssrContent) {
   if (!ssrContent) return html;
-  // Use a class instead of inline styles for hiding, and prefer visually-hidden (accessible) or just let it render!
-  // Since React will nuke the #root element anyway, we can just inject it there to avoid Google cloaking penalties.
   const wrappedContent = `<div id="seo-ssr-content" class="ssr-fallback-content">${ssrContent}</div>`;
-  // We place it right inside #root so it acts as the initial DOM before React's createRoot takes over.
   return html.replace('<div id="root">', `<div id="root">\n${wrappedContent}`);
+}
+
+function injectHreflang(html) {
+  const hreflang = `
+    <link rel="alternate" href="https://micasaperu.com" hreflang="x-default">
+    <link rel="alternate" href="https://micasaperu.com" hreflang="es-PE">`;
+  return html.replace('</head>', `${hreflang}\n</head>`);
+}
+
+function replaceMeta(html, title, description, canonical, ogImage, lastmod, keywords, noindex) {
+  const today = new Date().toISOString().split('T')[0];
+  const lm = lastmod ? lastmod.split('T')[0] : today;
+  const robotsContent = noindex ? 'noindex, nofollow' : 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1';
+
+  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+  html = html.replace(/<meta\s+[^>]*name=["']?description["']?[^>]*>/i, `<meta name="description" content="${escapeHtml(description)}">`);
+
+  const canonicalTag = `<link rel="canonical" href="${escapeHtml(canonical)}">`;
+  html = html.replace(/<link\s+[^>]*rel=["']?canonical["']?[^>]*>/i, canonicalTag);
+
+  const metaTags = `
+    <meta name="robots" content="${robotsContent}">
+    <meta name="googlebot" content="${robotsContent}">
+    <meta property="og:title" content="${escapeHtml(title)}">
+    <meta property="og:description" content="${escapeHtml(description)}">
+    <meta property="og:image" content="${escapeHtml(ogImage)}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="${escapeHtml(canonical)}">
+    <meta property="og:type" content="${noindex ? 'website' : 'website'}">
+    <meta property="og:site_name" content="Mi Casa Perú">
+    <meta property="og:locale" content="es_PE">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapeHtml(title)}">
+    <meta name="twitter:description" content="${escapeHtml(description)}">
+    <meta name="twitter:image" content="${escapeHtml(ogImage)}">
+    <meta name="twitter:site" content="@micasaperu">
+    <meta name="last-modified" content="${lm}">
+    <meta http-equiv="last-modified" content="${lm}">
+    <meta name="revised" content="${lm}">`;
+  html = html.replace('</head>', `${metaTags}\n</head>`);
+  return html;
+}
+
+function applySecurityHeaders(res) {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).host : 'uxdnhmkoiqqeiaoxeedw.supabase.co';
+  res.setHeader('Content-Security-Policy',
+    `default-src 'self'; ` +
+    `script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; ` +
+    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.mercadopago.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org; ` +
+    `img-src 'self' data: blob: https://${supabaseHost} https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com https://*.tile.openstreetmap.org; ` +
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
+    `font-src 'self' data: https://fonts.gstatic.com; ` +
+    `frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; ` +
+    `object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';`
+  );
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  res.setHeader('Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()'
+  );
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  res.setHeader('X-Robots-Tag', 'index, follow');
 }
 
 function parseProgrammaticUrl(pathname) {
@@ -139,7 +200,9 @@ function parseProgrammaticUrl(pathname) {
     'arequipa': 'Arequipa',
     'trujillo': 'Trujillo',
     'cusco': 'Cusco',
-    'tarapoto': 'Tarapoto'
+    'tarapoto': 'Tarapoto',
+    'ica': 'Ica',
+    'piura': 'Piura'
   };
 
   for (let i = 0; i < parts.length; i++) {
@@ -188,18 +251,10 @@ function parseProgrammaticUrl(pathname) {
     }
   }
 
-  if (!district || (!type && !status)) {
-    return null;
-  }
+  if (!district || (!type && !status)) return null;
 
-  if (!type) {
-    type = 'Departamento';
-    rawType = 'departamentos';
-  }
-  if (!status) {
-    status = 'FOR_SALE';
-    rawStatus = 'venta';
-  }
+  if (!type) { type = 'Departamento'; rawType = 'departamentos'; }
+  if (!status) { status = 'FOR_SALE'; rawStatus = 'venta'; }
 
   if (amenitySlug) {
     if (amenitySlug.includes('jardin')) amenity = 'Áreas verdes';
@@ -212,149 +267,42 @@ function parseProgrammaticUrl(pathname) {
     else if (amenitySlug.includes('seguridad')) amenity = 'Sistema de seguridad';
   }
 
-  return {
-    type,
-    status,
-    district,
-    amenity,
-    slugs: {
-      type: rawType,
-      status: rawStatus,
-      district: districtSlug,
-      amenity: amenitySlug
-    }
-  };
+  return { type, status, district, amenity, slugs: { type: rawType, status: rawStatus, district: districtSlug, amenity: amenitySlug } };
 }
-
-const SEARCH_KEYWORD_PAGES = [
-  { q: 'Miraflores', title: 'Departamentos en Venta en Miraflores, Lima | Mi Casa Perú', desc: 'Encuentra departamentos y casas en venta en Miraflores, Lima. El distrito más exclusivo de Lima con vista al mar, bares y restaurantes.' },
-  { q: 'San+Isidro', title: 'Departamentos en Alquiler en San Isidro, Lima | Mi Casa Perú', desc: 'Departamentos en alquiler en San Isidro, el centro financiero de Lima. Ideal para ejecutivos y familias cerca a los mejores colegios.' },
-  { q: 'Santiago+de+Surco', title: 'Casas y Departamentos en Venta en Surco, Lima | Mi Casa Perú', desc: 'Encuentra las mejores propiedades en Santiago de Surco. Casas amplias, departamentos modernos y zonas residenciales exclusivas.' },
-  { q: 'San+Borja', title: 'Departamentos en San Borja, Lima | Mi Casa Perú', desc: 'Departamentos en venta y alquiler en San Borja. Distrito seguro y familiar con amplias áreas verdes y buena conectividad.' },
-  { q: 'La+Molina', title: 'Casas en Venta en La Molina, Lima | Mi Casa Perú', desc: 'Casas y quintas en venta en La Molina. La mejor zona residencial campestre de Lima con seguridad y áreas verdes.' },
-  { q: 'San+Miguel', title: 'Departamentos en San Miguel, Lima | Mi Casa Perú', desc: 'Departamentos en venta y alquiler en San Miguel. Cerca de la UPC, la Marina y el Real Plaza.' },
-  { q: 'Los+Olivos', title: 'Departamentos en Los Olivos, Lima | Mi Casa Perú', desc: 'Encuentra departamentos y casas en Los Olivos, el distrito más poblado de Lima Norte con gran plusvalía.' },
-  { q: 'Arequipa', title: 'Inmuebles en Arequipa | Mi Casa Perú', desc: 'Casas, departamentos y terrenos en venta y alquiler en Arequipa. La ciudad blanca te espera con las mejores propiedades.' },
-  { q: 'Trujillo', title: 'Casas y Departamentos en Trujillo, La Libertad | Mi Casa Perú', desc: 'Inmuebles en venta y alquiler en Trujillo, la capital de la primavera. Encuentra propiedades en La Libertad.' },
-  { q: 'Cusco', title: 'Propiedades en Cusco | Mi Casa Perú', desc: 'Casas, departamentos y terrenos en venta en Cusco. La capital histórica del Perú con propiedades de gran valor.' },
-];
-
-const TYPE_SEARCH_PAGES = [
-  { type: 'Departamento', status: 'FOR_SALE', title: 'Departamentos en Venta en Lima | Mi Casa Perú', desc: 'Los mejores departamentos en venta en Lima. Desde Miraflores hasta San Juan de Lurigancho, encuentra el depa ideal para ti.' },
-  { type: 'Departamento', status: 'FOR_RENT', title: 'Departamentos en Alquiler en Lima | Mi Casa Perú', desc: 'Alquiler de departamentos en Lima. Corta y larga estadía en los mejores distritos de la capital.' },
-  { type: 'Casa', status: 'FOR_SALE', title: 'Casas en Venta en Lima | Mi Casa Perú', desc: 'Casas en venta en Lima. Casas independientes, quintas y mansiones en los mejores distritos de Lima.' },
-  { type: 'Casa', status: 'FOR_RENT', title: 'Casas en Alquiler en Lima | Mi Casa Perú', desc: 'Alquiler de casas en Lima. Encuentra la casa perfecta para tu familia en zonas residenciales.' },
-  { type: 'Terreno', status: 'FOR_SALE', title: 'Terrenos en Venta en Lima | Mi Casa Perú', desc: 'Terrenos y lotes en venta en Lima y Perú. Invierte en el terreno ideal para tu proyecto.' },
-  { type: 'Oficina', status: 'FOR_RENT', title: 'Oficinas en Alquiler en Lima | Mi Casa Perú', desc: 'Alquiler de oficinas en Lima. Locales comerciales y espacios de trabajo en las mejores zonas corporativas.' },
-  { q: 'PROJECT', title: 'Proyectos Inmobiliarios en Lima | Mi Casa Perú', desc: 'Los mejores proyectos inmobiliarios en Lima y Perú. Departamentos de estreno, casas nuevas y desarrollos verticales.' },
-];
 
 async function fetchWithCache(url) {
   const now = Date.now();
   const cached = cache.get(url);
-  if (cached && (now - cached.timestamp) < CACHE_TTL * 1000) {
-    return cached.data;
-  }
-  if (pendingFetches.has(url)) {
-    return pendingFetches.get(url);
-  }
+  if (cached && (now - cached.timestamp) < CACHE_TTL * 1000) return cached.data;
+  if (pendingFetches.has(url)) return pendingFetches.get(url);
   const promise = (async () => {
     try {
       const response = await fetch(url, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
       });
       if (!response.ok) return null;
       const data = await response.json();
       cache.set(url, { data, timestamp: Date.now() });
       return data;
-    } finally {
-      pendingFetches.delete(url);
-    }
+    } finally { pendingFetches.delete(url); }
   })();
   pendingFetches.set(url, promise);
   return promise;
 }
 
-function replaceMeta(html, title, description, canonical, ogImage, lastmod, keywords) {
-  const today = new Date().toISOString().split('T')[0];
-  const lm = lastmod ? lastmod.split('T')[0] : today;
-  html = html.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(title)}</title>`);
-  html = html.replace(/<meta\s+[^>]*name=["']?description["']?[^>]*>/i, `<meta name="description" content="${escapeHtml(description)}">`);
-  if (keywords) {
-    html = html.replace(/<meta\s+[^>]*name=["']?keywords["']?[^>]*>/i, `<meta name="keywords" content="${escapeHtml(keywords)}">`);
-  }
-  html = html.replace(/<link\s+[^>]*rel=["']?canonical["']?[^>]*>/i, `<link rel="canonical" href="${escapeHtml(canonical)}">`);
-  const metaTags = `
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
-    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large">
-    <meta property="og:title" content="${escapeHtml(title)}">
-    <meta property="og:description" content="${escapeHtml(description)}">
-    <meta property="og:image" content="${escapeHtml(ogImage)}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="${escapeHtml(canonical)}">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Mi Casa Perú">
-    <meta property="og:locale" content="es_PE">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${escapeHtml(title)}">
-    <meta name="twitter:description" content="${escapeHtml(description)}">
-    <meta name="twitter:image" content="${escapeHtml(ogImage)}">
-    <meta name="twitter:site" content="@micasaperu">
-    <meta name="last-modified" content="${lm}">
-    <meta http-equiv="last-modified" content="${lm}">`;
-  html = html.replace('</head>', `${metaTags}\n</head>`);
-  return html;
-}
-
-function applySecurityHeaders(res) {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).host : 'uxdnhmkoiqqeiaoxeedw.supabase.co';
-  res.setHeader('Content-Security-Policy',
-    `default-src 'self'; ` +
-    `script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; ` +
-    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.mercadopago.com https://nominatim.openstreetmap.org; ` +
-    `img-src 'self' data: blob: https://${supabaseHost} https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com; ` +
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
-    `font-src 'self' data: https://fonts.gstatic.com; ` +
-    `frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; ` +
-    `object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';`
-  );
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  // X-XSS-Protection is deprecated but kept for legacy browser compatibility
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()'
-  );
-  // same-origin-allow-popups: allows OAuth popups (Google, etc.) while blocking cross-origin openers
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-  res.setHeader('X-Robots-Tag', 'index, follow');
-}
-
 export default async (req, res) => {
   applySecurityHeaders(res);
 
-  // Guard: if env vars are missing, fail fast and securely
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     return res.status(500).send('Internal Server Error: Missing configuration.');
   }
 
   if (!checkRateLimit(req)) {
     res.setHeader('Retry-After', '60');
-    return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');
+    return res.status(429).send('Demasiadas solicitudes.');
   }
 
   res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX));
-  res.setHeader('X-RateLimit-Remaining', String(
-    RATE_LIMIT_MAX - (rateLimitMap.get(getRateLimitKey(req))?.count || 0)
-  ));
 
   let indexPath = path.join(process.cwd(), 'dist', 'index.html');
   if (!fs.existsSync(indexPath)) {
@@ -364,12 +312,13 @@ export default async (req, res) => {
   try {
     html = fs.readFileSync(indexPath, 'utf8');
   } catch (err) {
-    console.error("Error reading index.html:", err);
     return res.status(500).send("Internal Server Error");
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=600, stale-while-revalidate=3600');
+
+  html = injectHreflang(html);
 
   const url = new URL(req.url, 'https://micasaperu.com');
   const pathRoute = url.pathname;
@@ -377,8 +326,6 @@ export default async (req, res) => {
   // ---- PROGRAMMATIC SEO ROUTING ----
   const progRoute = parseProgrammaticUrl(pathRoute);
   if (progRoute) {
-    // 1. Fetch matching properties from Supabase to create an ItemList structured schema!
-    // Construct Supabase SELECT URL using URLSearchParams for secure, auto-encoded parameter construction
     const params = new URLSearchParams({
       status: `eq.${progRoute.status}`,
       type: `eq.${progRoute.type}`,
@@ -386,48 +333,57 @@ export default async (req, res) => {
       select: '*'
     });
     let fetchUrl = `${SUPABASE_URL}/rest/v1/properties?${params.toString()}`;
-    
+
     let properties = [];
     try {
       const data = await fetchWithCache(fetchUrl);
       if (data) {
-        // Filter by amenity in memory if specified
-        if (progRoute.amenity) {
-          properties = data.filter(p => p.features && p.features.includes(progRoute.amenity));
-        } else {
-          properties = data;
-        }
+        properties = progRoute.amenity ? data.filter(p => p.features && p.features.includes(progRoute.amenity)) : data;
       }
     } catch (e) {
       console.error("Error fetching programmatic properties:", e);
     }
-    
-    // 2. Build beautiful titles, descriptions, and keywords
+
     const typeLabelPlural = progRoute.type === 'Departamento' ? 'Departamentos' :
       progRoute.type === 'Casa' ? 'Casas' :
       progRoute.type === 'Terreno' ? 'Terrenos' :
       progRoute.type === 'Oficina comercial' ? 'Oficinas' :
       progRoute.type === 'Local comercial' ? 'Locales' : progRoute.type + 's';
-      
+
     const operationLabel = progRoute.status === 'FOR_RENT' ? 'en Alquiler' : 'en Venta';
     const amenityLabel = progRoute.amenity ? ` con ${progRoute.amenity.toLowerCase()}` : '';
-    
+
     const title = `${typeLabelPlural} ${operationLabel} en ${progRoute.district}${amenityLabel} | Mi Casa Perú`;
     const description = `¿Buscas ${typeLabelPlural.toLowerCase()} ${operationLabel.toLowerCase()} en ${progRoute.district}${amenityLabel}? Encuentra ${properties.length > 0 ? properties.length : 'las mejores'} opciones de particulares, corredores y constructoras en el portal inmobiliario líder del Perú.`;
     const canonicalUrl = `https://micasaperu.com${pathRoute}`;
     const ogImage = properties.length > 0 && properties[0].featuredImage ? properties[0].featuredImage : 'https://micasaperu.com/og-image.jpg';
     const lastmod = new Date().toISOString();
     const keywords = `${typeLabelPlural.toLowerCase()} en ${progRoute.district.toLowerCase()}${amenityLabel ? ', ' + typeLabelPlural.toLowerCase() + ' con ' + progRoute.amenity.toLowerCase() : ''}, ${progRoute.type.toLowerCase()}s ${operationLabel.toLowerCase()} ${progRoute.district.toLowerCase()}`;
-    
+
     html = replaceMeta(html, title, description, canonicalUrl, ogImage, lastmod, keywords);
-    
-    // 3. Inject ItemList schema to show the search results in Google Rich Snippets!
+
     const breadcrumb = generateBreadcrumb([
       { name: 'Inicio', url: 'https://micasaperu.com' },
       { name: `${typeLabelPlural} ${operationLabel}`, url: `https://micasaperu.com/?type=${encodeURIComponent(progRoute.type)}&status=${progRoute.status}` },
       { name: `${progRoute.district}`, url: canonicalUrl }
     ]);
-    
+
+    // WebSite schema
+    const websiteSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      'name': 'Mi Casa Perú',
+      'url': 'https://micasaperu.com',
+      'potentialAction': {
+        '@type': 'SearchAction',
+        'target': {
+          '@type': 'EntryPoint',
+          'urlTemplate': 'https://micasaperu.com/?search={search_term_string}'
+        },
+        'query-input': 'required name=search_term_string'
+      }
+    };
+
     const itemListSchema = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
@@ -440,10 +396,10 @@ export default async (req, res) => {
         'name': p.title
       }))
     };
-    
-    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
+
+    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(websiteSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
     html = html.replace('</head>', `${schemaScript}\n</head>`);
-    
+
     const ssrHtml = `
       <header>
         <h1>${escapeHtml(title)}</h1>
@@ -451,13 +407,15 @@ export default async (req, res) => {
       </header>
       <main>
         <ul>
-          ${properties.map(p => `
+          ${properties.slice(0, 20).map(p => `
             <li>
               <article>
                 <h2><a href="https://micasaperu.com/properties/${p.id}">${escapeHtml(p.title)}</a></h2>
-                <p>${escapeHtml(p.description || '')}</p>
-                <p>Precio: ${p.priceUSD ? '$' + p.priceUSD : (p.pricePEN ? 'S/' + p.pricePEN : 'Consultar')}</p>
-                <p>Ubicación: ${escapeHtml(p.district || '')}</p>
+                ${p.featuredImage ? `<img src="${escapeHtml(p.featuredImage)}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
+                <p>${escapeHtml((p.description || '').substring(0, 200))}</p>
+                <p>Precio: ${p.priceUSD ? '$' + p.priceUSD.toLocaleString('en-US') : ''}${p.pricePEN ? ' S/' + p.pricePEN.toLocaleString('es-PE') : ''}</p>
+                <p>Ubicación: ${escapeHtml(p.district || '')}, ${escapeHtml(p.department || '')}</p>
+                <p>${p.bedrooms || 0} dormitorios | ${p.bathrooms || 0} baños | ${p.builtArea || p.constructionArea || p.terrainArea || 0} m²</p>
               </article>
             </li>
           `).join('')}
@@ -465,14 +423,16 @@ export default async (req, res) => {
       </main>
     `;
     html = injectSsrDom(html, ssrHtml);
-    
+
     return res.send(html);
   }
 
   // ---- 404 handling ----
-  const staticPatterns = ['/pricing', '/complaints', '/complaints/', '/search', '/login', '/cart'];
+  const staticPatterns = ['/pricing', '/complaints', '/search', '/login', '/cart'];
   const isLikelyPage = !pathRoute.includes('.') || pathRoute.endsWith('/');
-  if (isLikelyPage && !staticPatterns.includes(pathRoute) && !pathRoute.startsWith('/properties/') && !pathRoute.startsWith('/propiedades/') && !pathRoute.startsWith('/propiedad/') && pathRoute !== '/') {
+  if (isLikelyPage && !staticPatterns.includes(pathRoute) &&
+      !pathRoute.startsWith('/properties/') && !pathRoute.startsWith('/propiedades/') &&
+      !pathRoute.startsWith('/propiedad/') && pathRoute !== '/' && pathRoute !== '') {
     res.setHeader('X-Robots-Tag', 'noindex');
   }
 
@@ -484,7 +444,6 @@ export default async (req, res) => {
       propertyId = parts[2];
     }
   }
-  // Enforce strict UUID validation in all cases to prevent any URL parameter injection
   if (propertyId) {
     propertyId = propertyId.trim();
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId)) {
@@ -492,12 +451,11 @@ export default async (req, res) => {
     }
   }
 
-  // ---- Detect search params ----
   const searchQuery = url.searchParams.get('search');
   const typeParam = url.searchParams.get('type');
   const statusParam = url.searchParams.get('status');
 
-  // ---- PROPERTY DETAIL PAGE (Highest priority) ----
+  // ---- PROPERTY DETAIL PAGE ----
   if (propertyId) {
     try {
       const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?id=eq.${propertyId}&select=*`;
@@ -510,14 +468,13 @@ export default async (req, res) => {
         const priceString = [formattedPriceUSD, formattedPricePEN].filter(Boolean).join(' / ');
         const operationType = property.status === 'FOR_RENT' ? 'Alquiler' :
           property.status === 'FOR_SALE' ? 'Venta' :
-            property.status === 'PROJECT' ? 'Proyecto' : 'Traspaso/Otro';
+          property.status === 'PROJECT' ? 'Proyecto' : 'Traspaso/Otro';
 
         const title = `${property.title} | ${property.district}, ${property.department} - Mi Casa Perú`;
         const description = `Increíble ${property.type} en ${operationType} en ${property.district} por ${priceString}. ${property.bedrooms} dormitorios, ${property.bathrooms} baños, ${property.constructionArea || property.terrainArea || 0} m². ¡Contáctanos hoy!`;
         const canonicalUrl = `https://micasaperu.com/properties/${property.id}`;
         const ogImage = property.featuredImage || "https://micasaperu.com/og-image.jpg";
         const lastmod = toISODate(property.updated_at || property.publishedAt || property.createdAt);
-
         const keywords = `${property.type} en ${property.district}, ${property.type} ${operationType} ${property.department}, inmobiliaria ${property.district}, ${property.title}`;
 
         html = replaceMeta(html, title, description, canonicalUrl, ogImage, lastmod, keywords);
@@ -536,11 +493,7 @@ export default async (req, res) => {
           'image': property.gallery && property.gallery.length > 0 ? property.gallery : [property.featuredImage],
           'url': canonicalUrl,
           'datePosted': property.published_at || property.publishedAt || property.created_at || property.createdAt || new Date().toISOString().split('T')[0],
-          ...(property.status === 'FOR_RENT' ? {
-            'leaseLength': property.deliveryMonth && property.deliveryYear
-              ? `Hasta ${property.deliveryMonth} ${property.deliveryYear}`
-              : 'Mensual'
-          } : {}),
+          ...(property.status === 'FOR_RENT' ? { 'leaseLength': property.deliveryMonth && property.deliveryYear ? `Hasta ${property.deliveryMonth} ${property.deliveryYear}` : 'Mensual' } : {}),
           'address': {
             '@type': 'PostalAddress',
             'streetAddress': property.address || '',
@@ -548,16 +501,10 @@ export default async (req, res) => {
             'addressRegion': property.department || '',
             'addressCountry': 'PE'
           },
-          ...(property.lat && property.lng ? {
-            'geo': { '@type': 'GeoCoordinates', 'latitude': property.lat, 'longitude': property.lng }
-          } : {}),
+          ...(property.lat && property.lng ? { 'geo': { '@type': 'GeoCoordinates', 'latitude': property.lat, 'longitude': property.lng } } : {}),
           'numberOfBedrooms': property.bedrooms || 0,
           'numberOfBathroomsTotal': property.bathrooms || 0,
-          'floorSize': {
-            '@type': 'QuantitativeValue',
-            'value': property.constructionArea || property.terrainArea || 0,
-            'unitCode': 'MTK'
-          },
+          'floorSize': { '@type': 'QuantitativeValue', 'value': property.constructionArea || property.terrainArea || 0, 'unitCode': 'MTK' },
           'propertyType': propertyTypeSchema,
           'offers': {
             '@type': 'Offer',
@@ -566,11 +513,7 @@ export default async (req, res) => {
             'availability': 'https://schema.org/InStock',
             'url': canonicalUrl
           },
-          'seller': {
-            '@type': 'RealEstateAgent',
-            'name': property.agentName || 'Mi Casa Perú',
-            'url': 'https://micasaperu.com'
-          }
+          'seller': { '@type': 'RealEstateAgent', 'name': property.agentName || 'Mi Casa Perú', 'url': 'https://micasaperu.com' }
         };
 
         const breadcrumb = generateBreadcrumb([
@@ -579,37 +522,53 @@ export default async (req, res) => {
           { name: property.title, url: canonicalUrl }
         ]);
 
-        const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(realEstateSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n`;
+        const websiteSchema = {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          'name': 'Mi Casa Perú',
+          'url': 'https://micasaperu.com',
+          'potentialAction': { '@type': 'SearchAction', 'target': { '@type': 'EntryPoint', 'urlTemplate': 'https://micasaperu.com/?search={search_term_string}' }, 'query-input': 'required name=search_term_string' }
+        };
+
+        const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(realEstateSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(websiteSchema, null, 2)}\n</script>\n`;
         html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, schemaScript);
-        
+
+        const galleryHtml = property.gallery && property.gallery.length > 0
+          ? property.gallery.slice(0, 5).map(img => `<img src="${escapeHtml(img)}" alt="${escapeHtml(property.title)} - Foto" loading="lazy" width="800" height="600" />`).join('')
+          : (property.featuredImage ? `<img src="${escapeHtml(property.featuredImage)}" alt="${escapeHtml(property.title)}" width="800" height="600" />` : '');
+
         const ssrHtml = `
           <article>
             <header>
               <h1>${escapeHtml(property.title)}</h1>
               <p>Precio: ${escapeHtml(priceString)}</p>
+              <p>${operationType} | ${escapeHtml(property.district)}, ${escapeHtml(property.department)}</p>
             </header>
             <section>
-              <img src="${escapeHtml(ogImage)}" alt="${escapeHtml(property.title)}" />
-              <p>${escapeHtml(property.description || '')}</p>
+              ${galleryHtml}
+              <p>${escapeHtml((property.description || '').substring(0, 500))}</p>
               <ul>
                 <li>Dormitorios: ${property.bedrooms || 0}</li>
                 <li>Baños: ${property.bathrooms || 0}</li>
-                <li>Área: ${property.constructionArea || property.terrainArea || 0} m²</li>
+                <li>Estacionamiento: ${property.parking || 0}</li>
+                <li>Área construida: ${property.builtArea || property.constructionArea || 0} m²</li>
+                <li>Área de terreno: ${property.terrainArea || 0} m²</li>
                 <li>Ubicación: ${escapeHtml(property.district || '')}, ${escapeHtml(property.department || '')}</li>
+                <li>Dirección: ${escapeHtml(property.address || '')}</li>
+                <li>Año de construcción: ${property.yearBuilt || 'No especificado'}</li>
               </ul>
+              ${property.lat && property.lng ? `<p>Coordenadas: ${property.lat}, ${property.lng}</p>` : ''}
             </section>
           </article>
         `;
         html = injectSsrDom(html, ssrHtml);
       } else {
-        // Property not found — serve generic but indexed
         html = replaceMeta(html,
           'Inmueble no encontrado | Mi Casa Perú',
           'El inmueble que buscas no está disponible. Explora otras propiedades en venta y alquiler en Lima y Perú.',
           `https://micasaperu.com/properties/${propertyId}`,
           'https://micasaperu.com/og-image.jpg',
-          new Date().toISOString());
-        res.setHeader('X-Robots-Tag', 'noindex');
+          new Date().toISOString(), null, true);
       }
     } catch (err) {
       console.error("Error fetching property:", err);
@@ -626,38 +585,21 @@ export default async (req, res) => {
   // ---- SEARCH / CATEGORY PAGES ----
   if (searchQuery) {
     const decodedQuery = decodeURIComponent(searchQuery).replace(/\+/g, ' ');
-    const page = SEARCH_KEYWORD_PAGES.find(p => p.q === searchQuery);
-    if (page) {
-      const canonicalUrl = `https://micasaperu.com/?search=${searchQuery}`;
-      const ogImage = 'https://micasaperu.com/og-image.jpg';
-      html = replaceMeta(html, page.title, page.desc, canonicalUrl, ogImage, new Date().toISOString());
-    } else {
-      html = replaceMeta(html,
-        `${decodedQuery} — Propiedades en Venta y Alquiler | Mi Casa Perú`,
-        `Encuentra las mejores propiedades en ${decodedQuery}. Casas, departamentos y terrenos en venta y alquiler en ${decodedQuery}, Perú.`,
-        `https://micasaperu.com/?search=${searchQuery}`,
-        'https://micasaperu.com/og-image.jpg',
-        new Date().toISOString());
-    }
+    const canonicalUrl = `https://micasaperu.com/?search=${searchQuery}`;
+    const ogImage = 'https://micasaperu.com/og-image.jpg';
+    const title = `${decodedQuery} — Propiedades en Venta y Alquiler | Mi Casa Perú`;
+    const description = `Encuentra las mejores propiedades en ${decodedQuery}. Casas, departamentos y terrenos en venta y alquiler en ${decodedQuery}, Perú.`;
+    html = replaceMeta(html, title, description, canonicalUrl, ogImage, new Date().toISOString(), `${decodedQuery}, propiedades ${decodedQuery}, inmuebles ${decodedQuery}`);
     return res.send(html);
   }
 
   if (typeParam) {
-    const page = TYPE_SEARCH_PAGES.find(p => p.type === typeParam && p.status === statusParam) ||
-      TYPE_SEARCH_PAGES.find(p => p.q === statusParam);
-    if (page) {
-      const params = new URLSearchParams({ type: typeParam });
-      if (statusParam) params.set('status', statusParam);
-      const canonicalUrl = `https://micasaperu.com/?${params.toString()}`;
-      html = replaceMeta(html, page.title, page.desc, canonicalUrl, 'https://micasaperu.com/og-image.jpg', new Date().toISOString());
-    } else {
-      html = replaceMeta(html,
-        `${typeParam} en ${statusParam === 'FOR_RENT' ? 'Alquiler' : 'Venta'} | Mi Casa Perú`,
-        `Encuentra ${typeParam} en ${statusParam === 'FOR_RENT' ? 'alquiler' : 'venta'} en Lima y Perú. La mejor selección de inmuebles en el portal líder del Perú.`,
-        `https://micasaperu.com/?type=${encodeURIComponent(typeParam)}&status=${statusParam || 'FOR_SALE'}`,
-        'https://micasaperu.com/og-image.jpg',
-        new Date().toISOString());
-    }
+    const typeInfo = { type: typeParam, status: statusParam || 'FOR_SALE' };
+    const operationLabel = typeInfo.status === 'FOR_RENT' ? 'Alquiler' : 'Venta';
+    const title = `${typeParam} en ${operationLabel} | Mi Casa Perú`;
+    const description = `Encuentra ${typeParam.toLowerCase()} en ${operationLabel.toLowerCase()} en Lima y Perú. La mejor selección de inmuebles en el portal líder del Perú.`;
+    const canonicalUrl = `https://micasaperu.com/?type=${encodeURIComponent(typeParam)}&status=${typeInfo.status}`;
+    html = replaceMeta(html, title, description, canonicalUrl, 'https://micasaperu.com/og-image.jpg', new Date().toISOString(), `${typeParam} ${operationLabel.toLowerCase()}, ${typeParam.toLowerCase()}`);
     return res.send(html);
   }
 
@@ -666,23 +608,28 @@ export default async (req, res) => {
   let description = 'El portal inmobiliario líder en el Perú. Encuentra departamentos, casas, terrenos y locales comerciales en venta y alquiler directo de dueños, corredores y constructoras en Lima y todo el Perú.';
   let canonicalUrl = 'https://micasaperu.com';
   let ogImage = 'https://micasaperu.com/og-image.jpg';
-  let keywords = 'micasaperu, departamentos en venta lima, alquilar departamento lima, inmuebles en peru, casas en venta peru, dueños directos peru, inmobiliaria peru, bienes raices lima, casas en alquiler lima, departamentos miraflores, casas san isidro, inmuebles surco';
+  let keywords = 'micasaperu, departamentos en venta lima, alquilar departamento lima, inmuebles en peru, casas en venta peru, dueños directos peru, inmobiliaria peru, bienes raices lima';
 
   if (pathRoute === '/pricing') {
-    title = 'Planes y Publicidad Inmobiliaria | Mi Casa Perú';
-    description = 'Publica tus propiedades en Mi Casa Perú. Contamos con planes ideales para propietarios dueños directos, corredores e inmobiliarias. ¡Vende o alquila rápido en Lima y Perú!';
-    keywords = 'publicar propiedad peru, planes inmobiliarios peru, anunciar departamento lima, publicar casa en venta peru, portal inmobiliario peru, corredores inmobiliarios';
+    title = 'Planes y Publicidad Inmobiliaria | Publica tu Propiedad en Mi Casa Perú';
+    description = 'Publica tus propiedades en Mi Casa Perú. Planes desde S/100 para dueños directos, corredores e inmobiliarias. Destaca tu anuncio, llega a más compradores y vende o alquila más rápido en Lima y Perú.';
+    keywords = 'publicar propiedad peru, planes inmobiliarios peru, anunciar departamento lima, publicar casa en venta peru, portal inmobiliario peru, precios publicacion inmobiliaria, cuanto cuesta publicar una propiedad peru';
     canonicalUrl = 'https://micasaperu.com/pricing';
   } else if (pathRoute === '/complaints') {
-    title = 'Libro de Reclamaciones | Mi Casa Perú';
-    description = 'Ponemos a tu disposición nuestro Libro de Reclamaciones digital de acuerdo al reglamento de INDECOPI en Perú. Ley 29571 - Código de Protección y Defensa del Consumidor.';
-    keywords = 'libro de reclamaciones, indecopi peru, reclamaciones inmobiliaria, defensa del consumidor peru';
+    title = 'Libro de Reclamaciones | Mi Casa Perú - INDECOPI';
+    description = 'Ponemos a tu disposición nuestro Libro de Reclamaciones digital de acuerdo al reglamento de INDECOPI en Perú. Ley 29571 - Código de Protección y Defensa del Consumidor. Presenta tu reclamo o queja de manera formal.';
+    keywords = 'libro de reclamaciones, indecopi peru, reclamaciones inmobiliaria, defensa del consumidor peru, ley 29571, reclamo formal peru';
     canonicalUrl = 'https://micasaperu.com/complaints';
+  } else if (pathRoute === '/search') {
+    title = 'Buscador de Inmuebles - Casas, Departamentos y Terrenos | Mi Casa Perú';
+    description = 'Busca y encuentra las mejores propiedades en venta y alquiler en todo el Perú. Filtra por distrito, precio, tipo de inmueble, dormitorios, baños y más. El buscador inmobiliario más completo del Perú.';
+    keywords = 'buscador inmuebles peru, encontrar casa, buscar departamento, propiedades lima, filtros busqueda inmobiliaria';
+    canonicalUrl = 'https://micasaperu.com/search';
   }
 
   html = replaceMeta(html, title, description, canonicalUrl, ogImage, new Date().toISOString(), keywords);
 
-  // Breadcrumb, RealEstateAgent, and ItemList for home
+  // ---- HOME PAGE with schemas ----
   if (pathRoute === '/') {
     let properties = [];
     try {
@@ -690,27 +637,45 @@ export default async (req, res) => {
       const data = await fetchWithCache(fetchUrl);
       if (data) properties = data;
     } catch (e) {
-      console.error("Error fetching recent properties for home pre-render:", e);
+      console.error("Error fetching properties for home:", e);
     }
 
-    const breadcrumb = generateBreadcrumb([
-      { name: 'Inicio', url: 'https://micasaperu.com' }
-    ]);
+    const breadcrumb = generateBreadcrumb([{ name: 'Inicio', url: 'https://micasaperu.com' }]);
 
-    const realEstateAgentSchema = {
+    const websiteSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      'name': 'Mi Casa Perú',
+      'url': 'https://micasaperu.com',
+      'potentialAction': {
+        '@type': 'SearchAction',
+        'target': { '@type': 'EntryPoint', 'urlTemplate': 'https://micasaperu.com/?search={search_term_string}' },
+        'query-input': 'required name=search_term_string'
+      }
+    };
+
+    const organizationSchema = {
       '@context': 'https://schema.org',
       '@type': 'RealEstateAgent',
       'name': 'Mi Casa Perú',
-      'image': 'https://micasaperu.com/logo-1774974008886.png',
+      'image': 'https://micasaperu.com/og-image.jpg',
       'url': 'https://micasaperu.com',
       'telephone': '+51900000000',
       'priceRange': '$$',
+      'description': 'Portal inmobiliario líder en Perú para comprar, vender y alquilar propiedades.',
       'address': {
         '@type': 'PostalAddress',
-        'streetAddress': 'Lince',
-        'addressLocality': 'Lima',
+        'streetAddress': 'Av. Benavides 768, Int. 1303',
+        'addressLocality': 'Miraflores',
         'addressRegion': 'Lima',
         'addressCountry': 'PE'
+      },
+      'sameAs': ['https://facebook.com/micasaperu', 'https://instagram.com/micasaperu', 'https://linkedin.com/company/micasaperu'],
+      'contactPoint': {
+        '@type': 'ContactPoint',
+        'contactType': 'customer service',
+        'email': 'hola@micasaperu.com',
+        'availableLanguage': ['Spanish', 'English']
       }
     };
 
@@ -719,7 +684,7 @@ export default async (req, res) => {
       '@type': 'ItemList',
       'name': 'Propiedades Inmobiliarias Recientes en Perú',
       'numberOfItems': properties.length,
-      'itemListElement': properties.map((p, idx) => ({
+      'itemListElement': properties.slice(0, 10).map((p, idx) => ({
         '@type': 'ListItem',
         'position': idx + 1,
         'url': `https://micasaperu.com/properties/${p.id}`,
@@ -727,20 +692,44 @@ export default async (req, res) => {
       }))
     };
 
-    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(realEstateAgentSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n`;
+    const localBusinessSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      'name': 'Mi Casa Perú',
+      'image': 'https://micasaperu.com/og-image.jpg',
+      'address': { '@type': 'PostalAddress', 'addressLocality': 'Miraflores, Lima', 'addressCountry': 'PE' },
+      'telephone': '+51900000000',
+      'openingHours': 'Mo-Fr 09:00-18:00'
+    };
+
+    const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(organizationSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(localBusinessSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(websiteSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(itemListSchema, null, 2)}\n</script>\n`;
     html = html.replace('</head>', `${schemaScript}\n</head>`);
-    
+
     const ssrHtml = `
       <main>
         <h1>Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú</h1>
-        <p>El portal inmobiliario líder en el Perú.</p>
-        <h2>Propiedades Recientes</h2>
+        <p>El portal inmobiliario líder en el Perú. Explora miles de propiedades en venta y alquiler directo de dueños, corredores y constructoras.</p>
+        <h2>Propiedades Recientes en Perú</h2>
         <ul>
-          ${properties.map(p => `
+          ${properties.slice(0, 10).map(p => `
             <li>
-              <a href="https://micasaperu.com/properties/${p.id}">${escapeHtml(p.title)}</a>
+              ${p.featuredImage ? `<img src="${escapeHtml(p.featuredImage)}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
+              <a href="https://micasaperu.com/properties/${p.id}"><strong>${escapeHtml(p.title)}</strong></a>
+              <p>${escapeHtml(p.district || '')} - ${p.priceUSD ? '$' + p.priceUSD.toLocaleString('en-US') : ''}${p.pricePEN ? ' S/' + p.pricePEN.toLocaleString('es-PE') : ''}</p>
             </li>
           `).join('')}
+        </ul>
+        <h2>Buscar por Tipo de Inmueble</h2>
+        <ul>
+          <li><a href="https://micasaperu.com/?type=Departamento&status=FOR_SALE">Departamentos en Venta</a></li>
+          <li><a href="https://micasaperu.com/?type=Departamento&status=FOR_RENT">Departamentos en Alquiler</a></li>
+          <li><a href="https://micasaperu.com/?type=Casa&status=FOR_SALE">Casas en Venta</a></li>
+          <li><a href="https://micasaperu.com/?type=Casa&status=FOR_RENT">Casas en Alquiler</a></li>
+          <li><a href="https://micasaperu.com/?type=Terreno&status=FOR_SALE">Terrenos en Venta</a></li>
+          <li><a href="https://micasaperu.com/departamentos-en-venta-en-miraflores/">Departamentos en Miraflores</a></li>
+          <li><a href="https://micasaperu.com/departamentos-en-venta-en-san-isidro/">Departamentos en San Isidro</a></li>
+          <li><a href="https://micasaperu.com/departamentos-en-alquiler-en-surco/">Departamentos en Surco</a></li>
+          <li><a href="https://micasaperu.com/casas-en-venta-en-la-molina/">Casas en La Molina</a></li>
         </ul>
       </main>
     `;

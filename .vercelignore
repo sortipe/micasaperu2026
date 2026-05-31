@@ -1,0 +1,27 @@
+node_modules
+android
+dist
+dist_electron
+electron
+backups
+scratch
+resources
+Captura de pantalla*
+*.png
+categ.png
+metadata.json
+build_output*.txt
+test-*.js
+test-*.ts
+supabase-security.sql
+docker-compose.yml
+Dockerfile
+nginx.conf
+README.md
+SECURITY.md
+.editorconfig
+.prettierrc
+.vscode
+.git
+.github
+*.md

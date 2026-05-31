@@ -1,3 +1,7 @@
+# robots.txt - Mi Casa Perú
+# https://micasaperu.com/robots.txt
+
+# Allow all search engines full access to indexable content
 User-agent: *
 Allow: /
 Allow: /properties/
@@ -6,6 +10,9 @@ Allow: /propiedad/
 Allow: /pricing
 Allow: /complaints
 Allow: /search
+Allow: /sitemap.xml
+
+# Block internal/private pages
 Disallow: /login
 Disallow: /dashboard
 Disallow: /admin
@@ -16,6 +23,7 @@ Disallow: /auth
 Disallow: /profile
 Disallow: /publish
 Disallow: /payment
+Disallow: /checkout
 
 # Preserve crawl budget: prevent indexing of infinite faceted search filter permutations
 Disallow: /*?*minPrice=
@@ -25,9 +33,48 @@ Disallow: /*?*bathrooms=
 Disallow: /*?*parking=
 Disallow: /*?*features=
 Disallow: /*?*order=
-Disallow: /*?*type=
-Disallow: /*?*status=
+Disallow: /*?*advertiserType=
+Disallow: /*?*publicationDate=
 
-Crawl-delay: 1
+# Allow important filter combinations that represent unique content
+Allow: /*?type=*
+Allow: /*?status=*
+Allow: /*?search=*
 
+# Crawl rate optimization
+Crawl-delay: 0.5
+
+# Sitemap reference
 Sitemap: https://micasaperu.com/sitemap.xml
+
+# Google-specific: allow full JS rendering
+User-agent: Googlebot
+Allow: /
+Allow: /*.js
+Allow: /*.css
+Allow: /assets/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Disallow: /admin
+
+# Bing-specific
+User-agent: Bingbot
+Allow: /
+Allow: /*.js
+Allow: /*.css
+Allow: /assets/
+Disallow: /api/
+Disallow: /login
+Disallow: /dashboard
+Disallow: /admin
+
+# Prevent scrapers (keep for ethical scrapers only)
+User-agent: SemrushBot
+Disallow: /
+User-agent: AhrefsBot
+Disallow: /
+User-agent: DotBot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
