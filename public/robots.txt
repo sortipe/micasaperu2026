@@ -53,10 +53,15 @@ Allow: /
 Allow: /*.js
 Allow: /*.css
 Allow: /assets/
+Allow: /*?type=*
+Allow: /*?status=*
+Allow: /*?search=*
 Disallow: /api/
 Disallow: /login
 Disallow: /dashboard
 Disallow: /admin
+Disallow: /*?*minPrice=
+Disallow: /*?*maxPrice=
 
 # Bing-specific
 User-agent: Bingbot
@@ -64,12 +69,17 @@ Allow: /
 Allow: /*.js
 Allow: /*.css
 Allow: /assets/
+Allow: /*?type=*
+Allow: /*?status=*
+Allow: /*?search=*
 Disallow: /api/
 Disallow: /login
 Disallow: /dashboard
 Disallow: /admin
+Disallow: /*?*minPrice=
+Disallow: /*?*maxPrice=
 
-# Prevent scrapers (keep for ethical scrapers only)
+# Prevent scrapers
 User-agent: SemrushBot
 Disallow: /
 User-agent: AhrefsBot
@@ -77,4 +87,12 @@ Disallow: /
 User-agent: DotBot
 Disallow: /
 User-agent: MJ12bot
+Disallow: /
+User-agent: DataForSeoBot
+Disallow: /
+User-agent: Bytespider
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+User-agent: GPTBot
 Disallow: /

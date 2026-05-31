@@ -19,6 +19,12 @@ export default defineConfig(({ mode }) => {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
+      esbuild: mode === 'production' ? {
+        legalComments: 'none',
+        drop: ['console', 'debugger'],
+      } : {
+        legalComments: 'none',
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
@@ -32,17 +38,25 @@ export default defineConfig(({ mode }) => {
               'vendor-framer': ['framer-motion'],
               'vendor-supabase': ['@supabase/supabase-js'],
               'vendor-leaflet': ['leaflet'],
+              'vendor-leaflet-css': ['leaflet/dist/leaflet.css'],
               'vendor-swiper': ['swiper'],
               'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
               'vendor-lucide': ['lucide-react'],
+              'vendor-web-vitals': ['web-vitals'],
+              'vendor-mercadopago': ['@mercadopago/sdk-react'],
             },
             assetFileNames: (assetInfo) => {
               const name = assetInfo.name || '';
               if (name.endsWith('.css')) return 'assets/index.[hash].css';
-              if (/\.(png|jpe?g|gif|svg|webp|ico)$/.test(name)) return 'assets/img/[name]-[hash][extname]';
+              if (/\.(png|jpe?g|gif|svg|webp|avif|ico)$/.test(name)) return 'assets/img/[name]-[hash][extname]';
               if (/\.(woff2?|eot|ttf|otf)$/.test(name)) return 'assets/fonts/[name]-[hash][extname]';
               return 'assets/[name]-[hash][extname]';
             }
+          },
+          treeshake: {
+            moduleSideEffects: false,
+            propertyReadSideEffects: false,
+            tryCatchDeoptimization: false,
           }
         },
         target: 'es2020',
@@ -50,7 +64,8 @@ export default defineConfig(({ mode }) => {
         cssMinify: true,
         sourcemap: false,
         reportCompressedSize: false,
-        chunkSizeWarningLimit: 500,
+        chunkSizeWarningLimit: 300,
+        cssCodeSplit: true,
       }
     };
 });

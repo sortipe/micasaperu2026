@@ -209,10 +209,10 @@ export const INITIAL_PROPERTIES: Property[] = [
     bedrooms: 3,
     bathrooms: 3,
     parking: 2,
-    featuredImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070',
+    featuredImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=75&w=2070&auto=format&fm=webp',
     gallery: [
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=2070',
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2080'
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=75&w=2070&auto=format&fm=webp',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=75&w=2080&auto=format&fm=webp'
     ],
     features: ['Ascensor Directo', 'Piscina', 'Terraza', 'Jacuzzi', 'Seguridad 24/7'],
     type: 'Departamento',
@@ -243,7 +243,7 @@ export const INITIAL_PROPERTIES: Property[] = [
     bedrooms: 4,
     bathrooms: 4,
     parking: 3,
-    featuredImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070',
+    featuredImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=75&w=2070&auto=format&fm=webp',
     gallery: [],
     features: ['Jardín Amplio', 'Zona BBQ', 'Cisterna', 'Walking Closet', 'Estudio'],
     type: 'Casa',
@@ -273,7 +273,7 @@ export const INITIAL_PROPERTIES: Property[] = [
     bedrooms: 2,
     bathrooms: 2,
     parking: 1,
-    featuredImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=2070',
+    featuredImage: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=75&w=2070&auto=format&fm=webp',
     gallery: [],
     features: ['Gimnasio', 'Seguridad 24/7'],
     type: 'Departamento',

@@ -6,9 +6,9 @@ import { Property, User, Inquiry } from '../types';
 import { ToastType } from './Toast';
 import Turnstile from './Turnstile';
 import Honeypot from './Honeypot';
+import { optimizeImageUrl } from '../lib/imageTransform';
 
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import type { Map as LeafletMap } from 'leaflet';
 
 const PhotoViewer = ({ images, initialIndex, onClose }: { images: string[], initialIndex: number, onClose: () => void }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -352,14 +352,18 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
     let retryTimeout: number;
     let resizeObserver: ResizeObserver | null = null;
 
-    const initMap = () => {
-      if (typeof L === 'undefined') {
-        if (!isCancelled) retryTimeout = window.setTimeout(initMap, 200);
+    const initMap = async () => {
+      try {
+        const L = await import('leaflet');
+        await import('leaflet/dist/leaflet.css');
+      } catch {
+        if (!isCancelled) retryTimeout = window.setTimeout(() => initMap(), 500);
         return;
       }
       if (mapInstanceRef.current) return;
 
       try {
+        const L = (await import('leaflet')).default;
         mapInstanceRef.current = L.map(mapContainerRef.current, {
           zoomControl: true,
           attributionControl: false,
@@ -378,7 +382,6 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
 
         L.marker([property.lat, property.lng], { icon: customPin }).addTo(mapInstanceRef.current);
         
-        // Robust map resizing using ResizeObserver to handle Framer Motion animations or slow flex renders
         if (window.ResizeObserver && mapContainerRef.current) {
           resizeObserver = new ResizeObserver(() => {
             if (mapInstanceRef.current) {
@@ -464,7 +467,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 }}
                 className="rounded-[2rem] overflow-hidden aspect-video shadow-xl bg-gray-200 border-2 border-white relative group cursor-zoom-in"
               >
-                <img src={activeImage} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchPriority="high" decoding="sync" loading="eager" />
+                <img src={optimizeImageUrl(activeImage, { width: 800 })} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchPriority="high" decoding="sync" loading="eager" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Maximize className="text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 w-12 h-12" strokeWidth={1.5} />
                 </div>
@@ -494,7 +497,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                       }} 
                       className={`shrink-0 w-20 h-14 md:w-28 md:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${activeImage === img ? 'border-red-600 scale-105 shadow-lg' : 'border-white opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={img} width="112" height="80" className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
+                      <img src={optimizeImageUrl(img, { width: 112 })} width="112" height="80" className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -785,8 +788,8 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 onClick={() => onPropertySelect?.(rp.id)}
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               >
-                <div className="h-36 overflow-hidden">
-                  <img src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} width="400" height="300" className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
+                <div className="h-36 overflow-hidden" style={{ aspectRatio: '400/300' }}>
+                  <img src={optimizeImageUrl(rp.featuredImage, { width: 400 })} alt={`${rp.title} - ${rp.district}`} width="400" height="300" className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
                 </div>
                 <div className="p-3">
                   <p className="text-[9px] text-gray-500 mb-1">{rp.type} Â· {rp.bedrooms} dorm</p>

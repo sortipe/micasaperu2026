@@ -39,20 +39,3 @@ onINP(sendToAnalytics);
 onLCP(sendToAnalytics);
 onTTFB(sendToAnalytics);
 
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target as HTMLImageElement;
-        if (img.dataset.src) {
-          img.src = img.dataset.src;
-          img.removeAttribute('data-src');
-        }
-        observer.unobserve(img);
-      }
-    });
-  });
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('img[loading="lazy"]').forEach(img => observer.observe(img));
-  });
-}

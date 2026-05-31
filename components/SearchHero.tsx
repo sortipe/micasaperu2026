@@ -950,10 +950,10 @@ const SearchHero: React.FC<SearchHeroProps> = ({
             {bannerUrlMobile ? (
               <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />
             ) : (
-              <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format,compress" />
+              <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format&fm=webp" />
             )}
             <img 
-              src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format,compress"} 
+              src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format&fm=webp"} 
               className="w-full h-full object-cover object-center block mx-auto" 
               alt="Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú" 
               width="1200"

@@ -49,6 +49,29 @@ function escapeHtml(str) {
     .replace(/'/g, '&apos;');
 }
 
+function optimizeImageUrl(url, options = {}) {
+  if (!url) return url;
+  const { width, quality = 75 } = options;
+  if (url.includes('images.unsplash.com')) {
+    const sep = url.includes('?') ? '&' : '?';
+    const params = [];
+    if (width) params.push(`w=${width}`);
+    params.push(`q=${quality}`);
+    if (!url.includes('auto=format')) params.push('auto=format');
+    if (!url.includes('fm=')) params.push('fm=webp');
+    return url + sep + params.join('&');
+  }
+  if (url.includes('/storage/v1/object/public/')) {
+    const sep = url.includes('?') ? '&' : '?';
+    const params = [];
+    if (width) params.push(`width=${width}`);
+    params.push('format=webp');
+    params.push('resize=cover');
+    return url + sep + params.join('&');
+  }
+  return url;
+}
+
 function toISODate(dateStr) {
   try { return new Date(dateStr || Date.now()).toISOString(); } catch { return new Date().toISOString(); }
 }
@@ -411,7 +434,7 @@ export default async (req, res) => {
             <li>
               <article>
                 <h2><a href="https://micasaperu.com/properties/${p.id}">${escapeHtml(p.title)}</a></h2>
-                ${p.featuredImage ? `<img src="${escapeHtml(p.featuredImage)}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
+                ${p.featuredImage ? `<img src="${escapeHtml(optimizeImageUrl(p.featuredImage, { width: 400 }))}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
                 <p>${escapeHtml((p.description || '').substring(0, 200))}</p>
                 <p>Precio: ${p.priceUSD ? '$' + p.priceUSD.toLocaleString('en-US') : ''}${p.pricePEN ? ' S/' + p.pricePEN.toLocaleString('es-PE') : ''}</p>
                 <p>Ubicación: ${escapeHtml(p.district || '')}, ${escapeHtml(p.department || '')}</p>
@@ -533,9 +556,13 @@ export default async (req, res) => {
         const schemaScript = `\n<script type="application/ld+json">\n${JSON.stringify(realEstateSchema, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(breadcrumb, null, 2)}\n</script>\n<script type="application/ld+json">\n${JSON.stringify(websiteSchema, null, 2)}\n</script>\n`;
         html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, schemaScript);
 
+        function optGallery(imgUrl, idx) {
+          const optUrl = optimizeImageUrl(imgUrl, { width: 800 });
+          return `<img src="${escapeHtml(optUrl)}" alt="${escapeHtml(property.title)} - Foto ${idx + 1}" loading="lazy" width="800" height="600" />`;
+        }
         const galleryHtml = property.gallery && property.gallery.length > 0
-          ? property.gallery.slice(0, 5).map(img => `<img src="${escapeHtml(img)}" alt="${escapeHtml(property.title)} - Foto" loading="lazy" width="800" height="600" />`).join('')
-          : (property.featuredImage ? `<img src="${escapeHtml(property.featuredImage)}" alt="${escapeHtml(property.title)}" width="800" height="600" />` : '');
+          ? property.gallery.slice(0, 5).map((img, i) => optGallery(img, i)).join('')
+          : (property.featuredImage ? `<img src="${escapeHtml(optimizeImageUrl(property.featuredImage, { width: 800 }))}" alt="${escapeHtml(property.title)}" width="800" height="600" />` : '');
 
         const ssrHtml = `
           <article>
@@ -713,7 +740,7 @@ export default async (req, res) => {
         <ul>
           ${properties.slice(0, 10).map(p => `
             <li>
-              ${p.featuredImage ? `<img src="${escapeHtml(p.featuredImage)}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
+              ${p.featuredImage ? `<img src="${escapeHtml(optimizeImageUrl(p.featuredImage, { width: 400 }))}" alt="${escapeHtml(p.title)}" loading="lazy" width="400" height="300" />` : ''}
               <a href="https://micasaperu.com/properties/${p.id}"><strong>${escapeHtml(p.title)}</strong></a>
               <p>${escapeHtml(p.district || '')} - ${p.priceUSD ? '$' + p.priceUSD.toLocaleString('en-US') : ''}${p.pricePEN ? ' S/' + p.pricePEN.toLocaleString('es-PE') : ''}</p>
             </li>

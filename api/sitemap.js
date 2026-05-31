@@ -5,7 +5,10 @@ const BASE_URL = "https://micasaperu.com";
 
 const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW = 60000;
-const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_MAX = 30;
+
+const CACHE_TTL = 3600;
+const sitemapCache = new Map();
 
 function getRateLimitKey(req) {
   return req.headers['x-forwarded-for']?.split(',')[0]?.trim()
@@ -135,6 +138,11 @@ export default async (req, res) => {
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400");
 
+  const cached = sitemapCache.get('sitemap');
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL * 1000) {
+    return res.status(200).send(cached.xml);
+  }
+
   const today = new Date().toISOString().split("T")[0];
   let urls = [];
 
@@ -177,8 +185,20 @@ export default async (req, res) => {
     }
   }
 
+  // Add more amenity combinations for top districts
+  for (const dist of PROGRAMMATIC_DISTRICTS.slice(0, 10)) {
+    for (const type of PROGRAMMATIC_TYPES.slice(0, 3)) {
+      for (const status of PROGRAMMATIC_STATUSES) {
+        addUrl(`${BASE_URL}/${type}-en-${status}-en-${dist}-con-piscina/`, today, 'daily', '0.6');
+        addUrl(`${BASE_URL}/${type}-en-${status}-en-${dist}-con-balcon/`, today, 'daily', '0.6');
+        addUrl(`${BASE_URL}/${type}-en-${status}-en-${dist}-con-terraza/`, today, 'daily', '0.6');
+        addUrl(`${BASE_URL}/${type}-en-${status}-en-${dist}-con-ascensor/`, today, 'daily', '0.6');
+      }
+    }
+  }
+
   try {
-    const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?select=id,createdAt,updated_at,publishedAt,featuredImage,gallery&status=neq.DRAFT&order=createdAt.desc`;
+    const fetchUrl = `${SUPABASE_URL}/rest/v1/properties?select=id,createdAt,updated_at,publishedAt,featuredImage,gallery,title,district,type,status&status=neq.DRAFT&order=createdAt.desc`;
     const response = await fetch(fetchUrl, {
       headers: {
         "apikey": SUPABASE_KEY,
@@ -214,6 +234,8 @@ export default async (req, res) => {
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${urls.join("\n")}
 </urlset>`;
+
+  sitemapCache.set('sitemap', { xml, timestamp: Date.now() });
 
   return res.status(200).send(xml);
 };
