@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { checkRateLimit as sharedRateLimit, applySecurityHeaders as sharedSecurityHeaders, validateUUID } from '../lib/security.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
@@ -11,33 +12,6 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 const CACHE_TTL = 300;
 const cache = new Map();
 const pendingFetches = new Map();
-
-const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW = 60000;
-const RATE_LIMIT_MAX = 30;
-
-function getRateLimitKey(req) {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-    || req.headers['x-real-ip']
-    || req.socket?.remoteAddress
-    || 'unknown';
-  return ip;
-}
-
-function checkRateLimit(req) {
-  const ua = req.headers['user-agent'] || '';
-  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|slackbot|pinterest|slurp|duckduckbot|applebot|whatsapp/i.test(ua);
-  if (isCrawler) return true;
-  const key = getRateLimitKey(req);
-  const now = Date.now();
-  let entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
-    rateLimitMap.set(key, entry);
-  }
-  entry.count++;
-  return entry.count <= RATE_LIMIT_MAX;
-}
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -137,30 +111,7 @@ function replaceMeta(html, title, description, canonical, ogImage, lastmod, keyw
   return html;
 }
 
-function applySecurityHeaders(res) {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).host : 'uxdnhmkoiqqeiaoxeedw.supabase.co';
-  res.setHeader('Content-Security-Policy',
-    `default-src 'self'; ` +
-    `script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; ` +
-    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.mercadopago.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org; ` +
-    `img-src 'self' data: blob: https://${supabaseHost} https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com https://*.tile.openstreetmap.org; ` +
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
-    `font-src 'self' data: https://fonts.gstatic.com; ` +
-    `frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; ` +
-    `object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';`
-  );
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  res.setHeader('Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()'
-  );
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-  res.setHeader('X-Robots-Tag', 'index, follow');
-}
+
 
 function parseProgrammaticUrl(pathname) {
   const path = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
@@ -314,18 +265,19 @@ async function fetchWithCache(url) {
 }
 
 export default async (req, res) => {
-  applySecurityHeaders(res);
+  sharedSecurityHeaders(res, { noindex: false });
 
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     return res.status(500).send('Internal Server Error: Missing configuration.');
   }
 
-  if (!checkRateLimit(req)) {
+  const rateCheck = sharedRateLimit(req, { max: 60 });
+  res.setHeader('X-RateLimit-Limit', '60');
+  res.setHeader('X-RateLimit-Remaining', String(rateCheck.remaining));
+  if (!rateCheck.allowed) {
     res.setHeader('Retry-After', '60');
     return res.status(429).send('Demasiadas solicitudes.');
   }
-
-  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX));
 
   let indexPath = path.join(process.cwd(), 'dist', 'index.html');
   if (!fs.existsSync(indexPath)) {
@@ -469,7 +421,7 @@ export default async (req, res) => {
   }
   if (propertyId) {
     propertyId = propertyId.trim();
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(propertyId)) {
+    if (!validateUUID(propertyId)) {
       propertyId = null;
     }
   }

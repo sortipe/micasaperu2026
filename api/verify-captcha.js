@@ -1,61 +1,56 @@
-function applySecurityHeaders(res) {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; frame-ancestors 'none'; object-src 'none';");
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
-  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
-}
+import { checkRateLimit, applySecurityHeaders, validateContentType, getClientIp, sanitizeString } from '../lib/security.js';
 
 export default async function handler(req, res) {
-  applySecurityHeaders(res);
+  applySecurityHeaders(res, { isApi: true, noindex: true });
+
+  const rateCheck = checkRateLimit(req, { max: 20 });
+  res.setHeader('X-RateLimit-Limit', '20');
+  res.setHeader('X-RateLimit-Remaining', String(rateCheck.remaining));
+  if (!rateCheck.allowed) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Demasiadas solicitudes.' });
+  }
 
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { token } = req.body || {};
-
-  if (!token) {
-    return res.status(400).json({ error: 'Token is required' });
+  if (!validateContentType(req)) {
+    return res.status(415).json({ error: 'Content-Type must be application/json' });
   }
 
-  // Cloudflare Turnstile secret key (preconfigured test key as fallback)
+  let body;
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  } catch {
+    return res.status(400).json({ error: 'Invalid JSON body' });
+  }
+
+  const token = body?.token ? sanitizeString(body.token, 2048) : '';
+  if (!token || token.length < 10) {
+    return res.status(400).json({ error: 'Token inválido' });
+  }
+
   const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
 
   try {
-    const remoteIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() 
-      || req.headers['x-real-ip']
-      || req.socket?.remoteAddress;
-
+    const remoteIp = getClientIp(req);
     const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        secret: secretKey,
-        response: token,
-        remoteip: remoteIp,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: secretKey, response: token, remoteip: remoteIp }),
     });
 
     const result = await response.json();
 
     if (result.success) {
       return res.status(200).json({ success: true });
-    } else {
-      console.warn('Turnstile verification failed:', result['error-codes']);
-      return res.status(400).json({ success: false, error: 'Invalid captcha token' });
     }
+    console.warn('[SECURITY] Turnstile verification failed:', result['error-codes']);
+    return res.status(400).json({ success: false, error: 'Verificación fallida' });
   } catch (err) {
-    console.error('Turnstile verification error:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('[SECURITY] Turnstile verification error:', err);
+    return res.status(500).json({ error: 'Error interno' });
   }
 }

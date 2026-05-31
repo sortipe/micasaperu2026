@@ -1,36 +1,12 @@
+import { checkRateLimit as sharedRateLimit, applySecurityHeaders as sharedSecurityHeaders } from '../lib/security.js';
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 
 const BASE_URL = "https://micasaperu.com";
 
-const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW = 60000;
-const RATE_LIMIT_MAX = 30;
-
 const CACHE_TTL = 3600;
 const sitemapCache = new Map();
-
-function getRateLimitKey(req) {
-  return req.headers['x-forwarded-for']?.split(',')[0]?.trim()
-    || req.headers['x-real-ip']
-    || req.socket?.remoteAddress
-    || 'unknown';
-}
-
-function checkRateLimit(req) {
-  const ua = req.headers['user-agent'] || '';
-  const isCrawler = /googlebot|bingbot|yandexbot|baiduspider|lighthouse|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|slackbot|pinterest|slurp/i.test(ua);
-  if (isCrawler) return true;
-  const key = getRateLimitKey(req);
-  const now = Date.now();
-  let entry = rateLimitMap.get(key);
-  if (!entry || now > entry.resetAt) {
-    entry = { count: 0, resetAt: now + RATE_LIMIT_WINDOW };
-    rateLimitMap.set(key, entry);
-  }
-  entry.count++;
-  return entry.count <= RATE_LIMIT_MAX;
-}
 
 function escapeXml(str) {
   if (!str) return "";
@@ -112,21 +88,13 @@ const AMENITY_COMBOS = [
   'con-cochera', 'con-ascensor', 'pet-friendly', 'con-seguridad'
 ];
 
-function applySitemapSecurityHeaders(res) {
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
-}
-
 export default async (req, res) => {
-  applySitemapSecurityHeaders(res);
+  sharedSecurityHeaders(res, { isApi: true, noindex: true });
 
-  if (!checkRateLimit(req)) {
+  const rateCheck = sharedRateLimit(req, { max: 60 });
+  res.setHeader('X-RateLimit-Limit', '60');
+  res.setHeader('X-RateLimit-Remaining', String(rateCheck.remaining));
+  if (!rateCheck.allowed) {
     res.setHeader('Retry-After', '60');
     return res.status(429).send('Demasiadas solicitudes.');
   }
