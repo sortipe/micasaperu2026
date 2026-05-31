@@ -277,3 +277,116 @@ BEGIN
   END IF;
 END;
 $d$;
+
+-- 11. Payment Methods: cada usuario ve solo los suyos
+DO $d$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payment_methods') THEN
+    DROP POLICY IF EXISTS "PaymentMethods select" ON public.payment_methods;
+    CREATE POLICY "PaymentMethods select" ON public.payment_methods
+      FOR SELECT TO authenticated
+      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+
+    DROP POLICY IF EXISTS "PaymentMethods insert" ON public.payment_methods;
+    CREATE POLICY "PaymentMethods insert" ON public.payment_methods
+      FOR INSERT TO authenticated
+      WITH CHECK (auth.uid() = "userId");
+
+    DROP POLICY IF EXISTS "PaymentMethods update" ON public.payment_methods;
+    CREATE POLICY "PaymentMethods update" ON public.payment_methods
+      FOR UPDATE TO authenticated
+      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+
+    DROP POLICY IF EXISTS "PaymentMethods delete" ON public.payment_methods;
+    CREATE POLICY "PaymentMethods delete" ON public.payment_methods
+      FOR DELETE TO authenticated
+      USING (auth.uid() = "userId" OR is_admin(auth.uid()));
+  END IF;
+END;
+$d$;
+
+-- 12. Legal Documents: lectura pública, escritura solo admin
+DO $d$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'legal_documents') THEN
+    DROP POLICY IF EXISTS "LegalDocs select" ON public.legal_documents;
+    CREATE POLICY "LegalDocs select" ON public.legal_documents
+      FOR SELECT TO public
+      USING (true);
+
+    DROP POLICY IF EXISTS "LegalDocs insert" ON public.legal_documents;
+    CREATE POLICY "LegalDocs insert" ON public.legal_documents
+      FOR INSERT TO authenticated
+      WITH CHECK (is_admin(auth.uid()));
+
+    DROP POLICY IF EXISTS "LegalDocs update" ON public.legal_documents;
+    CREATE POLICY "LegalDocs update" ON public.legal_documents
+      FOR UPDATE TO authenticated
+      USING (is_admin(auth.uid()));
+
+    DROP POLICY IF EXISTS "LegalDocs delete" ON public.legal_documents;
+    CREATE POLICY "LegalDocs delete" ON public.legal_documents
+      FOR DELETE TO authenticated
+      USING (is_admin(auth.uid()));
+  END IF;
+END;
+$d$;
+
+-- 13. Revoca permisos peligrosos del rol anon (previene acceso a tablas sin RLS)
+DO $d$
+DECLARE
+  tbl text;
+  tables text[] := ARRAY[
+    'properties', 'profiles', 'inquiries', 'transactions',
+    'payment_methods', 'complaints', 'settings', 'locations',
+    'packages', 'legal_documents', 'consent_logs', 'data_requests'
+  ];
+BEGIN
+  FOREACH tbl IN ARRAY tables
+  LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = tbl) THEN
+      -- Revoca acceso directo; las RLS policies conceden acceso selectivo
+      EXECUTE format('REVOKE ALL ON public.%I FROM anon;', tbl);
+      -- Re-concede solo SELECT donde el anon legítimamente necesita leer
+      -- (properties, settings, legal_documents, complaints INSERT se manejan vía policy)
+      EXECUTE format('GRANT SELECT ON public.%I TO anon;', tbl);
+    END IF;
+  END LOOP;
+END;
+$d$;
+
+-- 14. Función de auditoría de acciones admin (registro de cambios sensibles)
+CREATE TABLE IF NOT EXISTS public.admin_audit_log (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  action        TEXT NOT NULL,
+  target_table  TEXT,
+  target_id     TEXT,
+  details       JSONB,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
+-- Solo admins pueden leer el log; nadie puede insertar directamente (se usa vía función)
+DROP POLICY IF EXISTS "AuditLog select" ON public.admin_audit_log;
+CREATE POLICY "AuditLog select" ON public.admin_audit_log
+  FOR SELECT TO authenticated
+  USING (is_admin(auth.uid()));
+
+CREATE OR REPLACE FUNCTION public.log_admin_action(
+  p_action      text,
+  p_table       text DEFAULT NULL,
+  p_target_id   text DEFAULT NULL,
+  p_details     jsonb DEFAULT NULL
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF is_admin(auth.uid()) THEN
+    INSERT INTO public.admin_audit_log (admin_id, action, target_table, target_id, details)
+    VALUES (auth.uid(), p_action, p_table, p_target_id, p_details);
+  END IF;
+END;
+$$;

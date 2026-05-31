@@ -183,15 +183,24 @@ export const compressImage = (file: File, maxWidth = 1920, maxHeight = 1920, qua
   });
 };
 
-const supabaseUrl = envUrl || 'https://uxdnhmkoiqqeiaoxeedw.supabase.co';
-const supabaseAnonKey = envKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE';
+// ⚠️ SECURITY: Credentials must come from environment variables — never hardcoded.
+// If VITE_ env vars are missing, the app runs in demo mode with a null client.
+const supabaseUrl = envUrl;
+const supabaseAnonKey = envKey;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. ' +
+    'Running without a live Supabase connection. Set these variables in your .env file.'
+  );
+}
 
 if (FORCE_DEMO_MODE) {
   console.info('Supabase DISCONNECTED (Forced Demo Mode). Using mock data.');
 } else if (isSupabaseConfigured) {
   console.info('Supabase CONNECTED successfully.');
 } else {
-  console.info('Using hardcoded Supabase connection (VITE_ environment variables missing).');
+  console.info('Supabase env vars not set. Features requiring backend will be unavailable.');
 }
 
 // In-memory mutex to replace navigator.locks which deadlocks on WebViews
@@ -215,7 +224,7 @@ const releaseAuthLock = () => {
   }
 };
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,

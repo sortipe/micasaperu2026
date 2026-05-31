@@ -1,8 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://uxdnhmkoiqqeiaoxeedw.supabase.co";
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4ZG5obWtvaXFxZWlhb3hlZWR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTI2MjEsImV4cCI6MjA4NDI2ODYyMX0.Wq509Vq5HwR120QuH_BbJHNKzJj31Vuji5lltm7b5jE";
+// ⚠️ SECURITY: Never hardcode credentials. Require env vars.
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('[seo.js] FATAL: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set as environment variables.');
+}
 
 const CACHE_TTL = 300;
 const cache = new Map();
@@ -309,11 +314,25 @@ function applySecurityHeaders(res) {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; connect-src 'self' https://uxdnhmkoiqqeiaoxeedw.supabase.co https://api.mercadopago.com https://nominatim.openstreetmap.org; img-src 'self' data: blob: https://uxdnhmkoiqqeiaoxeedw.supabase.co https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';");
+  const supabaseHost = SUPABASE_URL ? new URL(SUPABASE_URL).host : 'uxdnhmkoiqqeiaoxeedw.supabase.co';
+  res.setHeader('Content-Security-Policy',
+    `default-src 'self'; ` +
+    `script-src 'self' https://challenges.cloudflare.com https://sdk.mercadopago.com; ` +
+    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.mercadopago.com https://nominatim.openstreetmap.org; ` +
+    `img-src 'self' data: blob: https://${supabaseHost} https://images.unsplash.com https://ui-avatars.com https://*.basemaps.cartocdn.com https://*.google.com https://*.googleapis.com; ` +
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
+    `font-src 'self' data: https://fonts.gstatic.com; ` +
+    `frame-src 'self' https://challenges.cloudflare.com https://www.mercadopago.com; ` +
+    `object-src 'none'; upgrade-insecure-requests; frame-ancestors 'none'; form-action 'self'; base-uri 'self';`
+  );
   res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  // X-XSS-Protection is deprecated but kept for legacy browser compatibility
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self), interest-cohort=()');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(self), interest-cohort=(), accelerometer=(), battery=(), display-capture=(), usb=()'
+  );
+  // same-origin-allow-popups: allows OAuth popups (Google, etc.) while blocking cross-origin openers
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
   res.setHeader('X-Robots-Tag', 'index, follow');
@@ -321,7 +340,12 @@ function applySecurityHeaders(res) {
 
 export default async (req, res) => {
   applySecurityHeaders(res);
-  
+
+  // Guard: if env vars are missing, fail fast and securely
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return res.status(500).send('Internal Server Error: Missing configuration.');
+  }
+
   if (!checkRateLimit(req)) {
     res.setHeader('Retry-After', '60');
     return res.status(429).send('Demasiadas solicitudes. Intenta de nuevo en 1 minuto.');

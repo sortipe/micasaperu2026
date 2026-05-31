@@ -31,3 +31,11 @@ storage-backup-output/
 *.tar.gz
 
 dist_electron/
+
+# ⚠️ SECURITY: Never commit credentials or secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
