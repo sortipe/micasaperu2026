@@ -22,12 +22,28 @@ const FORCE_DEMO_MODE = false;
 export const isSupabaseConfigured = !FORCE_DEMO_MODE && !!envUrl && envUrl !== 'YOUR_SUPABASE_URL_HERE' && !!envKey;
 
 /**
- * Comprime una imagen en el lado del cliente utilizando HTML5 Canvas.
- * Reduce las dimensiones máximas a maxWidth/maxHeight conservando la relación de aspecto,
- * y aplica compresión JPEG de calidad especificada.
- * Si ocurre un error o el archivo no es una imagen, devuelve el archivo original de forma segura.
+ * Detecta si el navegador soporta WebP de forma nativa.
+ * Retorna 'image/webp' si hay soporte, 'image/jpeg' como fallback.
  */
-export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.75): Promise<File> => {
+const getOptimalMimeType = (): Promise<'image/webp' | 'image/jpeg'> => {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    // toDataURL con WebP retorna una string que comienza con 'data:image/webp' si hay soporte
+    const result = canvas.toDataURL('image/webp');
+    resolve(result.startsWith('data:image/webp') ? 'image/webp' : 'image/jpeg');
+  });
+};
+
+/**
+ * Comprime una imagen en el lado del cliente utilizando HTML5 Canvas.
+ * - Convierte automáticamente a WebP si el navegador lo soporta (30-50% menos peso que JPEG).
+ * - Si no hay soporte WebP, usa JPEG de alta calidad como fallback seguro.
+ * - Reduce las dimensiones máximas a maxWidth/maxHeight conservando la relación de aspecto.
+ * - Si ocurre un error o el archivo no es una imagen, devuelve el archivo original de forma segura.
+ */
+export const compressImage = (file: File, maxWidth = 1920, maxHeight = 1920, quality = 0.82): Promise<File> => {
   return new Promise((resolve) => {
     // Si no es una imagen o es un GIF/SVG, resolver con el archivo original directamente
     if (!file.type || !file.type.startsWith('image/')) {
@@ -38,131 +54,132 @@ export const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, qua
       resolve(file);
       return;
     }
+    // Si ya es WebP y pesa menos de 500KB, no recomprimir
+    if (file.type === 'image/webp' && file.size < 500 * 1024) {
+      resolve(file);
+      return;
+    }
 
-    // Límite de tiempo de seguridad de 8 segundos. Si la compresión tarda más, 
-    // liberamos la promesa resolviendo con el archivo original para que no se quede congelado
+    // Límite de tiempo de seguridad de 10 segundos.
     const timeoutId = setTimeout(() => {
       console.warn("Límite de tiempo en compresión excedido. Subiendo archivo original.");
       resolve(file);
-    }, 8000);
+    }, 10000);
 
     const cleanResolve = (result: File) => {
       clearTimeout(timeoutId);
       resolve(result);
     };
 
-    try {
-      const reader = new FileReader();
-      
-      reader.onload = (event) => {
-        const img = new Image();
-        
-        // Registrar eventos ANTES de asignar img.src para evitar perderlos en cargas instantáneas o desde caché
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
+    getOptimalMimeType().then((outputMime) => {
+      try {
+        const reader = new FileReader();
 
-            // Mantener la relación de aspecto y limitar tamaño máximo
-            if (width > height) {
-              if (width > maxWidth) {
-                height = Math.round((height * maxWidth) / width);
-                width = maxWidth;
-              }
-            } else {
-              if (height > maxHeight) {
-                width = Math.round((width * maxHeight) / height);
-                height = maxHeight;
-              }
-            }
+        reader.onload = (event) => {
+          const img = new Image();
 
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-              cleanResolve(file);
-              return;
-            }
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
 
-            // Dibujar la imagen escalada en el canvas
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Exportar a blob JPEG con calidad comprimida
-            canvas.toBlob((blob) => {
-              try {
-                if (!blob) {
-                  cleanResolve(file);
-                  return;
+              // Mantener la relación de aspecto y limitar tamaño máximo
+              if (width > height) {
+                if (width > maxWidth) {
+                  height = Math.round((height * maxWidth) / width);
+                  width = maxWidth;
                 }
+              } else {
+                if (height > maxHeight) {
+                  width = Math.round((width * maxHeight) / height);
+                  height = maxHeight;
+                }
+              }
 
-                // Crear un nuevo File a partir del Blob manteniendo el nombre original
-                // Usamos extensión .jpg para asegurar que el tipo MIME sea JPEG comprimido
-                const originalName = file.name || 'image.jpg';
-                const dotIndex = originalName.lastIndexOf('.');
-                const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
-                const newName = `${baseName}.jpg`;
+              canvas.width = width;
+              canvas.height = height;
 
-                let compressedFile: File;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) {
+                cleanResolve(file);
+                return;
+              }
+
+              // Fondo blanco para evitar transparencias negras en JPEG
+              if (outputMime === 'image/jpeg') {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, width, height);
+              }
+
+              ctx.drawImage(img, 0, 0, width, height);
+
+              canvas.toBlob((blob) => {
                 try {
-                  compressedFile = new File([blob], newName, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now(),
-                  });
-                } catch (fileCtrErr) {
-                  // Fallback robusto usando Object.defineProperty para motores de JS/WebViews donde no se permite instanciar File
-                  const augmentedBlob = blob as any;
+                  if (!blob) {
+                    cleanResolve(file);
+                    return;
+                  }
+
+                  // Si la versión comprimida es mayor que el original, usar el original
+                  if (blob.size >= file.size) {
+                    cleanResolve(file);
+                    return;
+                  }
+
+                  const originalName = file.name || 'image';
+                  const dotIndex = originalName.lastIndexOf('.');
+                  const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
+                  const ext = outputMime === 'image/webp' ? 'webp' : 'jpg';
+                  const newName = `${baseName}.${ext}`;
+
+                  let compressedFile: File;
                   try {
-                    Object.defineProperty(augmentedBlob, 'name', {
-                      value: newName,
-                      writable: true,
-                      configurable: true,
-                      enumerable: true
+                    compressedFile = new File([blob], newName, {
+                      type: outputMime,
+                      lastModified: Date.now(),
                     });
-                    Object.defineProperty(augmentedBlob, 'lastModified', {
-                      value: Date.now(),
-                      writable: true,
-                      configurable: true,
-                      enumerable: true
-                    });
-                  } catch (definePropErr) {
+                  } catch {
+                    // Fallback para WebViews donde File() no está disponible
+                    const augmentedBlob = blob as any;
                     augmentedBlob.name = newName;
                     augmentedBlob.lastModified = Date.now();
+                    compressedFile = augmentedBlob as File;
                   }
-                  compressedFile = augmentedBlob as File;
+
+                  const savedKB = Math.round((file.size - blob.size) / 1024);
+                  console.info(`Imagen comprimida a ${ext.toUpperCase()}: ${Math.round(blob.size / 1024)}KB (ahorró ${savedKB}KB)`);
+                  cleanResolve(compressedFile);
+                } catch (callbackErr) {
+                  console.error("Error en callback de toBlob:", callbackErr);
+                  cleanResolve(file);
                 }
-                
-                cleanResolve(compressedFile);
-              } catch (callbackErr) {
-                console.error("Error en callback de toBlob de compresión:", callbackErr);
-                cleanResolve(file);
-              }
-            }, 'image/jpeg', quality);
-          } catch (err) {
-            console.error("Error al procesar Canvas de imagen:", err);
+              }, outputMime, quality);
+            } catch (err) {
+              console.error("Error al procesar Canvas de imagen:", err);
+              cleanResolve(file);
+            }
+          };
+
+          img.onerror = () => {
+            console.error("Error al cargar elemento de imagen.");
             cleanResolve(file);
-          }
+          };
+
+          img.src = event.target?.result as string;
         };
 
-        img.onerror = () => {
-          console.error("Error al cargar elemento de imagen.");
+        reader.onerror = () => {
+          console.error("Error al leer archivo mediante FileReader.");
           cleanResolve(file);
         };
-        
-        img.src = event.target?.result as string;
-      };
 
-      reader.onerror = () => {
-        console.error("Error al leer archivo mediante FileReader.");
+        reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Error general al leer archivo de imagen:", err);
         cleanResolve(file);
-      };
-
-      reader.readAsDataURL(file);
-    } catch (err) {
-      console.error("Error general al leer archivo de imagen:", err);
-      cleanResolve(file);
-    }
+      }
+    });
   });
 };
 
