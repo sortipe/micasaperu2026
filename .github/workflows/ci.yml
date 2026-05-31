@@ -1,0 +1,138 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Quality Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Check build output
+        run: |
+          ls -la dist/ 2>/dev/null || echo "dist/ not found"
+          test -f dist/index.html || echo "WARNING: dist/index.html not found"
+          test -f dist/assets/ || echo "WARNING: dist/assets/ not found"
+
+  static-files:
+    name: Static Files Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required public files exist
+        run: |
+          errors=0
+          for f in public/offline.html public/terms-of-service.html public/privacy-policy.html public/robots.txt public/manifest.json public/sw.js public/favicon.ico public/favicon-192.png public/favicon-512.png public/og-image.jpg public/_headers; do
+            if [ -f "$f" ]; then
+              echo "OK: $f ($(wc -c < "$f") bytes)"
+            else
+              echo "MISSING: $f"
+              errors=$((errors + 1))
+            fi
+          done
+          exit $errors
+
+      - name: Validate robots.txt
+        run: |
+          grep -q "Sitemap:" public/robots.txt || echo "WARNING: robots.txt missing Sitemap directive"
+          grep -q "sitemap.xml" public/robots.txt || echo "WARNING: robots.txt missing sitemap.xml reference"
+
+      - name: Validate manifest.json
+        run: |
+          node -e "
+            const m = require('./public/manifest.json');
+            const required = ['name','short_name','start_url','display','icons','theme_color','background_color'];
+            required.forEach(k => { if (!m[k]) console.error('MISSING:', k); });
+            if (!m.icons || m.icons.length < 2) console.error('MISSING: at least 2 icons');
+            console.log('manifest.json validation complete');
+          "
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Check for exposed secrets
+        run: |
+          ! grep -r "sk_live_" --include="*.{js,ts,tsx,jsx,json,yml,yaml}" . 2>/dev/null || echo "WARNING: Possible secret key found"
+          ! grep -r "pk_live_" --include="*.{js,ts,tsx,jsx,json,yml,yaml}" . 2>/dev/null || echo "WARNING: Possible live API key found"
+
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            https://micasaperu.com
+            https://micasaperu.com/pricing
+            https://micasaperu.com/search
+            https://micasaperu.com/complaints
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  deploy:
+    name: Deploy to Vercel
+    if: github.ref == 'refs/heads/main'
+    needs: [quality, security, static-files]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'

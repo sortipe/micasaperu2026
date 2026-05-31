@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sin conexión | Mi Casa Perú</title>
+  <meta name="description" content="No tienes conexión a Internet. Vuelve a conectarte para seguir explorando propiedades en Mi Casa Perú.">
+  <meta name="robots" content="noindex, nofollow">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #091F4F 0%, #0f2d6e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      padding: 20px;
+    }
+    .container {
+      text-align: center;
+      max-width: 480px;
+    }
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 32px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .icon svg {
+      width: 60px;
+      height: 60px;
+      fill: none;
+      stroke: #FFC107;
+      stroke-width: 1.5;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: 0.8;
+      margin-bottom: 24px;
+    }
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: #FFC107;
+      color: #091F4F;
+    }
+    .btn-primary:hover {
+      background: #ffd54f;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .feature {
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+    .feature svg {
+      width: 24px;
+      height: 24px;
+      stroke: #FFC107;
+      fill: none;
+      stroke-width: 1.5;
+      margin-bottom: 8px;
+    }
+    .feature span {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    @media (min-width: 768px) {
+      h1 { font-size: 32px; }
+      p { font-size: 16px; }
+      .actions { flex-direction: row; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728m-2.829-2.829a5 5 0 000-7.07m-4.243 4.243a1 1 0 010-1.414m-5.657 5.657a9 9 0 010-12.728"/>
+      </svg>
+    </div>
+    <h1>Sin conexión</h1>
+    <p>Parece que has perdido la conexión a Internet. No te preocupes, puedes intentar lo siguiente mientras te reconectas.</p>
+    <div class="actions">
+      <button onclick="window.location.reload()" class="btn btn-primary">Reintentar</button>
+      <a href="/" class="btn btn-secondary">Ir al inicio</a>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <svg viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span>Propiedades vistas</span>
+      </div>
+      <div class="feature">
+        <svg viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+        <span>Favoritos offline</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

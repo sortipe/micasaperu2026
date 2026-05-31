@@ -403,7 +403,7 @@ export default async (req, res) => {
   }
 
   // ---- 404 handling ----
-  const staticPatterns = ['/pricing', '/complaints', '/search', '/login', '/cart'];
+  const staticPatterns = ['/pricing', '/complaints', '/search', '/login', '/cart', '/privacy-policy', '/terms-of-service'];
   const isLikelyPage = !pathRoute.includes('.') || pathRoute.endsWith('/');
   if (isLikelyPage && !staticPatterns.includes(pathRoute) &&
       !pathRoute.startsWith('/properties/') && !pathRoute.startsWith('/propiedades/') &&
@@ -604,6 +604,16 @@ export default async (req, res) => {
     description = 'Busca y encuentra las mejores propiedades en venta y alquiler en todo el Perú. Filtra por distrito, precio, tipo de inmueble, dormitorios, baños y más. El buscador inmobiliario más completo del Perú.';
     keywords = 'buscador inmuebles peru, encontrar casa, buscar departamento, propiedades lima, filtros busqueda inmobiliaria';
     canonicalUrl = 'https://micasaperu.com/search';
+  } else if (pathRoute === '/privacy-policy') {
+    title = 'Política de Privacidad | Mi Casa Perú - Ley 29733';
+    description = 'Conoce cómo Mi Casa Perú protege tus datos personales conforme a la Ley N° 29733 de Protección de Datos Personales del Perú. Transparencia en el tratamiento de tu información.';
+    keywords = 'politica privacidad, proteccion datos personales, ley 29733, derechos arco, tratamiento datos personales peru, micasaperu privacidad';
+    canonicalUrl = 'https://micasaperu.com/privacy-policy';
+  } else if (pathRoute === '/terms-of-service') {
+    title = 'Términos y Condiciones | Mi Casa Perú';
+    description = 'Términos y condiciones de uso del portal inmobiliario Mi Casa Perú. Al usar nuestros servicios aceptas estos términos. Conoce tus derechos y obligaciones.';
+    keywords = 'terminos condiciones, condiciones uso portal inmobiliario, politica publicacion propiedades, responsabilidad portal inmobiliario';
+    canonicalUrl = 'https://micasaperu.com/terms-of-service';
   }
 
   html = replaceMeta(html, title, description, canonicalUrl, ogImage, new Date().toISOString(), keywords);

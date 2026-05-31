@@ -12,6 +12,8 @@ interface PropertyListProps {
   visitedIds?: Set<string>;
   favorites?: Set<string>;
   onToggleFavorite?: (id: string) => void;
+  onToggleCompare?: (id: string) => void;
+  compareIds?: Set<string>;
   isLoading?: boolean;
 }
 
@@ -61,7 +63,8 @@ const PropertySkeletonList: React.FC = () => (
 
 const PropertyList: React.FC<PropertyListProps> = ({ 
   properties, onPropertySelect, currency, onClearFilters, visitedIds = new Set(),
-  favorites = new Set(), onToggleFavorite, layout = 'grid', isLoading = false
+  favorites = new Set(), onToggleFavorite, onToggleCompare, compareIds = new Set(),
+  layout = 'grid', isLoading = false
 }) => {
   const handlePropertyClick = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -304,6 +307,17 @@ const PropertyList: React.FC<PropertyListProps> = ({
           >
             <div className={`relative ${isSlider ? 'h-40' : 'h-48'}`}>
               <img src={optimizeImageUrl(property.featuredImage, { width: isSlider ? 240 : 400 })} alt={property.title} width={isSlider ? 240 : 400} height={isSlider ? 160 : 300} className="w-full h-full object-cover" loading={properties.indexOf(property) < 4 ? 'eager' : 'lazy'} fetchPriority={properties.indexOf(property) < 4 ? 'high' : 'auto'} decoding={properties.indexOf(property) < 4 ? 'sync' : 'async'} style={{ aspectRatio: isSlider ? '240/160' : '400/300' }} />
+              {onToggleCompare && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onToggleCompare(property.id); }}
+                  className={`absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-colors text-[9px] font-black ${
+                    compareIds?.has(property.id) ? 'bg-[#091F4F] text-white' : 'bg-black/20 backdrop-blur-sm text-white hover:bg-black/40'
+                  }`}
+                  title={compareIds?.has(property.id) ? 'Quitar de comparar' : 'Comparar'}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </button>
+              )}
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(property.id); }}
                 className="absolute top-2 right-2 w-7 h-7 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-colors"

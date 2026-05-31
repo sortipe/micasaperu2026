@@ -27,6 +27,8 @@ const LegalModal = React.lazy(() => import('./components/LegalModal'));
 const CookieConsent = React.lazy(() => import('./components/CookieConsent'));
 const DevelopmentOptions = React.lazy(() => import('./components/DevelopmentOptions'));
 const SupportButton = React.lazy(() => import('./components/SupportButton'));
+const PropertyComparator = React.lazy(() => import('./components/PropertyComparator'));
+const FAQGenerator = React.lazy(() => import('./components/FAQGenerator'));
 
 const LoadingFallback: React.FC = () => (
   <div className="flex-grow flex flex-col items-center justify-center p-20 min-h-[50vh] animate-pulse">
@@ -152,6 +154,8 @@ const App: React.FC = () => {
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
   const [spatialFilterIds, setSpatialFilterIds] = useState<string[] | null>(null);
   const [focusedLocation, setFocusedLocation] = useState<LocationItem | null>(null);
+  const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+  const [showComparator, setShowComparator] = useState(false);
   
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
@@ -240,6 +244,26 @@ const App: React.FC = () => {
     url.pathname = `/properties/${id}`;
     window.open(url.toString(), '_blank');
   };
+
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (next.size >= 4) {
+          showToast('Máximo 4 propiedades para comparar', 'WARNING');
+          return prev;
+        }
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const compareProperties = useMemo(() => {
+    return properties.filter(p => compareIds.has(p.id));
+  }, [properties, compareIds]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -1279,6 +1303,18 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              <FAQGenerator
+                items={[
+                  { question: '¿Cómo publicar una propiedad en Mi Casa Perú?', answer: 'Regístrate gratuitamente, selecciona un plan de publicación (Básico, Destacado o Super Destacado) y completa los datos de tu propiedad. Una vez realizado el pago, tu anuncio estará visible para miles de compradores e inquilinos en todo el Perú.' },
+                  { question: '¿Cuánto cuesta publicar una propiedad?', answer: 'Tenemos planes desde S/100 para publicaciones básicas. Los planes Destacado y Super Destacado tienen precios mayores y ofrecen mayor visibilidad en portada, prioridad en búsquedas y distinciones especiales como los badges amarillos.' },
+                  { question: '¿Puedo publicar mi propiedad si soy dueño directo?', answer: 'Sí, Mi Casa Perú está abierto tanto para dueños directos como para corredores inmobiliarios, constructoras e inmobiliarias. Todos pueden publicar propiedades eligiendo el plan que mejor se adapte a sus necesidades.' },
+                  { question: '¿En qué ciudades y distritos puedo buscar propiedades?', answer: 'Cubrimos todo el Perú, con énfasis en Lima Metropolitana (Miraflores, San Isidro, Surco, La Molina, San Borja, Barranco y más) y principales ciudades como Arequipa, Trujillo, Cusco, Ica, Piura y Tarapoto.' },
+                  { question: '¿Cómo contacto al anunciante de una propiedad?', answer: 'En cada propiedad encontrarás un botón de WhatsApp y un formulario de contacto. Puedes comunicarte directamente con el anunciante para resolver tus consultas, coordinar visitas o iniciar el proceso de compra o alquiler.' },
+                ]}
+                title="Preguntas Frecuentes"
+                context="Resuelve tus dudas sobre cómo publicar, buscar y contactar propiedades en Mi Casa Perú."
+              />
             </>
           )}
 
@@ -1302,7 +1338,16 @@ const App: React.FC = () => {
                   </span>
                 </div>
                 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  {compareIds.size > 0 && (
+                    <button
+                      onClick={() => setShowComparator(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#091F4F] text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                      Comparar ({compareIds.size})
+                    </button>
+                  )}
                   <button 
                     onClick={() => setSearchLayout(searchLayout === 'LIST' ? 'MAP' : 'LIST')}
                     className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-900 hover:text-red-600 transition-colors"
@@ -1336,7 +1381,7 @@ const App: React.FC = () => {
                       <button onClick={() => fetchProperties()} className="bg-red-600 text-white px-8 py-4 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-red-100 hover:shadow-blue-100">Reintentar Carga</button>
                     </div>
                   ) : (
-                    <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} />
+                    <PropertyList layout="list" properties={filteredProperties} onPropertySelect={handleOpenProperty} currency={filters.currency} onClearFilters={handleClearFilters} visitedIds={visitedIds} compareIds={compareIds} onToggleCompare={toggleCompare} />
                   )}
                 </div>
               </div>
@@ -1735,6 +1780,7 @@ const App: React.FC = () => {
 
           {view === 'DETAILS' && selectedPropertyId && (
             properties.some(p => p.id === selectedPropertyId) ? (
+              <>
               <PropertyDetails
                 property={properties.find(p => p.id === selectedPropertyId)!}
                 onBack={() => { setView('SEARCH'); window.history.pushState({}, '', window.location.pathname); }}
@@ -1743,6 +1789,17 @@ const App: React.FC = () => {
                 relatedProperties={properties.filter(p => p.id !== selectedPropertyId && (p.district === properties.find(x => x.id === selectedPropertyId)?.district || p.type === properties.find(x => x.id === selectedPropertyId)?.type)).slice(0, 6)}
                 onPropertySelect={(id) => { setSelectedPropertyId(id); window.scrollTo(0, 0); }}
               />
+              <FAQGenerator
+                items={[
+                  { question: '¿Cómo puedo agendar una visita a esta propiedad?', answer: 'Puedes contactar al anunciante directamente a través del botón de WhatsApp o mediante el formulario de contacto que aparece en la página de la propiedad. El anunciante coordinará contigo la fecha y hora de la visita.' },
+                  { question: '¿Los precios mostrados incluyen mantenimiento?', answer: 'Los precios publicados corresponden al valor de venta o alquiler de la propiedad. En caso de que aplique un gasto de mantenimiento adicional, este se indica por separado en la ficha de la propiedad.' },
+                  { question: '¿Qué documentos necesito para comprar o alquilar?', answer: 'Para comprar necesitarás DNI vigente y en algunos casos antecedentes crediticios. Para alquiler suelen solicitarse garantías como carta fianza o depósito. Los requisitos específicos los define cada anunciante.' },
+                  { question: '¿Puedo hacer una oferta por debajo del precio publicado?', answer: 'El precio publicado es referencial. Puedes contactar al anunciante para negociar las condiciones. Mi Casa Perú no interviene en las negociaciones entre las partes.' },
+                ]}
+                title="Preguntas Frecuentes sobre esta Propiedad"
+                context="Resuelve tus dudas sobre el proceso de compra, alquiler y documentación necesaria."
+              />
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
                 <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6">
@@ -1889,6 +1946,29 @@ const App: React.FC = () => {
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <CookieConsent onLearnMore={() => setActiveLegalModal('PRIVACY')} />
         <SupportButton whatsappNumber={officeInfo.supportWhatsapp} />
+
+        {compareIds.size > 0 && !showComparator && view !== 'CART' && view !== 'PAYMENT' && (
+          <div className="fixed bottom-6 right-6 z-[9997]">
+            <button
+              onClick={() => setShowComparator(true)}
+              className="bg-[#091F4F] text-white px-5 py-3 rounded-2xl shadow-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 animate-slide-up border border-white/10"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Comparar {compareIds.size} propiedades
+            </button>
+          </div>
+        )}
+
+        {showComparator && (
+          <Suspense fallback={null}>
+            <PropertyComparator
+              properties={compareProperties}
+              onRemove={(id) => toggleCompare(id)}
+              onClear={() => { setCompareIds(new Set()); setShowComparator(false); }}
+              onClose={() => setShowComparator(false)}
+            />
+          </Suspense>
+        )}
       </div>
     </ErrorBoundary>
   );

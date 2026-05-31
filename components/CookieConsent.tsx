@@ -1,5 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
 
 interface CookieConsentProps {
   onLearnMore: () => void;
@@ -33,6 +40,22 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
   const [preferences, setPreferences] = useState<CookiePreferences>(defaultPreferences);
   const [isMounted, setIsMounted] = useState(false);
 
+  const updateGoogleConsent = useCallback((prefs: CookiePreferences) => {
+    if (typeof window === 'undefined') return;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function() { window.dataLayer.push(arguments); };
+    window.gtag('consent', 'default', {
+      'ad_storage': prefs.marketing ? 'granted' : 'denied',
+      'ad_user_data': prefs.marketing ? 'granted' : 'denied',
+      'ad_personalization': prefs.marketing ? 'granted' : 'denied',
+      'analytics_storage': prefs.analytics ? 'granted' : 'denied',
+      'functionality_storage': 'granted',
+      'personalization_storage': prefs.marketing ? 'granted' : 'denied',
+      'security_storage': 'granted',
+      'wait_for_update': 500,
+    });
+  }, []);
+
   useEffect(() => {
     setIsMounted(true);
     try {
@@ -40,15 +63,18 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
       if (stored) {
         const parsed: ConsentRecord = JSON.parse(stored);
         if (parsed.version === CONSENT_VERSION) {
+          updateGoogleConsent(parsed.preferences);
           setIsVisible(false);
           return;
         }
       }
+      updateGoogleConsent(defaultPreferences);
       setIsVisible(true);
     } catch {
+      updateGoogleConsent(defaultPreferences);
       setIsVisible(true);
     }
-  }, []);
+  }, [updateGoogleConsent]);
 
   const logConsentToSupabase = async (prefs: CookiePreferences) => {
     if (!isSupabaseConfigured) return;
@@ -77,6 +103,7 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
     } catch {
       // localStorage may be unavailable
     }
+    updateGoogleConsent(prefs);
     logConsentToSupabase(prefs);
     setIsVisible(false);
   };

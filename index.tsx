@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { unregister } from './unregisterServiceWorker';
+import { registerServiceWorker, setupInstallPrompt } from './lib/pwa';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
-unregister();
+registerServiceWorker();
+setupInstallPrompt();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -30,7 +31,6 @@ function sendToAnalytics(metric: { name: string; value: number; rating: string }
   if (navigator.sendBeacon) {
     navigator.sendBeacon('/api/vitals', JSON.stringify(body));
   }
-  console.debug(`[RUM] ${metric.name}: ${metric.value.toFixed(0)} (${metric.rating})`);
 }
 
 onCLS(sendToAnalytics);
@@ -38,4 +38,3 @@ onFCP(sendToAnalytics);
 onINP(sendToAnalytics);
 onLCP(sendToAnalytics);
 onTTFB(sendToAnalytics);
-

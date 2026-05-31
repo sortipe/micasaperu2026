@@ -967,6 +967,10 @@ const SearchHero: React.FC<SearchHeroProps> = ({
 
         <div className="w-full relative z-10 text-center px-4 flex flex-col items-center justify-center">
 
+          {!compact && (
+            <h1 className="sr-only">Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú</h1>
+          )}
+
           <div className="w-full max-w-4xl mx-auto px-2">
             <div className="flex bg-white/10 backdrop-blur-xl rounded-t-[1.5rem] md:rounded-t-[2.5rem] overflow-hidden border-x border-t border-white/20 w-full">
                 {tabs.map((tab, idx) => (
