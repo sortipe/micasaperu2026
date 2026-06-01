@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Maximize, Building2, Bath, BedDouble, CalendarDays, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Property, User, Inquiry } from '../types';
-import { ToastType } from './Toast';
-import Turnstile from './Turnstile';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import LazyImage from './LazyImage';
 import Honeypot from './Honeypot';
-import { optimizeImageUrl } from '../lib/imageTransform';
+import Turnstile from './Turnstile';
+import type { ToastType } from './Toast';
 
 import type { Map as LeafletMap } from 'leaflet';
 
@@ -203,7 +204,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner overflow-hidden border-2 border-white">
               {agentAvatar ? (
-                <img src={agentAvatar} alt={agentName} width="64" height="64" className="w-full h-full object-cover" loading="lazy" />
+                <LazyImage src={agentAvatar} alt={agentName} width={64} height={64} className="w-full h-full object-cover" loading="lazy" breakpoints={[64]} sizes="64px" />
               ) : (
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
               )}
@@ -283,7 +284,7 @@ const ContactFormModal = ({ property, agentName, agentAvatar, onClose, onSend, s
                   onChange={e => setAcceptedPrivacy(e.target.checked)}
                 />
                 <span>
-                  Autorizo el tratamiento de mis datos de acuerdo a las <strong className="text-red-600 font-bold hover:underline">PolÃ­ticas de Privacidad</strong> y la <strong className="font-bold text-slate-900">Ley NÂ° 29733 (ProtecciÃ³n de Datos Personales en PerÃº)</strong>.
+                  Autorizo el tratamiento de mis datos de acuerdo a las <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline hover:text-red-800 transition-colors">PolÃ­ticas de Privacidad</a> y la <strong className="font-bold text-slate-900">Ley NÂ° 29733 (ProtecciÃ³n de Datos Personales en PerÃº)</strong>.
                 </span>
               </label>
               <label className="flex items-start gap-2.5 text-[10px] text-slate-600 cursor-pointer select-none leading-relaxed">
@@ -467,7 +468,19 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 }}
                 className="rounded-[2rem] overflow-hidden aspect-video shadow-xl bg-gray-200 border-2 border-white relative group cursor-zoom-in"
               >
-                <img src={optimizeImageUrl(activeImage, { width: 800 })} alt={`${property.title} - ${property.type} en ${property.district}`} width="800" height="450" className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105" fetchPriority="high" decoding="sync" loading="eager" />
+                <LazyImage
+                  src={activeImage}
+                  alt={`${property.title} - ${property.type} en ${property.district}`}
+                  width={800} height={450}
+                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                  fetchPriority="high"
+                  decoding="sync"
+                  loading="eager"
+                  isLCP={true}
+                  sizes="(max-width: 1024px) 100vw, 800px"
+                  breakpoints={[400, 640, 800, 1200]}
+                  aspectRatio="16/9"
+                />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                   <Maximize className="text-white opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 w-12 h-12" strokeWidth={1.5} />
                 </div>
@@ -497,7 +510,15 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                       }} 
                       className={`shrink-0 w-20 h-14 md:w-28 md:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 ${activeImage === img ? 'border-red-600 scale-105 shadow-lg' : 'border-white opacity-70 hover:opacity-100'}`}
                     >
-                      <img src={optimizeImageUrl(img, { width: 112 })} width="112" height="80" className="w-full h-full object-cover" alt={`${property.title} - Foto ${idx + 1}`} loading="lazy" />
+                      <LazyImage
+                        src={img}
+                        width={112} height={80}
+                        className="w-full h-full object-cover"
+                        alt={`${property.title} - Foto ${idx + 1}`}
+                        loading="lazy"
+                        breakpoints={[112, 224]}
+                        sizes="112px"
+                      />
                     </button>
                   ))}
                 </div>
@@ -652,7 +673,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                         >
                             <div className="w-12 h-12 bg-white text-red-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100 group-hover:bg-red-600 group-hover:text-white transition-all overflow-hidden">
                               {doc.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
-                                <img loading="lazy" src={doc} width="48" height="48" className="w-full h-full object-cover" alt="Preview" />
+                                <LazyImage src={doc} width={48} height={48} className="w-full h-full object-cover" alt="Preview" loading="lazy" breakpoints={[48]} sizes="48px" />
                               ) : (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                               )}
@@ -717,7 +738,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                         checked={sidebarAcceptedPrivacy}
                         onChange={e => setSidebarAcceptedPrivacy(e.target.checked)}
                       />
-                      <span>Acepto las PolÃ­ticas de Privacidad y el tratamiento de mis datos de acuerdo a la Ley NÂ° 29733 (Ley de ProtecciÃ³n de Datos Personales en el PerÃº).</span>
+                      <span>Acepto las <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline hover:text-red-800 transition-colors">PolÃ­ticas de Privacidad</a> y el tratamiento de mis datos de acuerdo a la Ley NÂ° 29733 (Ley de ProtecciÃ³n de Datos Personales en el PerÃº).</span>
                     </label>
                     <label className="flex items-start gap-2.5 text-[10px] text-gray-600 cursor-pointer select-none leading-relaxed">
                       <input 
@@ -752,10 +773,14 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
               <div className="bg-white p-4 rounded-[1rem] shadow-md border border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-                    <img loading="lazy" 
-                      src={agent?.avatar || property.agentAvatar || `https://ui-avatars.com/api/?name=${agent?.name || property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
-                      alt={agent?.name || property.agentName} 
-                      className="w-full h-full object-cover" 
+                    <LazyImage
+                      src={agent?.avatar || property.agentAvatar || `https://ui-avatars.com/api/?name=${agent?.name || property.agentName || 'Asesor'}&background=0f172a&color=fff`}
+                      alt={agent?.name || property.agentName || 'Asesor'}
+                      width={48} height={48}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      breakpoints={[48]}
+                      sizes="48px"
                     />
                   </div>
                   <div>
@@ -789,7 +814,7 @@ const PropertyDetails: React.FC<PropertyDetailsProps> = ({ property, agent, onBa
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <div className="h-36 overflow-hidden" style={{ aspectRatio: '400/300' }}>
-                  <img src={optimizeImageUrl(rp.featuredImage, { width: 400 })} alt={`${rp.title} - ${rp.district}`} width="400" height="300" className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" />
+                  <LazyImage src={rp.featuredImage} alt={`${rp.title} - ${rp.district}`} width={400} height={300} className="w-full h-full object-cover hover:scale-105 transition-transform" loading="lazy" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px" breakpoints={[200, 400, 800]} />
                 </div>
                 <div className="p-3">
                   <p className="text-[9px] text-gray-500 mb-1">{rp.type} Â· {rp.bedrooms} dorm</p>

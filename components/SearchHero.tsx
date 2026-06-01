@@ -948,10 +948,18 @@ const SearchHero: React.FC<SearchHeroProps> = ({
         <div className="absolute inset-0 w-full h-full">
           <picture className="w-full h-full flex justify-center bg-slate-900">
             {bannerUrlMobile ? (
-              <source media="(max-width: 768px)" srcSet={bannerUrlMobile} />
+              <>
+                <source media="(max-width: 768px)" srcSet={bannerUrlMobile.replace(/fm=\w+/, 'fm=avif')} type="image/avif" />
+                <source media="(max-width: 768px)" srcSet={bannerUrlMobile} type="image/webp" />
+              </>
             ) : (
-              <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format&fm=webp" />
+              <>
+                <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format&fm=avif" type="image/avif" />
+                <source media="(max-width: 768px)" srcSet="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=65&w=600&auto=format&fm=webp" type="image/webp" />
+              </>
             )}
+            <source media="(min-width: 769px)" srcSet={(bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format&fm=avif")} type="image/avif" />
+            <source media="(min-width: 769px)" srcSet={(bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format&fm=webp")} type="image/webp" />
             <img 
               src={bannerUrl || "https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=1200&auto=format&fm=webp"} 
               className="w-full h-full object-cover object-center block mx-auto" 

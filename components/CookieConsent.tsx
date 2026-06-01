@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 declare global {
@@ -138,21 +138,25 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
               Utilizamos cookies propias y de terceros para mejorar tu experiencia, analizar el tráfico y mostrarte contenido relevante. 
               Puedes aceptar todas, rechazar las no esenciales o configurar tus preferencias.
               <button onClick={onLearnMore} className="ml-1 font-black underline hover:text-red-400 transition-colors">
-                Ver política de cookies
+                Ver más sobre cookies
               </button>
             </p>
           </div>
         </div>
 
         {showDetails && (
-          <div className="mb-4 space-y-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+          <div className="mb-4 space-y-4 bg-white/5 rounded-2xl p-4 border border-white/10">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-200 mb-3">Preferencias por categoría</h3>
 
             <label className="flex items-center gap-3 cursor-pointer group">
               <input type="checkbox" checked={preferences.necessary} disabled className="w-4 h-4 rounded accent-red-600" />
               <div className="flex-grow">
                 <span className="text-xs font-bold">Cookies necesarias (siempre activas)</span>
-                <p className="text-[10px] text-blue-200/60">Permiten la navegación básica y el funcionamiento del sitio.</p>
+                <p className="text-[10px] text-blue-200/60">Permiten la navegación básica y el funcionamiento del sitio. No requieren tu consentimiento.</p>
+                <div className="mt-2 bg-white/10 rounded-xl p-2.5 text-[9px] text-blue-100 space-y-1">
+                  <p><strong>• localStorage (micasaperu_*):</strong> Preferencias de usuario, caché de propiedades y sesión</p>
+                  <p><strong>• Supabase Auth:</strong> Token de autenticación para mantener tu sesión iniciada</p>
+                </div>
               </div>
             </label>
 
@@ -161,6 +165,12 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
               <div className="flex-grow">
                 <span className="text-xs font-bold">Cookies de análisis</span>
                 <p className="text-[10px] text-blue-200/60">Nos ayudan a entender cómo usas el sitio para mejorarlo.</p>
+                <div className="mt-2 bg-white/10 rounded-xl p-2.5 text-[9px] text-blue-100 space-y-1">
+                  <p><strong>• _ga:</strong> Google Analytics - 2 años - Distingue usuarios</p>
+                  <p><strong>• _ga_&lt;ID&gt;:</strong> Google Analytics - 2 años - Mantiene estado de sesión</p>
+                  <p><strong>• _gid:</strong> Google Analytics - 24 horas - Almacena y cuenta visitas</p>
+                  <p><strong>• _gat:</strong> Google Analytics - 1 minuto - Limita tasa de peticiones</p>
+                </div>
               </div>
             </label>
 
@@ -169,8 +179,17 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
               <div className="flex-grow">
                 <span className="text-xs font-bold">Cookies de marketing</span>
                 <p className="text-[10px] text-blue-200/60">Permiten mostrarte anuncios relevantes según tu navegación.</p>
+                <div className="mt-2 bg-white/10 rounded-xl p-2.5 text-[9px] text-blue-100 space-y-1">
+                  <p><strong>• _fbp:</strong> Meta/Facebook - 3 meses - Seguimiento de conversiones</p>
+                  <p><strong>• fr:</strong> Meta/Facebook - 3 meses - Entrega de anuncios</p>
+                  <p><strong>• IDE:</strong> Google/DoubleClick - 13 meses - Publicidad personalizada</p>
+                </div>
               </div>
             </label>
+
+            <p className="text-[9px] text-blue-200/40 mt-2 leading-relaxed">
+              Consulta nuestra <a href="/politica-de-cookies" target="_blank" rel="noopener noreferrer" className="text-blue-200 hover:text-white underline">Política de Cookies</a> para obtener la lista completa de todas las cookies y tecnologías utilizadas.
+            </p>
           </div>
         )}
 
@@ -200,3 +219,4 @@ const CookieConsent: React.FC<CookieConsentProps> = ({ onLearnMore }) => {
 };
 
 export default CookieConsent;
+

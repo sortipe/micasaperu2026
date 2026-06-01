@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Property } from '../types';
-import { optimizeImageUrl } from '../lib/imageTransform';
+import LazyImage from './LazyImage';
 
 interface PropertyComparatorProps {
   properties: Property[];
@@ -110,7 +110,7 @@ const PropertyComparator: React.FC<PropertyComparatorProps> = ({ properties, onR
                         return (
                           <div key={p.id} className={`flex items-center justify-between p-2 rounded-lg ${isHighlighted ? 'bg-yellow-50 border border-yellow-200' : 'bg-white border border-gray-100'}`}>
                             <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <img src={optimizeImageUrl(p.featuredImage, { width: 48 })} alt={p.title} className="w-8 h-8 rounded-lg object-cover flex-shrink-0" width="32" height="32" />
+                              <LazyImage src={p.featuredImage} alt={p.title} width={32} height={32} className="rounded-lg object-cover flex-shrink-0" loading="lazy" breakpoints={[32]} sizes="32px" />
                               <span className="text-[11px] font-bold text-gray-700 truncate">{p.title}</span>
                             </div>
                             <span className="text-xs font-bold text-slate-900 flex-shrink-0 ml-2">{values.values[idx]}</span>
@@ -133,7 +133,7 @@ const PropertyComparator: React.FC<PropertyComparatorProps> = ({ properties, onR
                     <th key={p.id} className="sticky top-0 bg-white z-10 p-3 min-w-[200px]">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <img src={optimizeImageUrl(p.featuredImage, { width: 200 })} alt={p.title} className="w-full h-24 rounded-xl object-cover mb-2" width="200" height="96" loading="lazy" />
+                          <LazyImage src={p.featuredImage} alt={p.title} width={200} height={96} className="w-full h-24 rounded-xl object-cover mb-2" loading="lazy" breakpoints={[200, 400]} sizes="200px" />
                           <h3 className="text-[11px] font-bold text-gray-700 truncate">{p.title}</h3>
                           <p className="text-[9px] text-gray-400 truncate">{p.district}, {p.department}</p>
                         </div>

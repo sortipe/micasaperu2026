@@ -1,5 +1,6 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Property } from '../types';
+import LazyImage from './LazyImage';
 
 interface DevelopmentOptionsProps {
   properties: Property[];
@@ -74,7 +75,7 @@ const DevelopmentOptions: React.FC<DevelopmentOptionsProps> = ({ properties, onP
                 className="min-w-[280px] w-[280px] bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow shrink-0 flex flex-col"
               >
                 <div className="relative h-40">
-                  <img loading="lazy" src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" />
+                  <LazyImage src={property.featuredImage} alt={property.title} className="w-full h-full object-cover" loading="lazy" breakpoints={[200, 400]} sizes="(max-width: 768px) 50vw, 200px" />
                   <button className="absolute top-3 right-3 w-8 h-8 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/40 transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                   </button>

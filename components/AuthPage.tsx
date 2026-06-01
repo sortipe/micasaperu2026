@@ -295,7 +295,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onBack, officeInfo }) => {
                   onChange={e => setAcceptedPrivacy(e.target.checked)}
                 />
                 <span>
-                  Acepto las <strong className="text-red-600 font-bold hover:underline">Políticas de Privacidad</strong> y autorizo el tratamiento de mis datos personales de acuerdo a la <strong className="font-bold text-slate-900">Ley N° 29733 en el Perú</strong>.
+                  Acepto las <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline hover:text-red-800 transition-colors">Políticas de Privacidad</a> y autorizo el tratamiento de mis datos personales de acuerdo a la <strong className="font-bold text-slate-900">Ley N° 29733 en el Perú</strong>.
                 </span>
               </label>
             </div>

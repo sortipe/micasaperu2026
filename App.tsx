@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { Property, User, Role, Package, Transaction, PaymentMethod, LocationItem, Complaint, LegalDoc, LegalDocType, Notification, Inquiry, SocialLink, OfficeInfo, CartItem } from './types';
 import { INITIAL_PROPERTIES, PACKAGES as INITIAL_PACKAGES, PERU_LOCATIONS } from './constants';
@@ -29,6 +29,9 @@ const DevelopmentOptions = React.lazy(() => import('./components/DevelopmentOpti
 const SupportButton = React.lazy(() => import('./components/SupportButton'));
 const PropertyComparator = React.lazy(() => import('./components/PropertyComparator'));
 const FAQGenerator = React.lazy(() => import('./components/FAQGenerator'));
+const DataRequestForm = React.lazy(() => import('./components/DataRequestForm'));
+const PrivacyPolicy = React.lazy(() => import('./components/PrivacyPolicy'));
+const CookiesPolicy = React.lazy(() => import('./components/CookiesPolicy'));
 
 const LoadingFallback: React.FC = () => (
   <div className="flex-grow flex flex-col items-center justify-center p-20 min-h-[50vh] animate-pulse">
@@ -117,7 +120,7 @@ const App: React.FC = () => {
     const cached = localStorage.getItem('micasaperu_cache_office_info');
     return cached ? JSON.parse(cached) : { 
       address: 'Av. Benavides 768, Int. 1303, Miraflores, Lima', 
-      email: 'hola@aquivivir.com', 
+      email: 'soporte@micasaperu.com', 
       phone: '',
       constructoraWhatsapp: ''
     };
@@ -146,9 +149,10 @@ const App: React.FC = () => {
     ];
   });
 
-  const [view, setView] = useState<'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART'>('HOME');
+  const [view, setView] = useState<'HOME' | 'ADMIN' | 'DETAILS' | 'SEARCH' | 'PRICING' | 'DASHBOARD' | 'AUTH' | 'PAYMENT' | 'COMPLAINTS_BOOK' | 'CART' | 'PRIVACY_POLICY' | 'COOKIES_POLICY'>('HOME');
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [activeLegalModal, setActiveLegalModal] = useState<LegalDocType | null>(null);
+  const [showDataRequest, setShowDataRequest] = useState(false);
   const [searchLayout, setSearchLayout] = useState<'LIST' | 'MAP'>('LIST');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
@@ -385,6 +389,10 @@ const App: React.FC = () => {
       
       if (path === '/pricing') {
         setView('PRICING');
+      } else if (path === '/politica-de-privacidad') {
+        setView('PRIVACY_POLICY');
+      } else if (path === '/politica-de-cookies') {
+        setView('COOKIES_POLICY');
       } else if (path === '/complaints') {
         setView('COMPLAINTS_BOOK');
       } else if (progRoute) {
@@ -1183,6 +1191,10 @@ const App: React.FC = () => {
       let path = '/';
       if (v === 'PRICING') {
         path = '/pricing';
+      } else if (v === 'PRIVACY_POLICY') {
+        path = '/politica-de-privacidad';
+      } else if (v === 'COOKIES_POLICY') {
+        path = '/politica-de-cookies';
       } else if (v === 'COMPLAINTS_BOOK') {
         path = '/complaints';
       } else if (v === 'DETAILS' && selectedPropertyId) {
@@ -1939,12 +1951,15 @@ const App: React.FC = () => {
             const { error } = await supabase.from('complaints').insert([complaintPayload]);
             if (error) throw error;
           }} onClose={() => handleNavigation('HOME')} showToast={showToast} />}
+          {view === 'PRIVACY_POLICY' && <PrivacyPolicy officeInfo={officeInfo} onBack={() => handleNavigation('HOME')} />}
+          {view === 'COOKIES_POLICY' && <CookiesPolicy onBack={() => handleNavigation('HOME')} />}
           </Suspense>
         </main>
-        {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={handleNavigation} onOpenLegal={setActiveLegalModal} logo={appLogo} />}
+        {view !== 'SEARCH' && <Footer socialLinks={socialLinks} officeInfo={officeInfo} onNavigate={handleNavigation} onOpenLegal={setActiveLegalModal} onOpenDataRequest={() => setShowDataRequest(true)} logo={appLogo} />}
         {activeLegalModal && <LegalModal doc={legalDocs.find(d => d.type === activeLegalModal) || null} onClose={() => setActiveLegalModal(null)} />}
+        {showDataRequest && <DataRequestForm currentUser={currentUser} onClose={() => setShowDataRequest(false)} showToast={showToast} />}
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-        <CookieConsent onLearnMore={() => setActiveLegalModal('PRIVACY')} />
+        <CookieConsent onLearnMore={() => setActiveLegalModal('COOKIE_POLICY')} />
         <SupportButton whatsappNumber={officeInfo.supportWhatsapp} />
 
         {compareIds.size > 0 && !showComparator && view !== 'CART' && view !== 'PAYMENT' && (
@@ -1975,3 +1990,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+

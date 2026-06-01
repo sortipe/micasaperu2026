@@ -1,7 +1,7 @@
+﻿
+export type Role = 'ADMINISTRADOR' | 'PARTICULAR DUEÃ‘O DIRECTO' | 'INMOBILARIA CORREDOR' | 'CONSTRUCTORA DESARROLLADORA';
 
-export type Role = 'ADMINISTRADOR' | 'PARTICULAR DUEÑO DIRECTO' | 'INMOBILARIA CORREDOR' | 'CONSTRUCTORA DESARROLLADORA';
-
-export type LegalDocType = 'TERMS_USE' | 'TERMS_CONTRACT' | 'PRIVACY' | 'PROPERTY_POLICIES';
+export type LegalDocType = 'TERMS_USE' | 'TERMS_CONTRACT' | 'PRIVACY' | 'PROPERTY_POLICIES' | 'COOKIE_POLICY';
 
 export type PropertyCategory = 
   | 'Casa'
@@ -16,15 +16,15 @@ export type PropertyCategory =
   | 'Desarrollo horizontal'
   | 'Edificios'
   | 'Cochera'
-  | 'Habitación'
+  | 'HabitaciÃ³n'
   | 'Hotel'
   | 'Lote'
   | 'Nave industrial'
   | 'Proyectos de lotes'
-  | 'Terreno agrícola'
+  | 'Terreno agrÃ­cola'
   | 'Traspaso'
   | 'Negocio'
-  | 'Departamento Dúplex'
+  | 'Departamento DÃºplex'
   | 'Amoblado'
   | 'Local industrial'
   | 'Triplex';
@@ -63,7 +63,7 @@ export interface Package {
 export interface LocationItem {
   id?: string;
   name: string;
-  type: 'Departamento' | 'Provincia' | 'Distrito' | 'Avenida' | 'Urbanización' | 'Asentamiento' | 'Anexo' | 'Ciudad';
+  type: 'Departamento' | 'Provincia' | 'Distrito' | 'Avenida' | 'UrbanizaciÃ³n' | 'Asentamiento' | 'Anexo' | 'Ciudad';
   parent?: string;
   lat?: number;
   lng?: number;
@@ -132,11 +132,11 @@ export interface Property {
   pricePEN: number;
   priceUSD: number;
   maintenanceFee?: number;
-  constructionArea: number; // Área de terreno / Total
+  constructionArea: number; // Ãrea de terreno / Total
   terrainArea: number; // Duplicado conceptualmente pero mantenido para compatibilidad
-  builtArea?: number; // Área construida (NUEVO)
-  floors?: number; // Número de pisos (NUEVO)
-  yearBuilt?: number; // Año de construcción (NUEVO)
+  builtArea?: number; // Ãrea construida (NUEVO)
+  floors?: number; // NÃºmero de pisos (NUEVO)
+  yearBuilt?: number; // AÃ±o de construcciÃ³n (NUEVO)
   department: string;
   district: string;
   address: string;

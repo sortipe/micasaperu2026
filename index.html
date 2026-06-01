@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es-PE">
 <head>
     <meta charset="UTF-8">
@@ -23,6 +23,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="dns-prefetch" href="https://api.mercadopago.com">
     <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
     <title>Mi Casa Perú - Encuentra Casas, Departamentos y Terrenos en Lima y Perú</title>
     <meta name="description" content="El portal inmobiliario líder en el Perú. Encuentra departamentos, casas, terrenos y locales comerciales en venta y alquiler directo de dueños, corredores y constructoras en Lima y todo el Perú.">
@@ -51,13 +52,14 @@
     <meta name="twitter:site" content="@micasaperu">
     <meta name="author" content="Mi Casa Perú">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet"></noscript>
 
     <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=75&w=1200&auto=format,compress" fetchpriority="high" media="(min-width: 769px)" type="image/jpeg">
     <link rel="preload" as="image" href="https://images.unsplash.com/photo-1556911227-4da5279f50bb?q=70&w=600&auto=format,compress" fetchpriority="high" media="(max-width: 768px)" type="image/jpeg">
+
+    <link rel="modulepreload" href="/assets/vendor-react-l0sNRNKZ.js">
+    <link rel="modulepreload" href="/assets/index-Br-6l1hx.js">
 
     <style>
         html{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}body{margin:0;background:#f8fafc;color:#0f172a;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}#root{min-height:100vh}.animate-fade-in{animation:fade-in .5s ease-out forwards}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}.animate-spin{animation:spin 1s linear infinite}.ssr-fallback-content{clip:rect(0 0 0 0);clip-path:inset(50%);height:1px;overflow:hidden;position:absolute;white-space:nowrap;width:1px}@keyframes fade-in{from{opacity:0}to{opacity:1}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}@keyframes spin{to{transform:rotate(360deg)}}img,iframe,video{max-width:100%;height:auto}
@@ -106,8 +108,35 @@
       ]
     }]
     </script>
+    <!-- Google Consent Mode v2 - Bloqueo inicial antes de cargar GTM -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied',
+            'functionality_storage': 'granted',
+            'personalization_storage': 'denied',
+            'security_storage': 'granted',
+            'wait_for_update': 500,
+        });
+    </script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({"gtm.start":
+    new Date().getTime(),event:"gtm.js"});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!="dataLayer"?"&l="+l:"";j.async=true;j.src=
+    "https://www.googletagmanager.com/gtm.js?id="+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,"script","dataLayer","%VITE_GTM_ID%");</script>
+    <!-- End Google Tag Manager -->
 </head>
 <body class="bg-gray-50 text-gray-900 overflow-x-hidden antialiased">
+        <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=%VITE_GTM_ID%"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script nomodule>
@@ -120,3 +149,4 @@
     </script>
 </body>
 </html>
+

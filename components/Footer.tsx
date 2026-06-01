@@ -1,15 +1,17 @@
-import React from 'react';
+﻿import React from 'react';
 import { SocialLink, OfficeInfo } from '../types';
+import LazyImage from './LazyImage';
 
 interface FooterProps {
   socialLinks: SocialLink[];
   officeInfo: OfficeInfo;
   onNavigate: (view: any) => void;
-  onOpenLegal: (type: 'PRIVACY' | 'TERMS_USE') => void;
+  onOpenLegal: (type: 'PRIVACY' | 'TERMS_USE' | 'COOKIE_POLICY') => void;
+  onOpenDataRequest?: () => void;
   logo?: string | null;
 }
 
-const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, onOpenLegal, logo }) => {
+const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, onOpenLegal, onOpenDataRequest, logo }) => {
   const socialIcons = {
     FACEBOOK: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
@@ -36,13 +38,13 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
           <div className="space-y-6">
             <div className="cursor-pointer flex items-center" onClick={() => onNavigate('HOME')}>
               {logo ? (
-                <img src={logo} alt="Mi Casa Perú - Logo" className="h-10 w-auto object-contain" loading="lazy" />
+                <LazyImage src={logo} alt="Mi Casa PerÃº - Logo" width={140} height={40} className="h-10 w-auto object-contain" loading="lazy" breakpoints={[140]} sizes="140px" />
               ) : (
                 <span className="font-black text-2xl tracking-tighter">MICASAPERU</span>
               )}
             </div>
             <p className="text-blue-100/60 text-sm font-medium leading-relaxed">
-              La plataforma inmobiliaria integral del Perú: el punto de encuentro donde desarrolladores, asesores, empresas inmobiliarias y propietarios publican propiedades y concretan procesos de venta, alquiler, traspaso y toda forma de intermediación inmobiliaria.
+              La plataforma inmobiliaria integral del PerÃº: el punto de encuentro donde desarrolladores, asesores, empresas inmobiliarias y propietarios publican propiedades y concretan procesos de venta, alquiler, traspaso y toda forma de intermediaciÃ³n inmobiliaria.
             </p>
             <div className="flex items-center gap-4">
               {socialLinks.filter(l => l.url).map((link, idx) => (
@@ -59,7 +61,7 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
             </div>
           </div>
 
-          {/* Columna Navegación */}
+          {/* Columna NavegaciÃ³n */}
           <div className="space-y-6">
             <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-red-500">Explorar</h4>
             <ul className="space-y-4">
@@ -72,8 +74,9 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
           <div className="space-y-6">
             <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-red-500">Soporte y Legal</h4>
             <ul className="space-y-4">
-              <li><button onClick={() => onOpenLegal('PRIVACY')} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">Política de Privacidad</button></li>
-              <li><button onClick={() => onOpenLegal('TERMS_USE')} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">Términos y Condiciones</button></li>
+              <li><button onClick={() => onOpenLegal('PRIVACY')} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">PolÃ­tica de Privacidad</button></li>
+              <li><button onClick={() => onNavigate('COOKIES_POLICY')} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">PolÃ­tica de Cookies</button></li>
+              <li><button onClick={() => onOpenLegal('TERMS_USE')} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">TÃ©rminos y Condiciones</button></li>
               <li>
                 <button 
                   onClick={() => onNavigate('COMPLAINTS_BOOK')} 
@@ -83,6 +86,10 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
                   Libro de Reclamaciones
                 </button>
               </li>
+                            <li><button onClick={() => onOpenDataRequest?.()} className="text-blue-100 hover:text-white transition-colors text-sm font-bold">Derechos ARCO (Ley 29733)</button></li>
+                            <li className="text-[10px] text-blue-100/40 leading-relaxed pl-1">
+                              Ejerce tus derechos: <a href="mailto:soporte@micasaperu.com" className="text-blue-100 hover:text-white underline">soporte@micasaperu.com</a>
+                            </li>
             </ul>
           </div>
 
@@ -94,13 +101,13 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
                 <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
-                <p className="text-sm font-bold text-blue-100/80 leading-snug">{officeInfo.address || 'Sin dirección registrada'}</p>
+                <p className="text-sm font-bold text-blue-100/80 leading-snug">{officeInfo.address || 'Sin direcciÃ³n registrada'}</p>
               </div>
               <div className="flex items-center gap-4 group">
                 <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 </div>
-                <p className="text-sm font-bold text-blue-100/80">{officeInfo.email || 'hola@aquivivir.com'}</p>
+                <p className="text-sm font-bold text-blue-100/80">{officeInfo.email || 'soporte@micasaperu.com'}</p>
               </div>
               {officeInfo.phone && (
                 <div className="flex items-center gap-4 group">
@@ -115,9 +122,9 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
         </div>
 
         <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[10px] font-black text-blue-100/30 uppercase tracking-[0.4em]">MICASAPERU © 2025 - TODOS LOS DERECHOS RESERVADOS</p>
+          <p className="text-[10px] font-black text-blue-100/30 uppercase tracking-[0.4em]">MICASAPERU Â© 2026 - TODOS LOS DERECHOS RESERVADOS</p>
           <div className="flex items-center gap-8">
-            <span className="text-[9px] font-black text-blue-100/20 uppercase tracking-widest">Desarrollado por Micasa Perú</span>
+            <span className="text-[9px] font-black text-blue-100/20 uppercase tracking-widest">Desarrollado por Micasa PerÃº</span>
           </div>
         </div>
       </div>
@@ -126,3 +133,8 @@ const Footer: React.FC<FooterProps> = ({ socialLinks, officeInfo, onNavigate, on
 };
 
 export default Footer;
+
+
+
+
+

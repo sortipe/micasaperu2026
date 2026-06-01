@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Property } from '../types';
-import { optimizeImageUrl } from '../lib/imageTransform';
+import LazyImage from './LazyImage';
 
 interface PropertyListProps {
   properties: Property[];
@@ -115,7 +115,17 @@ const PropertyList: React.FC<PropertyListProps> = ({
             >
               {/* Image Section */}
               <div className="relative w-full md:w-[320px] shrink-0 overflow-hidden aspect-[4/3] md:aspect-auto h-full">
-                <img src={optimizeImageUrl(property.featuredImage, { width: 320 })} alt={`${property.title} - ${property.district}, ${property.department}`} width="320" height="260" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading={properties.indexOf(property) < 4 ? 'eager' : 'lazy'} fetchPriority={properties.indexOf(property) < 4 ? 'high' : 'auto'} decoding={properties.indexOf(property) < 4 ? 'sync' : 'async'} style={{ aspectRatio: '320/260' }} />
+              <LazyImage
+                src={property.featuredImage}
+                alt={`${property.title} - ${property.district}, ${property.department}`}
+                width={320} height={260}
+                className="w-full h-full group-hover:scale-105 transition-transform duration-700"
+                loading={properties.indexOf(property) < 4 ? 'eager' : 'lazy'}
+                fetchPriority={properties.indexOf(property) < 4 ? 'high' : 'auto'}
+                decoding={properties.indexOf(property) < 4 ? 'sync' : 'async'}
+                isLCP={properties.indexOf(property) === 0 && layout === 'list'}
+                sizes="(max-width: 768px) 100vw, 320px"
+              />
                 
                 {/* Tag on image */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -242,13 +252,13 @@ const PropertyList: React.FC<PropertyListProps> = ({
                   <div className="flex items-center gap-3">
                     {property.planType !== 'BASIC' && (
                       <>
-                        <img 
-                          src={property.agentAvatar || `https://ui-avatars.com/api/?name=${property.agentName || 'Asesor'}&background=0f172a&color=fff`} 
-                          className="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm" 
-                          alt={property.agentName}
-                          width="40"
-                          height="40"
+                        <LazyImage
+                          src={property.agentAvatar || `https://ui-avatars.com/api/?name=${property.agentName || 'Asesor'}&background=0f172a&color=fff`}
+                          className="w-10 h-10 rounded-lg border border-gray-100 shadow-sm"
+                          alt={property.agentName || 'Asesor'}
+                          width={40} height={40}
                           loading="lazy"
+                          breakpoints={[40]}
                         />
                         <div className="flex items-center gap-1.5">
                           {property.planType === 'SUPER_FEATURED' && (
@@ -306,7 +316,20 @@ const PropertyList: React.FC<PropertyListProps> = ({
             onClick={(e) => handlePropertyClick(property.id, e)}
           >
             <div className={`relative ${isSlider ? 'h-40' : 'h-48'}`}>
-              <img src={optimizeImageUrl(property.featuredImage, { width: isSlider ? 240 : 400 })} alt={property.title} width={isSlider ? 240 : 400} height={isSlider ? 160 : 300} className="w-full h-full object-cover" loading={properties.indexOf(property) < 4 ? 'eager' : 'lazy'} fetchPriority={properties.indexOf(property) < 4 ? 'high' : 'auto'} decoding={properties.indexOf(property) < 4 ? 'sync' : 'async'} style={{ aspectRatio: isSlider ? '240/160' : '400/300' }} />
+              <LazyImage
+                src={property.featuredImage}
+                alt={property.title}
+                width={isSlider ? 240 : 400}
+                height={isSlider ? 160 : 300}
+                className="w-full h-full object-cover"
+                loading={properties.indexOf(property) < 4 ? 'eager' : 'lazy'}
+                fetchPriority={properties.indexOf(property) < 4 ? 'high' : 'auto'}
+                decoding={properties.indexOf(property) < 4 ? 'sync' : 'async'}
+                isLCP={properties.indexOf(property) === 0 && !isSlider}
+                aspectRatio={isSlider ? '240/160' : '400/300'}
+                sizes={isSlider ? '240px' : '(max-width: 768px) 100vw, 400px'}
+                breakpoints={isSlider ? [240, 480] : [400, 800]}
+              />
               {onToggleCompare && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onToggleCompare(property.id); }}

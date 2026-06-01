@@ -124,6 +124,7 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
   const [selectedPlan, setSelectedPlan] = useState<Package | null>(null);
   const [selectedPlanCategory, setSelectedPlanCategory] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'SUCCESS'>('IDLE');
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [useCredits, setUseCredits] = useState((user.propertiesRemaining || 0) > 0 || (user.featuredRemaining || 0) > 0 || (user.superFeaturedRemaining || 0) > 0);
   
   // Search state
@@ -381,6 +382,10 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
       }
       setCurrentStep('EXTRAS');
     } else if (currentStep === 'EXTRAS') {
+      if (!acceptedPrivacy) {
+        showToast("Debes aceptar las PolÃ­ticas de Privacidad (Ley NÂ° 29733) para publicar tu inmueble.", "WARNING");
+        return;
+      }
       if (editingProperty?.allowAdsUsage === undefined) {
         showToast("Por favor indica tu preferencia de anuncios", "WARNING");
         return;
@@ -978,6 +983,21 @@ const PublicationFlow: React.FC<PublicationFlowProps> = ({
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="bg-red-50/50 p-8 rounded-[2rem] border border-red-100">
+                    <h4 className="text-[11px] font-black text-red-600 uppercase tracking-widest mb-3">Consentimiento de Privacidad</h4>
+                    <label className="flex items-start gap-2.5 text-xs text-gray-600 cursor-pointer select-none leading-relaxed">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer shrink-0"
+                        checked={acceptedPrivacy}
+                        onChange={e => setAcceptedPrivacy(e.target.checked)}
+                      />
+                      <span>
+                        Confirmo haber leÃ­do y acepto las <a href="/politica-de-privacidad" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline hover:text-red-800 transition-colors">PolÃ­ticas de Privacidad</a> y el tratamiento de mis datos personales de acuerdo a la <strong className="font-bold text-slate-900">Ley NÂ° 29733 (ProtecciÃ³n de Datos Personales en PerÃº)</strong>.
+                      </span>
+                    </label>
                   </div>
 
                   <div className="bg-gray-50 p-8 rounded-[2rem]">
