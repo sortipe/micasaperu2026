@@ -79,12 +79,6 @@
   ],
   "redirects": [
     {
-      "source": "/(wp-content|wp-includes|wp-admin|wp-json|xmlrpc\\.php|wp-config|wp-login|wp-cron|wp-trackback|wp-register|wp-signup|wp-activate|wp-mail|wp-links-opml)(/.*)?",
-      "destination": "/404",
-      "permanent": false,
-      "status": 410
-    },
-    {
     {
       "source": "^/(.*)",
       "has": [{ "type": "header", "key": "x-forwarded-proto", "value": "http" }],
