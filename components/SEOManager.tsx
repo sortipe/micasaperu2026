@@ -300,7 +300,7 @@ const SEOManager: React.FC<SEOManagerProps> = ({ view, property, searchQuery, pr
         'contactPoint': {
           '@type': 'ContactPoint',
           'contactType': 'customer support',
-          'email': 'hola@micasaperu.com',
+          'email': 'soporte@micasaperu.com',
           'availableLanguage': ['Spanish', 'English']
         },
         'sameAs': [

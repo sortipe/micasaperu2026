@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-Contacta a **hola@micasaperu.com** para reportar vulnerabilidades de seguridad.
+Contacta a **soporte@micasaperu.com** para reportar vulnerabilidades de seguridad.
 No uses issues públicos para reportes de seguridad.
 
 ## Data Protection (Ley N° 29733)

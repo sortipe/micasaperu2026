@@ -663,7 +663,7 @@ export default async (req, res) => {
       'contactPoint': {
         '@type': 'ContactPoint',
         'contactType': 'customer service',
-        'email': 'hola@micasaperu.com',
+        'email': 'soporte@micasaperu.com',
         'availableLanguage': ['Spanish', 'English']
       }
     };
