@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { beasties } from 'vite-plugin-beasties';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
@@ -12,18 +14,14 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      plugins: [
-        react(),
-        tailwindcss(),
-        beasties({
-          options: {
-            preload: 'swap',
-            pruneSource: false,
-            inlineThreshold: 4096,
-            minimumExternalSize: 10240,
-          },
-        }),
-      ],
+      plugins: [react(), tailwindcss(), beasties({
+        options: {
+          preload: 'swap',
+          pruneSource: false,
+          inlineThreshold: 4096,
+          minimumExternalSize: 10240,
+        },
+      }), cloudflare()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
